@@ -10,6 +10,8 @@
 #include <time.h>
 #include <ctime>
 #include <sys/stat.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 using namespace std;
 
@@ -381,6 +383,8 @@ class saveData {
     vector<string> file_name_trial_list;
     string file_name_gene;
     string file_name_nat;
+
+    string system_order_st; // for file copy order of system()
     
     // pointers to output lists (define in constructor)
     vector<vector<double> > output_trial; // 2 dimension list for by-trial data: 14 columns
@@ -481,6 +485,12 @@ void saveData::create_dir() {
         cout << "---- create the directory ./Analysis/Results ." << endl; 
     if (mkdir(path_name.c_str(), 0777) == 0) 
         cout << "---- create the directory ..." << endl << path_name.c_str() << endl; 
+    
+    // Copy this .cpp file to the directory
+    system_order_st = "cp EvolQL_multiTask_parallel.cpp ";
+    system_order_st += path_name;
+
+    system(system_order_st.c_str()); // run copy
 
 }
 
