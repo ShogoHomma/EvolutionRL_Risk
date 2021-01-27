@@ -380,7 +380,8 @@ class saveData {
     string path_name;
     string folder_name;
     string file_name_params;
-    vector<string> file_name_trial_list;
+    string file_name_trial; // to record first & last generation
+    vector<string> file_name_trial_list; // to record all generation
     string file_name_gene;
     string file_name_nat;
 
@@ -497,7 +498,6 @@ void saveData::create_dir() {
 // function to create csv files to save data
 void saveData::create_file() {
 
-    string file_name_trial;
     file_name_params += path_name; file_name_params += "_Parameters_memo.txt"; 
 
     stringstream rep;
@@ -522,7 +522,7 @@ void saveData::create_file() {
 
         string file_num = to_string(file_trial_i);
         file_name_trial += path_name; file_name_trial += rep.str();
-        file_name_trial += "_"; file_name_trial += file_num; file_name_trial += ".csv";
+        file_name_trial += "_trial_"; file_name_trial += file_num; file_name_trial += ".csv";
         ofstream ofs1(file_name_trial);
         if (!ofs1) {
             cout << "cannot open file!. Check file_name_trial ..." << endl << file_name_trial << endl;
@@ -539,6 +539,18 @@ void saveData::create_file() {
     }
     */
 
+    // create by-trial csv files for the first & last generation
+    file_name_trial += path_name; file_name_trial += rep.str(); file_name_trial += "_trial.csv";
+    ofstream ofs1(file_name_trial);
+    if (!ofs1) {
+        cout << "cannot open file!. Check file_name_trial ..." << endl << file_name_trial << endl;
+    }
+    else {
+        cout << "succeed! created " << file_name_trial << endl;
+        // 14 columns, write the header names
+        ofs1 << "replication,generation,agent,task,trial,ap,an,bt,Q1,Q0,p,choice,get_payoff,delta" << endl;
+    }
+    
     // create by-agent csv file (_nat.csv)
     ofstream ofs2(file_name_nat);
     if (!ofs2) {
@@ -732,7 +744,7 @@ void saveData::recordData_gene(Agent agent, int replication_i, int gene_i, int p
         //cout << "sd_ap: " << sd_ap << ", sd_an: " << sd_an << ", sd_bt: " << sd_bt << endl;
 
         double output[8] = {(double)replication_i, (double)gene_i, mean_ap, mean_an, mean_bt, sd_ap, sd_an, sd_bt};
-         
+        
         for (int data_i = 0; data_i < 8; ++data_i) {
             output_gene[data_i] = output[data_i];
         }
@@ -746,10 +758,31 @@ void saveData::recordData_gene(Agent agent, int replication_i, int gene_i, int p
 // function to data to trial csv
 void saveData::writeCSV_trial(int gene_i) {
 
+    /*
+    // write trial Data (all generation)
+
     int file_index = gene_i/(Generation/10); // file_index : 0 ~ 9
     //cout << "file_index : " << file_index << endl;
     
     ofstream fout_trial(file_name_trial_list[file_index], ios::app);
+    for (size_t data_i = 0; data_i < (PopSize*Trial*Task_N); ++data_i) {
+
+        for (size_t data_j = 0; data_j < 14; ++data_j) {
+            
+            if (data_j != 13) {
+                fout_trial << output_trial[data_i][data_j] << ", ";
+            }
+            else { // if last data
+                fout_trial << output_trial[data_i][data_j] << endl;
+            }
+
+        }
+        
+    }
+    */
+
+    // write trial Data (first & last generation)
+    ofstream fout_trial(file_name_trial, ios::app);
     for (size_t data_i = 0; data_i < (PopSize*Trial*Task_N); ++data_i) {
 
         for (size_t data_j = 0; data_j < 14; ++data_j) {
@@ -958,8 +991,10 @@ int main(int argc, char *argv[]){
                     nAgent[pop_i].qLearning(task_i, trial_i); // qlearning
 
                     // record by-trial data to a vector (output_trial)
-                    //savedat.recordData_trial(nAgent[pop_i], replication_i, gene_i, pop_i, task_i, trial_i); // * WARNING * This line should be usually commented out because we dont need by-trial csv
-
+                    if ((gene_i == 0)||(gene_i == Generation-1)) {
+                        savedat.recordData_trial(nAgent[pop_i], replication_i, gene_i, pop_i, task_i, trial_i); // * WARNING * This line should be usually commented out because we dont need by-trial csv
+                    }
+                    
                 }
 
             }
@@ -1188,8 +1223,11 @@ int main(int argc, char *argv[]){
         */
 
         // ------ write output data to CSV files ----- //
-
-        //savedat.writeCSV_trial(gene_i); // * WARNING * This line should be usually commented out because we dont need by-trial csv
+        if ((gene_i == 0) || (gene_i == Generation-1)) {
+            cout << "write CSV trial at gene : " << gene_i << endl;
+            savedat.writeCSV_trial(gene_i); // * WARNING * This line should be usually commented out because we dont need by-trial csv
+        }
+        
         savedat.writeCSV_gene();
         savedat.writeCSV_nat();
 
