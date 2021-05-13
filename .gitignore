@@ -1,0 +1,11 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.DS_Store
+*.code-workspace
+_AnalysisLog.md
+# 以下、無視するディレクトリ
+Data/
+Document/
+Output/
