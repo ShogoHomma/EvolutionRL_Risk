@@ -7,7 +7,7 @@ Created on Fri Oct 12 23:31:12 2018
 """
 
 # import libraries
-import csv, datetime, sys, math, os, copy, zipfile, random, itertools #, seaborn
+import csv, datetime, sys, math, os, copy, zipfile, random, itertools, shutil #, seaborn
 import numpy as np
 import pandas as pd
 
@@ -179,7 +179,13 @@ class SaveData:
         else:
             print(f"make new dir: {self.dir_name}")
             os.mkdir(self.dir_name)
-            
+        
+        """
+        シミュレーションのファイル（このファイル）のコピー
+        """
+        print(f"copy {__file__} ...")
+        shutil.copyfile(__file__, f"./{self.dir_name}/{os.path.basename(__file__)}")
+        
         
     def writeParameterInfo(self, sim_info, parameters_dict):
         
