@@ -333,7 +333,8 @@ class saveData {
     string file_name_gene;
     string file_name_nat;
 
-    string system_order_st; // for file copy order of system()
+    string system_order_st_cp; // for file copy order of system()
+    string system_order_st_gzip; // for gzip order of system()
     
     // pointers to output lists (define in constructor)
     vector<vector<double> > output_trial; // 2 dimension list for by-trial data: 13 columns
@@ -361,7 +362,9 @@ class saveData {
         void writeCSV_trial(int gene_i);
         void writeCSV_nat();
         void writeCSV_gene();
-        
+
+        // functions to gzip csv files via linux command at the end of the simulation
+        void gzipCSV();
 
 };
 
@@ -444,10 +447,10 @@ void saveData::create_dir() {
         cout << "---- create the directory ..." << endl << path_name.c_str() << endl; 
 
     // Copy this .cpp file to the directory
-    system_order_st = "cp BasicEvolQL_parallel.cpp ";
-    system_order_st += path_name;
+    system_order_st_cp = "cp BasicEvolQL_parallel.cpp ";
+    system_order_st_cp += path_name;
 
-    system(system_order_st.c_str()); // run copy
+    system(system_order_st_cp.c_str()); // run copy
 
 }
 
@@ -759,6 +762,54 @@ void saveData::writeCSV_gene() {
         }
 
     }
+    
+}
+
+void saveData::gzipCSV() {
+
+    // define variable for saving time
+    char now_time_str[200];
+    char elapsed_time_str[200];
+
+    // ---------- gzip _nat.csv files --------- //
+    system_order_st_gzip = "gzip "; system_order_st_gzip += file_name_nat;
+
+    cout << "gzip _nat.csv, order: " << system_order_st_gzip << endl;
+    system(system_order_st_gzip.c_str()); // run gzip
+    cout << "succeed!" << endl;
+    
+    // ---------- record time --------- //
+    time_t now = time(NULL); struct tm tm; 
+    strftime(now_time_str, sizeof(now_time_str), "%Y-%m-%d %H:%M:%S", localtime_r(&now, &tm));
+    time_t elapsed = difftime(now, start_time);
+
+    ofstream fout_params(file_name_params, ios::app);
+    fout_params << "rep_i : " << replication_i << ", gzip _nat.csv, order: " << system_order_st_gzip << endl;
+    fout_params << "rep_i : " << replication_i << ", end time : " << now_time_str << ", elapsed time (since the last generation) : " << elapsed << " sec" << endl;
+
+    start_time = now;
+
+    // --------- gzip _trial.csv files --------- //
+    /*
+
+    system_order_st_gzip = "gzip "; system_order_st_gzip += file_name_trial; 
+
+    cout << "gzip _trial.csv, order: " << system_order_st_gzip << endl;
+    system(system_order_st_gzip.c_str()); // run gzip
+    cout << "succeed!" << endl;
+    
+    // ---------- record time --------- //
+    now = time(NULL);
+    strftime(now_time_str, sizeof(now_time_str), "%Y-%m-%d %H:%M:%S", localtime_r(&now, &tm));
+    elapsed = difftime(now, start_time);
+
+    //ofstream fout_params(file_name_params, ios::app);
+    fout_params << "rep_i : " << replication_i << ", gzip _trial.csv, order: " << system_order_st_gzip << endl;
+    fout_params << "rep_i : " << replication_i << ", end time : " << now_time_str << ", elapsed time (gzip _trial.csv) : " << elapsed << " sec" << endl;
+
+    start_time = now;
+    
+    */
     
 }
 
@@ -1085,6 +1136,9 @@ int main(int argc, char *argv[]){
     // -------------------------------------------------------------------------------- //
     // the end of loop gene_i 
     }
+
+    // gzip *_nat.csv via linux command
+    savedat.gzipCSV();
 
     return 0;
 
