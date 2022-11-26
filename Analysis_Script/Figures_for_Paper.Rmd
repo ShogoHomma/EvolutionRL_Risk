@@ -909,7 +909,7 @@ target_simexp <- c("-50 vs -30", "-40 vs -20", "-30 vs -10", "-20 vs 0", "-10 vs
 
 g <- VisFirstLastGene_RiskAversion(df_gene_riskaversion_mean, target_simexp, "Risk-aversion task")
 
-ggsave(plot = g, filename = here(output_path, "Fig1.1_LastGene_RiskAversion_risk-aversion_inrow.png"), width = 20.0, height = 6.0)
+ggsave(plot = g, filename = here(output_path, "Fig1.1_FirstLastGene_RiskAversion_risk-aversion_inrow.png"), width = 20.0, height = 6.0)
 ```
 
  
@@ -919,7 +919,7 @@ target_simexp <- c("-10 vs -30", "0 vs -20", "10 vs -10", "20 vs 0", "30 vs 10",
 
 g <- VisFirstLastGene_RiskAversion(df_gene_riskaversion_mean, target_simexp, "Risk-seeking task")
 
-ggsave(plot = g, filename = here(output_path, "Fig1.2_LastGene_RiskAversion_risk-seeking_inrow.png"), width = 20.0, height = 6.0)
+ggsave(plot = g, filename = here(output_path, "Fig1.2_FirstLastGene_RiskAversion_risk-seeking_inrow.png"), width = 20.0, height = 6.0)
 ```
 
 
@@ -1084,7 +1084,7 @@ df_agent_randmulti_simMEAN %>%
   geom_linerange(aes(ymin = MEAN_risk_aversion - SD_risk_aversion, ymax = MEAN_risk_aversion + SD_risk_aversion), size = 1.5, position = position_dodge(width = 0.5)) + 
   geom_point(size = 3.0, stroke = 1.5, shape = 21, fill = "white", position = position_dodge(width = 0.5)) + 
   my_theme2 + 
-  theme(axis.text.x = element_text(size = 15, angle = 35, hjust = 1),
+  theme(axis.text.x = element_text(size = 15),
         axis.text.y = element_text(size = 15),
         axis.title = element_text(size = 14, face = "bold"),
         strip.text.x = element_text(size = 15)) + 
@@ -1096,7 +1096,7 @@ df_agent_randmulti_simMEAN %>%
   guides(fill = 'none') + 
   facet_wrap(~sim_n, ncol = 5) -> g
   
-ggsave(plot = g, filename = here(output_path, "Fig5_LastGene_RiskAversion_RandMulti.png"), width = 20.0, height = 5.0)
+ggsave(plot = g, filename = here(output_path, "Fig5_FirstLastGene_RiskAversion_RandMulti.png"), width = 20.0, height = 5.0)
 ```
 
 
@@ -1140,47 +1140,81 @@ df_agent_randmulti_summary %>%
 ## Fig.6 ランダム複数：simごとの試行を通しての学習ダイナミクスを図示
 
 - 横軸: 試行、縦軸: リスク回避率
-- パネル：課題 * 世代
+- 条件ごとに学習ダイナミクスを最初の世代と最終世代で比較する
+- 列：条件、行：世代、色の違いが課題
+
+- 影は各シミュレーション（課題）の平均値間のSD
 
 
 ```{r, eval=FALSE}
-# RandomMulti_trialのディレクトリ作成
-#dir.create(here(output_path, "RandomMulti_trial"))
+df_trial_randmulti_simMEAN %>% 
+  
+  dplyr::mutate(
+    generation = generation + 1,
+    task_type_rev = if_else(task_type == "risk_aversion", "risk aversion", "risk seeking")
+    ) %>% 
+  
+  ggplot(aes(x = trial, y = MEAN_risk_aversion)) + 
+  geom_line(aes(x = trial, y = MEAN_risk_aversion, color = task_type_rev), size = 1.2) + 
+  geom_ribbon(aes(x = trial, ymin = MEAN_risk_aversion - SD_risk_aversion, ymax = MEAN_risk_aversion + SD_risk_aversion, fill = task_type_rev), alpha = 0.6) + 
+  my_theme2 + 
+  theme(axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        axis.title = element_text(size = 20, face = "bold"),
+        strip.text.x = element_text(size = 15)) + 
+  scale_color_manual(values=c("#1F78B4", "#FF7F00")) + 
+  scale_fill_manual(values=c("#1F78B4", "#FF7F00")) + 
+  coord_cartesian(ylim = c(0, 1)) + 
+  labs(x = "Trial",
+       y = "Rate of risk aversion",
+       color = "task",
+       fill = "task") + 
+  
+  facet_grid(generation~sim_n, labeller = labeller(generation = label_both)) -> g
 
-sim_j_vec <- 1:Extract_SimN
-
-purrr::walk(sim_j_vec, ~VisTrial_RandMulti_RiskAversion_facetTask_bySim(df_trial_randmulti, df_trial_randmulti_summary, .x, output_path))
+ggsave(plot = g, filename = here(output_path, "Fig6_Trial_RiskAversion_RandMulti.png"), width = 20.0, height = 8.0)
 ```
 
-
-```{r}
-# simごとの平均値を算出する、
-
-
-```
-
-
-## Fig.9 複数：エージェントの学習ダイナミクス
 
 - 横軸: 試行、縦軸: リスク回避率
-- パネル：課題 * 世代
+- 条件ごとに学習ダイナミクスを最初の世代と最終世代で比較する
+- 列：条件、行：課題、色の違いが世代
+
+- 影は各シミュレーション（課題）の平均値間のSD
 
 
-```{r}
-g <- VisTrial_Multi_RiskAversion_facetTask(df_trialP22_meanSD, "Positively located simulation")
+```{r, eval=FALSE}
+df_trial_randmulti_simMEAN %>% 
+  
+  dplyr::mutate(
+    generation = generation + 1,
+    task_type_rev = if_else(task_type == "risk_aversion", "risk aversion", "risk seeking")
+    ) %>% 
+  
+  ggplot(aes(x = trial, y = MEAN_risk_aversion)) + 
+  geom_line(aes(x = trial, y = MEAN_risk_aversion, color = task_type_rev), size = 1.2) + 
+  geom_ribbon(aes(x = trial, ymin = MEAN_risk_aversion - SD_risk_aversion, ymax = MEAN_risk_aversion + SD_risk_aversion, fill = task_type_rev), alpha = 0.6) + 
+  my_theme2 + 
+  theme(axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        axis.title = element_text(size = 20, face = "bold"),
+        strip.text.x = element_text(size = 15)) + 
+  scale_color_manual(values=c("#44039EFF", "#F79044FF")) + 
+  scale_fill_manual(values=c("#44039EFF", "#F79044FF")) + 
+  coord_cartesian(ylim = c(0, 1)) + 
+  labs(x = "Trial",
+       y = "Rate of risk aversion",
+       color = "task",
+       fill = "task") + 
+  
+  facet_grid(generation~sim_n, labeller = labeller(generation = label_both)) -> g
 
-ggsave(plot = g, filename = here(output_path, "Fig9.1_Trial_RiskAversion_MultiTask_Positive.png"), width = 18.0, height = 10.0)
+ggsave(plot = g, filename = here(output_path, "Fig6_Trial_RiskAversion_RandMulti.png"), width = 20.0, height = 8.0)
 ```
 
-```{r}
-g <- VisTrial_Multi_RiskAversion_facetTask(df_trialN22_meanSD, "Negatively located simulation")
-
-ggsave(plot = g, filename = here(output_path, "Fig9.2_Trial_RiskAversion_MultiTask_Negative.png"), width = 18.0, height = 10.0)
-```
 
 
-
-## Fig.10 apとanの組合せと平均リスク回避率
+## Fig.7 apとanの組合せと平均リスク回避率
 
 
 ```{r}
