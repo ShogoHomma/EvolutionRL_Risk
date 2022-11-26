@@ -18,6 +18,7 @@ output:
     md_extensions: -ascii_identifiers
 ---
 
+
 # セットアップ
 
 ```{r, load-library}
@@ -366,6 +367,7 @@ dplyr::rename(
   dplyr::ungroup()
 ```
 
+
 ```{r}
 ## 世代, 課題平均の情報について（TaskGeneAverage）
 ## いったん、9つのシミュレーションを取り出す
@@ -448,6 +450,229 @@ DataDir <- "Data"
 DataDir_sub <- "Evo_Sim_MultipleTask"
 
 df_trialN22_meanSD <- MakeDfTrial_meanSD("_20210215150804", "N_2/2", DataDir, DataDir_sub, "_trial.csv.gz")
+```
+
+
+### ランダム複数課題シミュレーション
+
+
+```{r}
+# taskinfo系のdataframeを作成
+
+pattern_name <- c("_20220905162206", "_20220909161625", "_20220919103516", "_20220921105827", "_20220923105509")
+sim_name <- c("cond_2/2", "cond_1/3", "cond_3/1", "cond_0/4", "cond_4/0")
+
+params <- list(
+  pattern_name = pattern_name,
+  sim_name = sim_name
+)
+
+DataDir <- "Data"
+DataDir_sub <- "Evo_RandMultiTask"
+
+
+df_randmulti_taskinfo <- 
+  purrr::map2_dfr(params$pattern_name, params$sim_name, ~MakeDf(.x, .y, DataDir, DataDir_sub, "_task.csv")) %>% 
+  dplyr::mutate(
+    area_rate = (pnorm(0, m1, sd1) + pnorm(0, m2, sd2))/2,
+    eff_size = EffectSize(m1, sd1, m2, sd2)
+    ) %>% 
+  dplyr::mutate(
+    posi_nega = case_when(
+      (m1 > 0) & (m2 > 0) ~ "posi",
+      (m1 < 0) & (m2 < 0) ~ "nega",
+      TRUE ~ "other"
+    ),
+    task_type = case_when(
+      m1 > m2 ~ "risk_seeking",
+      m2 > m1 ~ "risk_aversion"
+    ))
+
+df_randmulti_taskgroup <- 
+  purrr::map2_dfr(params$pattern_name, params$sim_name, ~MakeDf(.x, .y, DataDir, DataDir_sub, "_taskgroup.csv")) %>% 
+  dplyr::mutate(area_rate = (pnorm(0, m1, sd1) + pnorm(0, m2, sd2))/2) %>% 
+  dplyr::mutate(
+    posi_nega = case_when(
+      (m1 > 0) & (m2 > 0) ~ "posi",
+      (m1 < 0) & (m2 < 0) ~ "nega",
+      TRUE ~ "other"
+    ),
+    task_type = case_when(
+      m1 > m2 ~ "risk_seeking",
+      m2 > m1 ~ "risk_aversion"
+    ))
+
+# 各課題の平均的な効果量と負の領域量を計算
+df_randmulti_taskinfo %>% 
+  dplyr::group_by(sim, sim_i) %>% 
+  dplyr::summarise(
+    mean_eff_size = mean(eff_size),
+    mean_area_rate = mean(area_rate)
+  ) ->
+  df_randmulti_mean_taskinfo
+```
+
+
+```{r}
+# _gene.csv # N = 1,000のもの 
+pattern_name <- c("_20220905162206", "_20220909161625", "_20220919103516", "_20220921105827", "_20220923105509")
+sim_name <- c("cond_2/2", "cond_1/3", "cond_3/1", "cond_0/4", "cond_4/0")
+
+params <- list(
+  pattern_name = pattern_name,
+  sim_name = sim_name
+)
+
+DataDir <- "Data"
+DataDir_sub <- "Evo_RandMultiTask"
+
+df_gene_randmulti <- purrr::map2_dfr(params$pattern_name, params$sim_name, ~MakeDf(.x, .y, DataDir, DataDir_sub, "_gene.csv"))
+
+df_gene_randmulti %>% 
+  dplyr::group_by(sim, generation) %>% 
+  dplyr::summarise(
+    MEAN_ap = mean(mean_ap),
+    MEAN_an = mean(mean_an),
+    MEAN_bt = mean(mean_bt)
+  ) -> 
+  df_gene_randmulti_summary
+
+
+
+# 課題情報と遺伝子のdfと結合
+df_gene_randmulti %>% 
+  dplyr::filter(generation == 2999) %>% 
+  dplyr::full_join(df_randmulti_mean_taskinfo, by = c("sim", "sim_i")) ->
+  df_gene_randmulti_taskinfo
+
+
+# 全体のまとめで使用するdfを作成
+df_gene_randmulti %>% 
+  dplyr::group_by(sim, generation) %>% 
+  dplyr::summarise(
+    MEAN_ap = mean(mean_ap),
+    MEAN_an = mean(mean_an),
+    MEAN_bt = mean(mean_bt)
+  ) %>% 
+  tidyr::pivot_longer(cols = -c(sim, generation), names_to = c("stat", "para"), names_sep = "_") %>% 
+  tidyr::pivot_wider(names_from = stat, values_from = value) -> 
+  df_gene_randmulti_summary_longer
+
+df_gene_randmulti %>% 
+  tidyr::pivot_longer(cols = -c(sim, sim_i, generation), names_to = c("stat", "para"), names_sep = "_") %>% 
+  tidyr::pivot_wider(names_from = stat, values_from = value) ->
+  df_gene_randmulti_longer
+
+df_gene_randmulti_longer %>% 
+  dplyr::filter(generation == 2999) %>% 
+  dplyr::full_join(df_randmulti_mean_taskinfo, by = c("sim", "sim_i")) ->
+  df_gene_randmulti_taskinfo_longer
+```
+
+
+
+```{r, eval=FALSE}
+# _nat.csvについて
+
+# ------ 5種類のシミュレーション ------ #
+# 時間がかかるので実行しない方がいい
+# 下のRDSファイルの読み込みをした方がいい
+
+pattern_name <- c("_20220905162206", "_20220909161625", "_20220919103516", "_20220921105827", "_20220923105509")
+sim_name <- c("cond_2/2", "cond_1/3", "cond_3/1", "cond_0/4", "cond_4/0")
+
+DataDir <- "Data"
+DataDir_sub <- "Evo_RandMultiTask"
+
+AgentN <- 1000
+GeneN <- 3000
+TaskN <- 4
+Extract_SimN <- 100
+
+df_agent_randmulti <- purrr::map2_dfr(pattern_name, sim_name, ~MakeDfNat_Rand(.x, .y, DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN))
+
+df_agent_randmulti %>%
+  dplyr::group_by(sim, sim_i, task_i, generation) %>%
+  dplyr::summarise(
+    MEAN_payoff = mean(mean_payoff),
+    SD_payoff = sqrt(variance(mean_payoff)),
+    MEAN_rate_choice1 = mean(rate_choice1),
+    SD_rate_choice1 = sqrt(variance(rate_choice1))
+  ) %>%
+  dplyr::mutate(
+    mean_risk_aversion = 1 - MEAN_rate_choice1
+  ) ->
+  df_agent_randmulti_summary
+
+# saveRDS(df_agent_randmulti_summary, file = "./Data/Evo_RandMultiTask/df_agent_randmulti_summary.obj")
+
+```
+
+```{r}
+#  ------ # _nat.csv：続き ------ #
+
+df_agent_randmulti_summary <- readRDS(here("Data", "Evo_RandMultiTask", "df_agent_randmulti_summary.obj"))
+
+# 課題情報と結合する
+df_randmulti_taskinfo %>%
+  dplyr::full_join(df_agent_randmulti_summary, by = c("sim", "sim_i", "task_i")) ->
+  df_agent_randmulti_summary
+
+df_agent_randmulti_summary %>%
+  dplyr::group_by(sim, generation, task_type) %>%
+  dplyr::summarise(
+    MEAN_risk_aversion = mean(mean_risk_aversion),
+    SD_risk_aversion = sqrt(variance(mean_risk_aversion)),
+    N = n()
+  ) %>% 
+  dplyr::mutate(
+    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
+  ) ->
+  df_agent_randmulti_simMEAN
+```
+
+
+```{r, eval=FALSE}
+# _trial.csv.gz # N = 1,000のもの 
+
+# ------ 5種類のシミュレーション ------ #
+# 時間がかかるので実行しない方がいい
+# 下のRDSファイルの読み込みをした方がいい
+
+
+pattern_name <- c("_20220905162206", "_20220909161625", "_20220919103516", "_20220921105827", "_20220923105509")
+sim_name <- c("cond_2/2", "cond_1/3", "cond_3/1", "cond_0/4", "cond_4/0")
+
+DataDir <- "Data"
+DataDir_sub <- "Evo_RandMultiTask"
+
+Extract_SimN <- 100
+
+df_trial_randmulti_summary <- purrr::map2_dfr(pattern_name, sim_name, ~MakeDfTrial_Rand(.x, .y, DataDir, DataDir_sub, "_trial.csv.gz", Extract_SimN))
+
+# 課題情報と結合する
+df_randmulti_taskinfo %>%
+  dplyr::full_join(df_trial_randmulti_summary, by = c("sim", "sim_i", "task_i")) %>% 
+  dplyr::mutate(
+    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
+  ) -> 
+  df_trial_randmulti_summary
+
+#saveRDS(df_trial_randmulti_summary, file = "./Data/Evo_RandMultiTask/df_trial_randmulti_summary.obj")
+```
+
+```{r}
+# _trial.csv.gz：続き ------ #
+
+df_trial_randmulti_summary <- readRDS(here("Data", "Evo_RandMultiTask", "df_trial_randmulti_summary.obj"))
+
+df_trial_randmulti_summary %>% 
+  dplyr::group_by(sim_n, generation, trial, task_type) %>% # sim_i間の平均とSDを計算する
+  dplyr::summarise(
+    MEAN_risk_aversion = mean(mean_risk_aversion),
+    SD_risk_aversion = sqrt(variance(mean_risk_aversion)) # sim_i間のSD
+  ) -> 
+df_trial_randmulti_simMEAN
 ```
 
 
@@ -645,7 +870,7 @@ ggsave(plot = g, filename = here(output_path, "Fig1_2_Simulate_value.png"), widt
 
 # 3. Results
 
-## Fig.2 シミュレーションで変化させた2つの要因
+## Fig.X シミュレーションで変化させた2つの要因
 
 ```{r}
 # 以下、全てリスク回避が適応的な課題で見せる
@@ -673,35 +898,7 @@ ggsave(filename = here(output_path, "Fig2_TwoFactors_nega_largerisk.png"), plot 
 ```
 
 
-
-## Fig.3 単一：6つの典型的な結果 リスク回避率
-
-  
-- 横軸: 世代、縦軸: リスク回避率の平均値
-
-```{r, eval = FALSE}
-# リスク回避が適応的な課題
-
-target_sim <- c("20.5.0.20", "0.5.-20.20", "-20.5.-40.20")
-
-g <- VisEvol_RiskAversion(df_gene_riskaversion_mean, target_sim, "Risk-aversion task")
-  
-ggsave(plot = g, filename = here(output_path, "Fig3.1_Evo_RiskAversion_risk-aversion_6_2.png"), width = 15.0, height = 6.0)
-```
-
-
-```{r, eval = FALSE}
-# リスク追求が適応的な課題
-
-target_sim <- c("20.5.40.20", "0.5.20.20", "-20.5.0.20")
-
-g <- VisEvol_RiskAversion(df_gene_riskaversion_mean, target_sim, "Risk-seeking task")
-
-ggsave(plot = g, filename = here(output_path, "Fig3.2_Evo_RiskAversion_risk-seeking_6_2.png"), width = 15.0, height = 6.0)
-```
-
-
-## Fig.4 単一：全シミュレーション リスク回避率
+## Fig.1 単一：全シミュレーション リスク回避率
 
 
 - 横軸: 課題の期待値、縦軸: 最終世代のリスク回避率の平均値(+SD)
@@ -712,7 +909,7 @@ target_simexp <- c("-50 vs -30", "-40 vs -20", "-30 vs -10", "-20 vs 0", "-10 vs
 
 g <- VisFirstLastGene_RiskAversion(df_gene_riskaversion_mean, target_simexp, "Risk-aversion task")
 
-ggsave(plot = g, filename = here(output_path, "Fig4.1_LastGene_RiskAversion_risk-aversion_inrow.png"), width = 20.0, height = 6.0)
+ggsave(plot = g, filename = here(output_path, "Fig1.1_LastGene_RiskAversion_risk-aversion_inrow.png"), width = 20.0, height = 6.0)
 ```
 
  
@@ -722,11 +919,11 @@ target_simexp <- c("-10 vs -30", "0 vs -20", "10 vs -10", "20 vs 0", "30 vs 10",
 
 g <- VisFirstLastGene_RiskAversion(df_gene_riskaversion_mean, target_simexp, "Risk-seeking task")
 
-ggsave(plot = g, filename = here(output_path, "Fig4.2_LastGene_RiskAversion_risk-seeking_inrow.png"), width = 20.0, height = 6.0)
+ggsave(plot = g, filename = here(output_path, "Fig1.2_LastGene_RiskAversion_risk-seeking_inrow.png"), width = 20.0, height = 6.0)
 ```
 
 
-## Fig.5 単一：6つの典型的な結果 進化
+## Fig.2 単一：6つの典型的な結果 進化
 
 - 横軸: 世代、縦軸: 遺伝子の値
 
@@ -737,7 +934,7 @@ target_sim <- c("20.5.0.20", "0.5.-20.20", "-20.5.-40.20")
 
 g <- VisEvol_Para_RunMean_facetSim(df_gene_longer, target_sim, "alpha", "Risk-aversion task")
 
-ggsave(plot = g, filename = here(output_path, "Fig5.1_Evo_apan_risk-aversion_6.png"), width = 15.0, height = 6.0)
+ggsave(plot = g, filename = here(output_path, "Fig2.1_Evo_apan_risk-aversion_6.png"), width = 15.0, height = 6.0)
 ```
 
 
@@ -748,11 +945,11 @@ target_sim <- c("20.5.40.20", "0.5.20.20", "-20.5.0.20")
 
 g <- VisEvol_Para_RunMean_facetSim(df_gene_longer, target_sim, "alpha", "Risk-seeking task", legend = FALSE)
 
-ggsave(plot = g, filename = here(output_path, "Fig5.2_Evo_apan_risk-seeking_6.png"), width = 15.0, height = 6.0)
+ggsave(plot = g, filename = here(output_path, "Fig2.2_Evo_apan_risk-seeking_6.png"), width = 15.0, height = 6.0)
 ```
 
 
-## Fig.6 単一：全シミュレーション 進化
+## Fig.3 単一：全シミュレーション 進化
 
 - 横軸: 課題の期待値、縦軸: 最終世代の遺伝子の平均値（+SD）
 
@@ -763,7 +960,7 @@ target_simexp <- c("-50 vs -30", "-40 vs -20", "-30 vs -10", "-20 vs 0", "-10 vs
 
 g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "alpha", "Risk-aversion task")
 
-ggsave(plot = g, filename = here(output_path, "Fig6.1_LastGene_apan_risk-aversion_inrow.png"), width = 20.0, height = 6.0)
+ggsave(plot = g, filename = here(output_path, "Fig3.1_LastGene_apan_risk-aversion_inrow.png"), width = 20.0, height = 6.0)
 ```
 
 
@@ -773,64 +970,193 @@ target_simexp <- c("-10 vs -30", "0 vs -20", "10 vs -10", "20 vs 0", "30 vs 10",
 
 g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "alpha", "Risk-seeking task", legend = FALSE)
 
-ggsave(plot = g, filename = here(output_path, "Fig6.2_LastGene_apan_risk-seeking_inrow.png"), width = 20.0, height = 6.0)
+ggsave(plot = g, filename = here(output_path, "Fig3.2_LastGene_apan_risk-seeking_inrow.png"), width = 20.0, height = 6.0)
 ```
 
 
 
-## Fig.7 複数：進化の結果
+## Fig.4-1 ランダム複数：進化の結果
 
-- 横軸: 世代、縦軸: 遺伝子の平均値(+SD)
+  
+- 横軸: 世代、縦軸: 遺伝子の値（細い線は1つのシミュレーション）
 
 
-```{r, eval = FALSE}
-# 2/2の正 & 負の課題
-target_sim <- c("P_2/2", "N_2/2")
+```{r, eval = FALSE} 
+df_gene_randmulti_summary_longer %>% 
+  dplyr::filter(para %in% c("ap", "an")) %>% 
+  dplyr::mutate(
+    cond_rev = case_when(
+      sim == "cond_0/4" ~ "risk seeking/aversion = 0/4",
+      sim == "cond_1/3" ~ "risk seeking/aversion = 1/3",
+      sim == "cond_2/2" ~ "risk seeking/aversion = 2/2",
+      sim == "cond_3/1" ~ "risk seeking/aversion = 3/1",
+      sim == "cond_4/0" ~ "risk seeking/aversion = 4/0"
+    ),
+    para_rev = case_when(
+      para == "ap" ~ "alpha[p]",
+      para == "an" ~ "alpha[n]"
+    )
+  ) -> 
+  df_gene_randmulti_summary_longer_rev
 
-g <- VisEvol_Multi_Para_RunMean_facetSim(df_gene_multi_longer, target_sim, "alpha", "loc", "")
-
-ggsave(plot = g, filename = here(output_path, "Fig7_Evo_apan_Multi_PosiNega.png"), width = 10.0, height = 6.0)
+df_gene_randmulti_longer %>% 
+  dplyr::filter(para %in% c("ap", "an")) %>% 
+  dplyr::mutate(
+    cond_rev = case_when(
+      sim == "cond_0/4" ~ "risk seeking/aversion = 0/4",
+      sim == "cond_1/3" ~ "risk seeking/aversion = 1/3",
+      sim == "cond_2/2" ~ "risk seeking/aversion = 2/2",
+      sim == "cond_3/1" ~ "risk seeking/aversion = 3/1",
+      sim == "cond_4/0" ~ "risk seeking/aversion = 4/0"
+    ),
+    para_rev = case_when(
+      para == "ap" ~ "alpha[p]",
+      para == "an" ~ "alpha[n]"
+    )
+  ) %>% 
+  
+  ggplot(aes(x = generation, y = mean)) + geom_line(aes(group = sim_i), size = 0.08) + 
+  geom_line(data = df_gene_randmulti_summary_longer_rev, aes(x = generation, y = MEAN, color = para), size = 2.0) +
+  my_theme2 + labs(x = 'Generation', y = 'Parameter') + guides(color = "none") + 
+  scale_color_manual(name = "", values = c("#1F78B4", "#FF7F00"), 
+                     labels = c(expression(paste(alpha[n])), expression(paste(alpha[p])))) +  
+  theme(
+    axis.text.x = element_text(size = 18), 
+    axis.text.y = element_text(size = 15), 
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(angle = 0)
+  ) + 
+  facet_grid(para_rev~cond_rev, 
+             labeller = labeller(para_rev = label_parsed)) + 
+  coord_cartesian(ylim = c(0, 1.0)) ->
+  g
+  
+ggsave(plot = g, filename = here(output_path, "Fig4_Evo_RandMulti_apan.png"), width = 19.0, height = 7.0)
 ```
 
 
+## Fig 4-2 ランダム複数：$\alpha_p$は負の領域の大きさで説明される
 
-```{r, eval = FALSE}
-# 2/2の正 & 中央、負の課題 for MultiRandTask
-target_sim <- c("P_2/2", "C_2/2", "N_2/2")
 
-g <- VisEvol_Multi_Para_RunMean_facetSim(df_gene_multi_longer, target_sim, "alpha", "loc", "")
+```{r}
+df_gene_randmulti_taskinfo_longer %>% 
+  dplyr::filter(para %in% c("ap")) %>% 
+  dplyr::mutate(
+    cond_rev = case_when(
+      sim == "cond_0/4" ~ "risk seeking/aversion = 0/4",
+      sim == "cond_1/3" ~ "risk seeking/aversion = 1/3",
+      sim == "cond_2/2" ~ "risk seeking/aversion = 2/2",
+      sim == "cond_3/1" ~ "risk seeking/aversion = 3/1",
+      sim == "cond_4/0" ~ "risk seeking/aversion = 4/0"
+    )
+  ) %>% 
+  
+  ggplot(aes(x = mean_area_rate, y = mean)) + geom_point() + geom_smooth(method = "lm") + 
+  my_theme2 + facet_grid(.~cond_rev) + 
+  theme(
+    axis.text.x = element_text(size = 18), 
+    axis.text.y = element_text(size = 15), 
+    strip.text.x = element_text(size = 15)
+  ) + 
+  labs(x = "mean negative area rate", y = "parameter at the last generation") -> g
 
-ggsave(plot = g, filename = here(output_path, "Evo_apan_Multi_PosiCentNega.png"), width = 13.0, height = 6.0)
+ggsave(plot = g, filename = here(output_path, "Fig4.2_Relation_RandMulti_ap_NegaArea.png"), width = 17.0, height = 6.0)
 ```
 
 
-## Fig.8 複数：4課題のリスク回避率
+## Fig.5 ランダム複数：4課題のリスク回避率
 
-- 2/2課題を抜き出す
-- 横軸: 世代、縦軸: リスク回避率の平均値(+SD)
+- （とりあえず）2/2課題を取り出す
+- 横軸：負の領域の大きさ、縦軸：リスク回避率の平均値
+
+- リスク回避課題とリスク追求課題で分けない
 
 
-```{r, eval = FALSE}
-# 正の課題シミュレーション
-# 2/2課題を抜き出す
-
-target_sim <- c("P_2/2")
-
-g <- VisEvol_Multi_RiskAversion_RunMean_facetTask(df_gene_task_riskaversion, target_sim, "Positively located simulation")
-
-ggsave(plot = g, filename = here(output_path, "Fig8.1_Evo_RiskAversion_Multi_Positive.png"), width = 18.0, height = 6.0)
+```{r, eval=FALSE, fig.width=20, fig.height=8}
+df_agent_randmulti_simMEAN %>% 
+  
+  dplyr::mutate(
+    generation = generation + 1,
+    task_type_rev = if_else(task_type == "risk_aversion", "risk aversion", "risk seeking")
+    ) %>% 
+  
+  ggplot(aes(x = as.factor(generation), y = MEAN_risk_aversion, color = task_type_rev, group = task_type_rev)) + 
+  geom_linerange(aes(ymin = MEAN_risk_aversion - SD_risk_aversion, ymax = MEAN_risk_aversion + SD_risk_aversion), size = 1.5, position = position_dodge(width = 0.5)) + 
+  geom_point(size = 3.0, stroke = 1.5, shape = 21, fill = "white", position = position_dodge(width = 0.5)) + 
+  my_theme2 + 
+  theme(axis.text.x = element_text(size = 15, angle = 35, hjust = 1),
+        axis.text.y = element_text(size = 15),
+        axis.title = element_text(size = 14, face = "bold"),
+        strip.text.x = element_text(size = 15)) + 
+  scale_color_manual(values=c("#1F78B4", "#FF7F00")) + 
+  coord_cartesian(ylim = c(0, 1)) + 
+  labs(x = "Generation",
+       y = "Rate of risk aversion",
+       color = "task") + 
+  guides(fill = 'none') + 
+  facet_wrap(~sim_n, ncol = 5) -> g
+  
+ggsave(plot = g, filename = here(output_path, "Fig5_LastGene_RiskAversion_RandMulti.png"), width = 20.0, height = 5.0)
 ```
 
 
-```{r, eval = FALSE}
-# 負の課題シミュレーション
-# 2/2課題を抜き出す
+```{r}
+# パフォーマンスの改善を計算する
+df_agent_randmulti_summary %>%
+  tidyr::pivot_wider(id_cols = c(sim_i, task_i, task_number, task_type), names_from = generation, values_from = mean_risk_aversion, names_prefix = "gene_") %>% 
+  dplyr::mutate(improve = case_when(
+    (task_type == "risk_seeking") & (gene_0 > gene_2999) ~ 1,
+    (task_type == "risk_seeking") & (gene_0 <= gene_2999) ~ 0,
+    (task_type == "risk_aversion") & (gene_0 < gene_2999) ~ 1,
+    (task_type == "risk_aversion") & (gene_0 >= gene_2999) ~ 0,
+  )) %>% 
+  dplyr::group_by(task_type) %>% 
+  dplyr::summarise(
+    count = sum(improve),
+    rate = count/n()
+  )
+```
 
-target_sim <- c("N_2/2")
 
-g <- VisEvol_Multi_RiskAversion_RunMean_facetTask(df_gene_task_riskaversion, target_sim, "Positively located simultion")
+```{r}
+# 最終世代で、リスク回避で0.9以上、リスク追求で0.1以下になった課題数を数える
 
-ggsave(plot = g, filename = here(output_path, "Fig8.2_Evo_RiskAversion_Multi_Negative.png"), width = 18.0, height = 6.0)
+df_agent_randmulti_summary %>%
+  dplyr::filter(generation == 2999) %>% 
+  dplyr::mutate(achieve = case_when(
+    (task_type == "risk_seeking") & (mean_risk_aversion < 0.1) ~ 1,
+    (task_type == "risk_seeking") & (mean_risk_aversion >= 0.1) ~ 0,
+    (task_type == "risk_aversion") & (mean_risk_aversion > 0.9) ~ 1,
+    (task_type == "risk_aversion") & (mean_risk_aversion <= 0.9) ~ 0,
+  )) %>% 
+  dplyr::group_by(task_type) %>% 
+  dplyr::summarise(
+    count = sum(achieve),
+    rate = count/n()
+  )
+```
+
+
+## Fig.6 ランダム複数：simごとの試行を通しての学習ダイナミクスを図示
+
+- 横軸: 試行、縦軸: リスク回避率
+- パネル：課題 * 世代
+
+
+```{r, eval=FALSE}
+# RandomMulti_trialのディレクトリ作成
+#dir.create(here(output_path, "RandomMulti_trial"))
+
+sim_j_vec <- 1:Extract_SimN
+
+purrr::walk(sim_j_vec, ~VisTrial_RandMulti_RiskAversion_facetTask_bySim(df_trial_randmulti, df_trial_randmulti_summary, .x, output_path))
+```
+
+
+```{r}
+# simごとの平均値を算出する、
+
+
 ```
 
 
@@ -2204,6 +2530,85 @@ tibble(
   
 ggsave(plot = g, filename = here(output_path, "FigX5_softmax_difference_bt.png"), width = 8.0, height = 6.0)
 ```
+
+
+# 古い図
+
+## Fig.4 複数：進化の結果
+
+  
+- 横軸: 世代、縦軸: 遺伝子の平均値(+SD)
+
+
+```{r, eval = FALSE}
+# 2/2の正 & 負の課題
+target_sim <- c("P_2/2", "N_2/2")
+
+g <- VisEvol_Multi_Para_RunMean_facetSim(df_gene_multi_longer, target_sim, "alpha", "loc", "")
+
+ggsave(plot = g, filename = here(output_path, "Fig4_Evo_apan_Multi_PosiNega.png"), width = 10.0, height = 6.0)
+```
+
+```{r, eval = FALSE}
+# 2/2の正 & 中央、負の課題 for MultiRandTask
+target_sim <- c("P_2/2", "C_2/2", "N_2/2")
+
+g <- VisEvol_Multi_Para_RunMean_facetSim(df_gene_multi_longer, target_sim, "alpha", "loc", "")
+
+ggsave(plot = g, filename = here(output_path, "Evo_apan_Multi_PosiCentNega.png"), width = 13.0, height = 6.0)
+```
+
+
+
+## Fig.8 複数：4課題のリスク回避率
+
+- 2/2課題を抜き出す
+- 横軸: 世代、縦軸: リスク回避率の平均値(+SD)
+
+
+```{r, eval = FALSE}
+# 正の課題シミュレーション
+# 2/2課題を抜き出す
+
+target_sim <- c("P_2/2")
+
+g <- VisEvol_Multi_RiskAversion_RunMean_facetTask(df_gene_task_riskaversion, target_sim, "Positively located simulation")
+
+ggsave(plot = g, filename = here(output_path, "Fig8.1_Evo_RiskAversion_Multi_Positive.png"), width = 18.0, height = 6.0)
+```
+
+
+```{r, eval = FALSE}
+# 負の課題シミュレーション
+# 2/2課題を抜き出す
+
+target_sim <- c("N_2/2")
+
+g <- VisEvol_Multi_RiskAversion_RunMean_facetTask(df_gene_task_riskaversion, target_sim, "Positively located simultion")
+
+ggsave(plot = g, filename = here(output_path, "Fig8.2_Evo_RiskAversion_Multi_Negative.png"), width = 18.0, height = 6.0)
+```
+
+
+## Fig.9 複数：エージェントの学習ダイナミクス
+
+- 横軸: 試行、縦軸: リスク回避率
+- パネル：課題 * 世代
+
+
+```{r}
+g <- VisTrial_Multi_RiskAversion_facetTask(df_trialP22_meanSD, "Positively located simulation")
+
+ggsave(plot = g, filename = here(output_path, "Fig9.1_Trial_RiskAversion_MultiTask_Positive.png"), width = 18.0, height = 10.0)
+```
+
+```{r}
+g <- VisTrial_Multi_RiskAversion_facetTask(df_trialN22_meanSD, "Negatively located simulation")
+
+ggsave(plot = g, filename = here(output_path, "Fig9.2_Trial_RiskAversion_MultiTask_Negative.png"), width = 18.0, height = 10.0)
+```
+
+
 
 
 # Session Info
