@@ -19,7 +19,7 @@ output:
 ---
 
 
-# セットアップ
+a# セットアップ
 
 ```{r, load-library}
 library(tidyverse)
@@ -689,6 +689,8 @@ task_struct_list <- list(
 
 res_ql_list_choice <- readRDS(file = here("Data", "SameExp_Sim_RandMultiTask", "res_ql_list_choice.RDS"))
 
+df_agent_randmulti_LastGenePara <- readRDS(here("Data", "Evo_RandMultiTask", "df_agent_randmulti_LastGenePara.obj"))
+
 purrr::map(res_ql_list_choice, 
            ~{.x %>% 
                tibble::as_tibble(.) %>% 
@@ -743,98 +745,9 @@ df_choice_res %>%
 
 
 
-```{r}
-# pattern_name <- c("_20200604093559", "_20200604094009", "_20200604094228", "_20200613192231", "_20200613192352", "_20200613192639", "_20201214135554", "_20200618202649", "_20200618202802") # old directory
-
-pattern_name <- c("_20210201113232", "_20210204145614", "_20210204170716", "_20210209094209", "_20210209105123", "_20210215150639", "_20210215150804", "_20210219095243", "_20210219095637")
-
-sim_name <- c("multi1.0", "multi2.0", "multi3.0", "multi4.0", "multi5.0", "multi6.0", "multi7.0", "multi8.0", "multi9.0")
-
-params <- 
-  list(
-    pattern_name = pattern_name,
-    sim_name = sim_name
-  )
-
-# まず最終世代の遺伝子情報を取り出す
-DataDir <- "Data"
-DataDir_sub <- "Evo_Sim_MultipleTask"
-
-df_lastgene_list <- purrr::map2(params$pattern_name, params$sim_name, ~MakeDfLastGene_multiTask(.x, .y, DataDir, DataDir_sub, "first_lastgene.csv"))
-
-# 期待値が同じ課題のシミュレーションを整理する　# とりあえず multi1.0とmulti4.0とmultiと7.0
-
-res_ql_1 <- list(res_ql_1_1, res_ql_1_3, res_ql_1_5, res_ql_1_7)
-choice_result_1 <- purrr::map(res_ql_1, ~MakeDf_ChoiceResult(.x, df_lastgene_list[[1]]))
-
-res_ql_4 <- list(res_ql_4_1, res_ql_4_3, res_ql_4_5, res_ql_4_7)
-choice_result_4 <- purrr::map(res_ql_4, ~MakeDf_ChoiceResult(.x, df_lastgene_list[[4]]))
-
-res_ql_7 <- list(res_ql_7_1, res_ql_7_3, res_ql_7_5, res_ql_7_7)
-choice_result_7 <- purrr::map(res_ql_7, ~MakeDf_ChoiceResult(.x, df_lastgene_list[[7]]))
-
-rm(list = ls()[stringr::str_detect(string = ls(), pattern = "^res_ql_")])
-
-# 分布が正によっている課題群
-df_choice_res1 <- 
-  choice_result_1 %>% 
-  dplyr::bind_rows() %>% # 4つのリストを結合する
-  dplyr::mutate(sim_n = rep(1:4, each = 1e5)) %>% 
-  dplyr::mutate(
-    sim_name = 
-      case_when(
-        sim_n == 1 ~ "N(20, 20) vs N(20, 5) (Gain domain)",
-        sim_n == 2 ~ "N(10, 20) vs N(10, 5) (Gain domain)",
-        sim_n == 3 ~ "N(-10, 20) vs N(-10, 5) (Loss domain)",
-        sim_n == 4 ~ "N(-20, 20) vs N(-20, 5) (Loss domain)",
-      )
-  )
-
-# factor型のlevelを指定して、facetした時の順序を指定
-df_choice_res1$sim_name <- factor(df_choice_res1$sim_name, levels = c("N(20, 20) vs N(20, 5) (Gain domain)", "N(10, 20) vs N(10, 5) (Gain domain)", "N(-10, 20) vs N(-10, 5) (Loss domain)", "N(-20, 20) vs N(-20, 5) (Loss domain)"))
-
-# 分布が0〜負によっている課題群
-df_choice_res4 <- 
-  choice_result_4 %>% 
-  dplyr::bind_rows() %>% # 4つのリストを結合する
-  dplyr::mutate(sim_n = rep(1:4, each = 1e5)) %>% 
-  dplyr::mutate(
-    sim_name = 
-      case_when(
-        sim_n == 1 ~ "N(20, 20) vs N(20, 5) (Gain domain)",
-        sim_n == 2 ~ "N(10, 20) vs N(10, 5) (Gain domain)",
-        sim_n == 3 ~ "N(-10, 20) vs N(-10, 5) (Loss domain)",
-        sim_n == 4 ~ "N(-20, 20) vs N(-20, 5) (Loss domain)",
-      )
-  )
-
-# factor型のlevelを指定して、facetした時の順序を指定
-df_choice_res4$sim_name <- factor(df_choice_res4$sim_name, levels = c("N(20, 20) vs N(20, 5) (Gain domain)", "N(10, 20) vs N(10, 5) (Gain domain)", "N(-10, 20) vs N(-10, 5) (Loss domain)", "N(-20, 20) vs N(-20, 5) (Loss domain)"))
-
-# 分布が負によっている課題群
-df_choice_res7 <- 
-  choice_result_7 %>% 
-  dplyr::bind_rows() %>% # 4つのリストを結合する
-  dplyr::mutate(sim_n = rep(1:4, each = 1e5)) %>% 
-  dplyr::mutate(
-    sim_name = 
-      case_when(
-        sim_n == 1 ~ "N(20, 20) vs N(20, 5) (Gain domain)",
-        sim_n == 2 ~ "N(10, 20) vs N(10, 5) (Gain domain)",
-        sim_n == 3 ~ "N(-10, 20) vs N(-10, 5) (Loss domain)",
-        sim_n == 4 ~ "N(-20, 20) vs N(-20, 5) (Loss domain)",
-      )
-  )
-
-# factor型のlevelを指定して、facetした時の順序を指定
-df_choice_res7$sim_name <- factor(df_choice_res7$sim_name, levels = c("N(20, 20) vs N(20, 5) (Gain domain)", "N(10, 20) vs N(10, 5) (Gain domain)", "N(-10, 20) vs N(-10, 5) (Loss domain)", "N(-20, 20) vs N(-20, 5) (Loss domain)"))
-
-```
-
-
 # 1. Introduction
 
-## Fig.1 Q値が漸近していく図
+## Fig.X Q値が漸近していく図
 
 - alpha = 0.1とalpha = 0.6の2種類
 - beta = 0.1
@@ -1140,7 +1053,7 @@ df_agent_randmulti_simMEAN %>%
         axis.text.y = element_text(size = 15),
         axis.title = element_text(size = 14, face = "bold"),
         strip.text.x = element_text(size = 15)) + 
-  scale_color_manual(values=c("#1F78B4", "#FF7F00")) + 
+  scale_color_manual(values=c("deepskyblue", "tan3")) + 
   coord_cartesian(ylim = c(0, 1)) + 
   labs(x = "Generation",
        y = "Rate of risk aversion",
@@ -1152,17 +1065,21 @@ ggsave(plot = g, filename = here(output_path, "Fig5_FirstLastGene_RiskAversion_R
 ```
 
 
+## Fig,5 補足：パフォーマンスの改善
+
 ```{r}
 # パフォーマンスの改善を計算する
-df_agent_randmulti_summary %>%
-  tidyr::pivot_wider(id_cols = c(sim_i, task_i, task_number, task_type), names_from = generation, values_from = mean_risk_aversion, names_prefix = "gene_") %>% 
+
+df_agent_randmulti_summary %>% 
+  #dplyr::filter(sim %in% c("cond_2/2", "cond_1/3", "cond_3/1")) %>% 
+  tidyr::pivot_wider(id_cols = c(sim, sim_i, task_i, task_number, task_type), names_from = generation, values_from = mean_risk_aversion, names_prefix = "gene_") %>% 
   dplyr::mutate(improve = case_when(
     (task_type == "risk_seeking") & (gene_0 > gene_2999) ~ 1,
     (task_type == "risk_seeking") & (gene_0 <= gene_2999) ~ 0,
     (task_type == "risk_aversion") & (gene_0 < gene_2999) ~ 1,
     (task_type == "risk_aversion") & (gene_0 >= gene_2999) ~ 0,
   )) %>% 
-  dplyr::group_by(task_type) %>% 
+  dplyr::group_by(sim, task_type) %>% 
   dplyr::summarise(
     count = sum(improve),
     rate = count/n()
@@ -1181,7 +1098,7 @@ df_agent_randmulti_summary %>%
     (task_type == "risk_aversion") & (mean_risk_aversion > 0.9) ~ 1,
     (task_type == "risk_aversion") & (mean_risk_aversion <= 0.9) ~ 0,
   )) %>% 
-  dplyr::group_by(task_type) %>% 
+  dplyr::group_by(sim, task_type) %>% 
   dplyr::summarise(
     count = sum(achieve),
     rate = count/n()
@@ -1190,42 +1107,6 @@ df_agent_randmulti_summary %>%
 
 
 ## Fig.6 ランダム複数：simごとの試行を通しての学習ダイナミクスを図示
-
-- 横軸: 試行、縦軸: リスク回避率
-- 条件ごとに学習ダイナミクスを最初の世代と最終世代で比較する
-- 列：条件、行：世代、色の違いが課題
-
-- 影は各シミュレーション（課題）の平均値間のSD
-
-
-```{r, eval=FALSE}
-df_trial_randmulti_simMEAN %>% 
-  
-  dplyr::mutate(
-    generation = generation + 1,
-    task_type_rev = if_else(task_type == "risk_aversion", "risk aversion", "risk seeking")
-    ) %>% 
-  
-  ggplot(aes(x = trial, y = MEAN_risk_aversion)) + 
-  geom_line(aes(x = trial, y = MEAN_risk_aversion, color = task_type_rev), size = 1.2) + 
-  geom_ribbon(aes(x = trial, ymin = MEAN_risk_aversion - SD_risk_aversion, ymax = MEAN_risk_aversion + SD_risk_aversion, fill = task_type_rev), alpha = 0.6) + 
-  my_theme2 + 
-  theme(axis.text.x = element_text(size = 15),
-        axis.text.y = element_text(size = 15),
-        axis.title = element_text(size = 20, face = "bold"),
-        strip.text.x = element_text(size = 15)) + 
-  scale_color_manual(values=c("#1F78B4", "#FF7F00")) + 
-  scale_fill_manual(values=c("#1F78B4", "#FF7F00")) + 
-  coord_cartesian(ylim = c(0, 1)) + 
-  labs(x = "Trial",
-       y = "Rate of risk aversion",
-       color = "task",
-       fill = "task") + 
-  
-  facet_grid(generation~sim_n, labeller = labeller(generation = label_both)) -> g
-
-ggsave(plot = g, filename = here(output_path, "Fig6_Trial_RiskAversion_RandMulti.png"), width = 20.0, height = 8.0)
-```
 
 
 - 横軸: 試行、縦軸: リスク回避率
@@ -1251,8 +1132,8 @@ df_trial_randmulti_simMEAN %>%
         axis.text.y = element_text(size = 15),
         axis.title = element_text(size = 20, face = "bold"),
         strip.text.x = element_text(size = 15)) + 
-  scale_color_manual(values=c("#44039EFF", "#F79044FF")) + 
-  scale_fill_manual(values=c("#44039EFF", "#F79044FF")) + 
+  scale_color_manual(values=c("deepskyblue", "tan3")) + 
+  scale_fill_manual(values=c("lightblue3", "goldenrod1")) + 
   coord_cartesian(ylim = c(0, 1)) + 
   labs(x = "Trial",
        y = "Rate of risk aversion",
@@ -1320,358 +1201,24 @@ ggsave(plot = g, filename = here(output_path, "Fig8_RiskPref_RandMulti.png"), wi
 ```
 
 
-## Fig.8 補足：各種代表値を求める
-
 ```{r}
-# Gain domainにおける2つのモード
-a <- df_choice_res1 %>% 
-  dplyr::filter(risk_aversion == 0.0 | risk_aversion == 1.0) %>% 
-  dplyr::group_by(sim_name, risk_aversion) %>% 
-  dplyr::summarise(
-    N = n(),
-    rate = N/100000
-  ) %>% 
-  dplyr::mutate(
-    loc = "positive"
-  )
-
-b <- df_choice_res4 %>% 
-  dplyr::filter(risk_aversion == 0.0 | risk_aversion == 1.0) %>% 
-  dplyr::group_by(sim_name, risk_aversion) %>% 
-  dplyr::summarise(
-    N = n(),
-    rate = N/100000
-  ) %>% 
-  dplyr::mutate(
-    loc = "center"
-  )
-
-c <- df_choice_res7 %>% 
-  dplyr::filter(risk_aversion == 0.0 | risk_aversion == 1.0) %>% 
-  dplyr::group_by(sim_name, risk_aversion) %>% 
-  dplyr::summarise(
-    N = n(),
-    rate = N/100000
-  ) %>% 
-  dplyr::mutate(
-    loc = "negative"
-  )
-
-# 各課題でのモード
-a %>% 
-  dplyr::bind_rows(b, c) %>% 
-  dplyr::filter(stringr::str_detect(string = sim_name, pattern = "Gain")) %>% 
-  dplyr::group_by(loc, sim_name, risk_aversion) %>% 
-  dplyr::summarise(
-    mean_rate = mean(rate)
-  )
-
-# 全平均
-a %>% 
-  dplyr::bind_rows(b, c) %>% 
-  dplyr::filter(stringr::str_detect(string = sim_name, pattern = "Gain")) %>% 
-  dplyr::group_by(risk_aversion) %>% 
-  dplyr::summarise(
-    mean_rate = mean(rate)
-  )
+# 発表用：2/2条件のみでグラフを作成
+# 課題 * 条件のグラフを作成
+df_choice_res %>% 
+  dplyr::filter(sim == "cond_2/2") %>% 
   
+  ggplot(aes(x = risk_aversion)) + 
+  geom_histogram() + 
+  my_theme2 + 
+  theme(axis.text.x = element_text(size = 15), 
+        axis.text.y = element_text(size = 15), 
+        axis.title=element_text(size = 20, face="bold"), 
+        strip.text.x = element_text(size = 15)
+        ) + 
+  facet_grid(.~task_struct) + 
+  labs(x = "Rate of risk aversion", y = "Frequency of agent") -> g
 
-# Loss domainにおけるモード
-map_value <- function(z) {
-  
-  val <- density(z)$x[which.max(density(z)$y)]
-  return(val)
-  
-}
-
-df_choice_res1_sim3 <- 
-  df_choice_res1 %>% 
-  dplyr::filter(stringr::str_detect(string = sim_name, pattern = "Loss")) %>% 
-  dplyr::filter(sim_n == 3)
-
-mvalue_3 <- map_value(df_choice_res1_sim3$risk_aversion)
-
-df_choice_res1_sim4 <- 
-  df_choice_res1 %>% 
-  dplyr::filter(stringr::str_detect(string = sim_name, pattern = "Loss")) %>% 
-  dplyr::filter(sim_n == 4)
-
-mvalue_4 <- map_value(df_choice_res1_sim4$risk_aversion)
-```
-
-
-- リスク回避率 90%以上、10%以下の頻度%をそれぞれ求める
-
-```{r}
-# 正に偏っている：Positively-located
-df_choice_res1 %>% 
-  dplyr::mutate(
-    risk_aversion_categ = 
-      case_when(
-        risk_aversion >= 0.90 ~ "high",
-        (risk_aversion < 0.90) & (risk_aversion > 0.10) ~ "med",
-        risk_aversion <= 0.10 ~ "low"
-      )
-  ) %>% 
-  dplyr::group_by(sim_name, risk_aversion_categ) %>% 
-  dplyr::summarise(
-    frequency = n(),
-    rate = frequency/100000
-  )
-
-# 中央：Centrally-located
-df_choice_res4 %>% 
-  dplyr::mutate(
-    risk_aversion_categ = 
-      case_when(
-        risk_aversion >= 0.90 ~ "high",
-        (risk_aversion < 0.90) & (risk_aversion > 0.10) ~ "med",
-        risk_aversion <= 0.10 ~ "low"
-      )
-  ) %>% 
-  dplyr::group_by(sim_name, risk_aversion_categ) %>% 
-  dplyr::summarise(
-    frequency = n(),
-    rate = frequency/100000
-  )
-
-# 負に偏っている：Negatively-located
-df_choice_res7 %>% 
-  dplyr::mutate(
-    risk_aversion_categ = 
-      case_when(
-        risk_aversion >= 0.90 ~ "high",
-        (risk_aversion < 0.90) & (risk_aversion > 0.10) ~ "med",
-        risk_aversion <= 0.10 ~ "low"
-      )
-  ) %>% 
-  dplyr::group_by(sim_name, risk_aversion_categ) %>% 
-  dplyr::summarise(
-    frequency = n(),
-    rate = frequency/100000
-  )
-  
-```
-
-
-- リスク回避率の平均値をそれぞれのグラフについて求める
-
-
-```{r}
-# 正に偏っている：Positively-located
-df_choice_res1 %>% 
-  dplyr::group_by(sim_n, sim_name) %>% 
-  dplyr::summarise(
-    mean = mean(risk_aversion)
-  )
-
-# 中央にいる：Centrally-located  
-df_choice_res4 %>% 
-  dplyr::group_by(sim_n, sim_name) %>% 
-  dplyr::summarise(
-    mean = mean(risk_aversion)
-  )
-
-# 負に偏っている：Negatively-located
-df_choice_res7 %>% 
-  dplyr::group_by(sim_n, sim_name) %>% 
-  dplyr::summarise(
-    mean = mean(risk_aversion)
-  )
-  
-```
-
-
-- リスク回避率について、プロスペクト理論的な振る舞いのエージェントを取り出す
-
-  - Gain → Lossでリスク回避率が減少した個体の割合を算出
-  - 僅かでもリスク回避率が減少していたら、「（相対的な）プロスペクト理論的な個体」とみなす
-
-
-```{r}
-# task 1 → 3で減少
-# task 1 → 4で減少
-# task 2 → 3で減少
-# task 2 → 4で減少
-
-# 正に偏っている：Positively-located
-
-df_choice_res1 %>% 
-  dplyr::mutate(
-    sim_n = paste0("aversion_", sim_n)
-  ) %>% 
-  tidyr::pivot_wider(id_cols = "agent", names_from = sim_n, values_from = risk_aversion) %>% 
-  dplyr::mutate(
-    switch1_3 = if_else(aversion_1 > aversion_3, 1, 0),
-    switch1_4 = if_else(aversion_1 > aversion_4, 1, 0),
-    switch2_3 = if_else(aversion_2 > aversion_3, 1, 0),
-    switch2_4 = if_else(aversion_2 > aversion_4, 1, 0)
-  ) %>% 
-  tidyr::pivot_longer(cols = c(switch1_3, switch1_4, switch2_3, switch2_4), names_to = "switch", values_to = "frequency") %>% 
-  dplyr::group_by(switch) %>% 
-  dplyr::summarise(
-    count = sum(frequency),
-    rate = count/100000
-  )
-
-# 中央にある：Centrally-located
-
-df_choice_res4 %>% 
-  dplyr::mutate(
-    sim_n = paste0("aversion_", sim_n)
-  ) %>% 
-  tidyr::pivot_wider(id_cols = "agent", names_from = sim_n, values_from = risk_aversion) %>% 
-  dplyr::mutate(
-    switch1_3 = if_else(aversion_1 > aversion_3, 1, 0),
-    switch1_4 = if_else(aversion_1 > aversion_4, 1, 0),
-    switch2_3 = if_else(aversion_2 > aversion_3, 1, 0),
-    switch2_4 = if_else(aversion_2 > aversion_4, 1, 0)
-  ) %>% 
-  tidyr::pivot_longer(cols = c(switch1_3, switch1_4, switch2_3, switch2_4), names_to = "switch", values_to = "frequency") %>% 
-  dplyr::group_by(switch) %>% 
-  dplyr::summarise(
-    count = sum(frequency),
-    rate = count/100000
-  )
-
-# 負にある：Negatively-located
-
-df_choice_res7 %>% 
-  dplyr::mutate(
-    sim_n = paste0("aversion_", sim_n)
-  ) %>% 
-  tidyr::pivot_wider(id_cols = "agent", names_from = sim_n, values_from = risk_aversion) %>% 
-  dplyr::mutate(
-    switch1_3 = if_else(aversion_1 > aversion_3, 1, 0),
-    switch1_4 = if_else(aversion_1 > aversion_4, 1, 0),
-    switch2_3 = if_else(aversion_2 > aversion_3, 1, 0),
-    switch2_4 = if_else(aversion_2 > aversion_4, 1, 0)
-  ) %>% 
-  tidyr::pivot_longer(cols = c(switch1_3, switch1_4, switch2_3, switch2_4), names_to = "switch", values_to = "frequency") %>% 
-  dplyr::group_by(switch) %>% 
-  dplyr::summarise(
-    count = sum(frequency),
-    rate = count/100000
-  )
-```
-
-
-- リスク回避率50%以上の個体をリスク回避的な個体、50%未満をリスク追求的な個体とした場合の変化の割合
-
-```{r}
-# 正に偏っている：Positively-located
-
-df_choice_res1 %>% 
-  dplyr::mutate(
-    sim_n = paste0("aversion_", sim_n),
-    agenttype = if_else(risk_aversion > 0.5, 1, 0) # 1: risk-averse agent, 0: risk-seeking agent
-    ) %>% 
-  tidyr::pivot_wider(id_cols = "agent", names_from = sim_n, values_from = agenttype) %>% 
-  dplyr::mutate(
-    switch_1_3 = case_when(
-      aversion_1 > aversion_3 ~ "decrease",
-      aversion_1 == aversion_3 ~ "same",
-      aversion_1 < aversion_3 ~ "increase"
-    ), 
-    switch_1_4 = case_when(
-      aversion_1 > aversion_4 ~ "decrease",
-      aversion_1 == aversion_4 ~ "same",
-      aversion_1 < aversion_4 ~ "increase"
-    ),
-    switch_2_3 = case_when(
-      aversion_2 > aversion_3 ~ "decrease",
-      aversion_2 == aversion_3 ~ "same",
-      aversion_2 < aversion_3 ~ "increase"
-    ),
-    switch_2_4 = case_when(
-      aversion_2 > aversion_4 ~ "decrease",
-      aversion_2 == aversion_4 ~ "same",
-      aversion_2 < aversion_4 ~ "increase"
-    )
-  ) %>% 
-  tidyr::pivot_longer(cols = c(-agent, -aversion_1, -aversion_2, -aversion_3, -aversion_4), names_to = "switch", values_to = "switch_type") %>% 
-  dplyr::group_by(switch, switch_type) %>% 
-  dplyr::summarise(
-    count = n(),
-    rate = count/100000
-  ) %>% 
-  readr::write_csv(file = here(output_path, "RiskPref_MultiTask1.0_switch_type.csv"))
-
-# 中央にある：Centrally-located
-
-df_choice_res4 %>% 
-  dplyr::mutate(
-    sim_n = paste0("aversion_", sim_n),
-    agenttype = if_else(risk_aversion > 0.5, 1, 0) # 1: risk-averse agent, 0: risk-seeking agent
-    ) %>% 
-  tidyr::pivot_wider(id_cols = "agent", names_from = sim_n, values_from = agenttype) %>% 
-  dplyr::mutate(
-    switch_1_3 = case_when(
-      aversion_1 > aversion_3 ~ "decrease",
-      aversion_1 == aversion_3 ~ "same",
-      aversion_1 < aversion_3 ~ "increase"
-    ), 
-    switch_1_4 = case_when(
-      aversion_1 > aversion_4 ~ "decrease",
-      aversion_1 == aversion_4 ~ "same",
-      aversion_1 < aversion_4 ~ "increase"
-    ),
-    switch_2_3 = case_when(
-      aversion_2 > aversion_3 ~ "decrease",
-      aversion_2 == aversion_3 ~ "same",
-      aversion_2 < aversion_3 ~ "increase"
-    ),
-    switch_2_4 = case_when(
-      aversion_2 > aversion_4 ~ "decrease",
-      aversion_2 == aversion_4 ~ "same",
-      aversion_2 < aversion_4 ~ "increase"
-    )
-  ) %>% 
-  tidyr::pivot_longer(cols = c(-agent, -aversion_1, -aversion_2, -aversion_3, -aversion_4), names_to = "switch", values_to = "switch_type") %>% 
-  dplyr::group_by(switch, switch_type) %>% 
-  dplyr::summarise(
-    count = n(),
-    rate = count/100000
-  ) %>% 
-  readr::write_csv(file = here(output_path, "RiskPref_MultiTask4.0_switch_type.csv"))
-
-# 負に偏っている：Negatively-located
-
-df_choice_res7 %>% 
-  dplyr::mutate(
-    sim_n = paste0("aversion_", sim_n),
-    agenttype = if_else(risk_aversion > 0.5, 1, 0) # 1: risk-averse agent, 0: risk-seeking agent
-    ) %>% 
-  tidyr::pivot_wider(id_cols = "agent", names_from = sim_n, values_from = agenttype) %>% 
-  dplyr::mutate(
-    switch_1_3 = case_when(
-      aversion_1 > aversion_3 ~ "decrease",
-      aversion_1 == aversion_3 ~ "same",
-      aversion_1 < aversion_3 ~ "increase"
-    ), 
-    switch_1_4 = case_when(
-      aversion_1 > aversion_4 ~ "decrease",
-      aversion_1 == aversion_4 ~ "same",
-      aversion_1 < aversion_4 ~ "increase"
-    ),
-    switch_2_3 = case_when(
-      aversion_2 > aversion_3 ~ "decrease",
-      aversion_2 == aversion_3 ~ "same",
-      aversion_2 < aversion_3 ~ "increase"
-    ),
-    switch_2_4 = case_when(
-      aversion_2 > aversion_4 ~ "decrease",
-      aversion_2 == aversion_4 ~ "same",
-      aversion_2 < aversion_4 ~ "increase"
-    )
-  ) %>% 
-  tidyr::pivot_longer(cols = c(-agent, -aversion_1, -aversion_2, -aversion_3, -aversion_4), names_to = "switch", values_to = "switch_type") %>% 
-  dplyr::group_by(switch, switch_type) %>% 
-  dplyr::summarise(
-    count = n(),
-    rate = count/100000
-  ) %>% 
-  readr::write_csv(file = here(output_path, "RiskPref_MultiTask7.0_switch_type.csv"))
+ggsave(plot = g, filename = here(output_path, "Fig8_sup_RiskPref_RandMulti_cond2.png"), width = 18.0, height = 6.0)
 ```
 
 
@@ -1732,6 +1279,7 @@ df_choice_gain_loss %>%
     rate = n/100000
   ) %>% 
   dplyr::select(sim_n, gain_loss_plus, rate) %>% 
+  dplyr::filter(gain_loss_plus == "gain > loss") %>% 
   formattable::formattable(.)
 ```
 
