@@ -60,15 +60,6 @@ purrr::walk(project_functions, ~source(.x))
 
 ```{r}
 ## 世代平均の情報についてのデータ
-### 末尾の_40_5はシュア選択肢の利得構造を表す
-
-
-# pattern_name_40_5 <- c(
-#   "_20200129110012", "_20200129110013", "_20190916204013", "_20200129110014", "_20200129110015")
-# 
-# sim_name_40_5 <- c(
-#   "40.5.20.30", "40.5.20.25", "40.5.20.20", "40.5.20.15", "40.5.20.10")
-
 
 pattern_name_30_5 <- c(
   "_20191214183504", "_20191214183505", "_20191214183506", "_20191214183507", "_20191214183508",
@@ -145,12 +136,13 @@ sim_name_minus20_5 <- c(
 pattern_name_minus30_5 <- c(
   "_20191229191133", "_20191229191134", "_20191229191135", "_20191229191136", "_20191229191137",
   "_20220104104342", "_20220104104343", "_20220104104344", "_20220104104345", "_20220104104346", 
-  #"_20220322151600", "_20220322151601", "", "", "", 
+  "_20220322151600", "_20220322151601", "_20220322151602", "_20220323153501", "_20220323153502", 
   "_20211230173101", "_20211230173102", "_20211230173103", "_20211230173104", "_20211230173105")
 
 sim_name_minus30_5 <- c(
   "-30.5.-10.30", "-30.5.-10.25", "-30.5.-10.20", "-30.5.-10.15", "-30.5.-10.10",
   "-30.5.-20.30", "-30.5.-20.25", "-30.5.-20.20", "-30.5.-20.15", "-30.5.-20.10",
+  "-30.5.-40.30", "-30.5.-40.25", "-30.5.-40.20", "-30.5.-40.15", "-30.5.-40.10",
   "-30.5.-50.30", "-30.5.-50.25", "-30.5.-50.20", "-30.5.-50.15", "-30.5.-50.10")
 
 ```
@@ -228,14 +220,6 @@ df_gene_riskaversion_mean <-
 
 ```{r}
 # 世代内データを集める（ヒートマップ作成のため）
-
-# pattern_name_40_5 <- c(
-#   "_20201227195517", "_20201227195518", "_20191023141706", "_20201227195519", "_20201227202535"
-#   )
-# 
-# sim_name_40_5 <- c(
-#   "40.5.20.30", "40.5.20.25", "40.5.20.20", "40.5.20.15", "40.5.20.10")
-
 
 pattern_name_30_5 <- c(
   "_20201227183815", "_20201227191810", "_20201227191811", "_20201227191812", "_20201227191813",
@@ -486,7 +470,9 @@ df_randmulti_taskinfo <-
     task_type = case_when(
       m1 > m2 ~ "risk_seeking",
       m2 > m1 ~ "risk_aversion"
-    ))
+    ),
+    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
+    )
 
 df_randmulti_taskgroup <- 
   purrr::map2_dfr(params$pattern_name, params$sim_name, ~MakeDf(.x, .y, DataDir, DataDir_sub, "_taskgroup.csv")) %>% 
@@ -500,7 +486,9 @@ df_randmulti_taskgroup <-
     task_type = case_when(
       m1 > m2 ~ "risk_seeking",
       m2 > m1 ~ "risk_aversion"
-    ))
+    ),
+    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
+    )
 
 # 各課題の平均的な効果量と負の領域量を計算
 df_randmulti_taskinfo %>% 
@@ -508,7 +496,8 @@ df_randmulti_taskinfo %>%
   dplyr::summarise(
     mean_eff_size = mean(eff_size),
     mean_area_rate = mean(area_rate)
-  ) ->
+  ) %>% 
+  dplyr::ungroup() ->
   df_randmulti_mean_taskinfo
 ```
 
@@ -534,9 +523,9 @@ df_gene_randmulti %>%
     MEAN_ap = mean(mean_ap),
     MEAN_an = mean(mean_an),
     MEAN_bt = mean(mean_bt)
-  ) -> 
+  ) %>% 
+  dplyr::ungroup() -> 
   df_gene_randmulti_summary
-
 
 
 # 課題情報と遺伝子のdfと結合
@@ -554,6 +543,7 @@ df_gene_randmulti %>%
     MEAN_an = mean(mean_an),
     MEAN_bt = mean(mean_bt)
   ) %>% 
+  dplyr::ungroup() %>% 
   tidyr::pivot_longer(cols = -c(sim, generation), names_to = c("stat", "para"), names_sep = "_") %>% 
   tidyr::pivot_wider(names_from = stat, values_from = value) -> 
   df_gene_randmulti_summary_longer
@@ -568,7 +558,6 @@ df_gene_randmulti_longer %>%
   dplyr::full_join(df_randmulti_mean_taskinfo, by = c("sim", "sim_i")) ->
   df_gene_randmulti_taskinfo_longer
 ```
-
 
 
 ```{r, eval=FALSE}
@@ -589,7 +578,7 @@ GeneN <- 3000
 TaskN <- 4
 Extract_SimN <- 100
 
-df_agent_randmulti <- purrr::map2_dfr(pattern_name, sim_name, ~MakeDfNat_Rand(.x, .y, DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN))
+#df_agent_randmulti <- purrr::map2_dfr(pattern_name, sim_name, ~MakeDfNat_Rand(.x, .y, DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN))
 
 df_agent_randmulti %>%
   dplyr::group_by(sim, sim_i, task_i, generation) %>%
@@ -598,24 +587,28 @@ df_agent_randmulti %>%
     SD_payoff = sqrt(variance(mean_payoff)),
     MEAN_rate_choice1 = mean(rate_choice1),
     SD_rate_choice1 = sqrt(variance(rate_choice1))
-  ) %>%
+  ) %>% 
+  dplyr::ungroup() %>%
   dplyr::mutate(
     mean_risk_aversion = 1 - MEAN_rate_choice1
   ) ->
   df_agent_randmulti_summary
 
-# saveRDS(df_agent_randmulti_summary, file = "./Data/Evo_RandMultiTask/df_agent_randmulti_summary.obj")
-
+#saveRDS(df_agent_randmulti_summary, file = here("Data", "Evo_RandMultiTask", "df_agent_randmulti_summary_rev.obj"))
 ```
+
+  
+- agentデータを読み込み
+
 
 ```{r}
 #  ------ # _nat.csv：続き ------ #
 
-df_agent_randmulti_summary <- readRDS(here("Data", "Evo_RandMultiTask", "df_agent_randmulti_summary.obj"))
+df_agent_randmulti_summary_rev <- readRDS(here("Data", "Evo_RandMultiTask", "df_agent_randmulti_summary_rev.obj"))
 
 # 課題情報と結合する
 df_randmulti_taskinfo %>%
-  dplyr::full_join(df_agent_randmulti_summary, by = c("sim", "sim_i", "task_i")) ->
+  dplyr::full_join(df_agent_randmulti_summary_rev, by = c("sim", "sim_i", "task_i")) ->
   df_agent_randmulti_summary
 
 df_agent_randmulti_summary %>%
@@ -624,7 +617,8 @@ df_agent_randmulti_summary %>%
     MEAN_risk_aversion = mean(mean_risk_aversion),
     SD_risk_aversion = sqrt(variance(mean_risk_aversion)),
     N = n()
-  ) %>% 
+  ) %>%
+  dplyr::ungroup() %>% 
   dplyr::mutate(
     sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
   ) ->
@@ -658,8 +652,9 @@ df_randmulti_taskinfo %>%
   ) -> 
   df_trial_randmulti_summary
 
-#saveRDS(df_trial_randmulti_summary, file = "./Data/Evo_RandMultiTask/df_trial_randmulti_summary.obj")
+#saveRDS(df_trial_randmulti_summary, file = here("Data", "Evo_RandMultiTask", "df_trial_randmulti_summary.obj"))
 ```
+
 
 ```{r}
 # _trial.csv.gz：続き ------ #
@@ -893,6 +888,20 @@ ggsave(plot = g, filename = here(output_path, "Fig1.2_FirstLastGene_RiskAversion
 ```
 
 
+```{r}
+# 論文に載せる情報
+# リスク追求課題の第一世代の平均リスク回避率を表示する
+
+target_simexp <- c("-10 vs -30", "0 vs -20", "10 vs -10", "20 vs 0", "30 vs 10", "40 vs 20", "50 vs 30")
+df_gene_riskaversion_mean %>% 
+  dplyr::filter(generation == 0) %>% 
+  dplyr::filter(task_exp %in% target_simexp) %>% 
+  dplyr::select(sim, mean_risk_aversion) %>% 
+  dplyr::arrange(mean_risk_aversion)
+```
+
+
+
 ## Fig.2 単一：6つの典型的な結果 進化
 
 - 横軸: 世代、縦軸: 遺伝子の値
@@ -944,6 +953,45 @@ ggsave(plot = g, filename = here(output_path, "Fig3.2_LastGene_apan_risk-seeking
 ```
 
 
+```{r}
+# 論文に載せる数値 # anの最終世代の値
+
+# リスク回避が適応的な課題
+target_simexp <- c("-50 vs -30", "-40 vs -20", "-30 vs -10", "-20 vs 0", "-10 vs 10", "0 vs 20", "10 vs 30")
+
+df_gene_longer %>% 
+  dplyr::filter(para == "an") %>% 
+  dplyr::filter(generation == 4999) %>% 
+  dplyr::filter(task_exp %in% target_simexp) %>% 
+  dplyr::select(sim, task_exp, sd1, mean_rate) %>% 
+  dplyr::arrange(sd1) -> df_mean_rate
+
+print(df_mean_rate)
+
+df_mean_rate %>% 
+  dplyr::pull(mean_rate) %>% 
+  summary
+
+
+# リスク追求が適応的な課題
+target_simexp <- c("-10 vs -30", "0 vs -20", "10 vs -10", "20 vs 0", "30 vs 10", "40 vs 20", "50 vs 30")
+
+df_gene_longer %>% 
+  dplyr::filter(para == "an") %>% 
+  dplyr::filter(generation == 4999) %>% 
+  dplyr::filter(task_exp %in% target_simexp) %>% 
+  dplyr::select(sim, task_exp, sd1, mean_rate) %>% 
+  dplyr::arrange(sd1) -> df_mean_rate
+
+print(df_mean_rate)
+
+df_mean_rate %>% 
+  dplyr::pull(mean_rate) %>% 
+  summary
+
+```
+
+
 
 ## Fig.4-1 ランダム複数：進化の結果
 
@@ -955,13 +1003,7 @@ ggsave(plot = g, filename = here(output_path, "Fig3.2_LastGene_apan_risk-seeking
 df_gene_randmulti_summary_longer %>% 
   dplyr::filter(para %in% c("ap", "an")) %>% 
   dplyr::mutate(
-    cond_rev = case_when(
-      sim == "cond_0/4" ~ "risk seeking/aversion = 0/4",
-      sim == "cond_1/3" ~ "risk seeking/aversion = 1/3",
-      sim == "cond_2/2" ~ "risk seeking/aversion = 2/2",
-      sim == "cond_3/1" ~ "risk seeking/aversion = 3/1",
-      sim == "cond_4/0" ~ "risk seeking/aversion = 4/0"
-    ),
+    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = "),
     para_rev = case_when(
       para == "ap" ~ "alpha[p]",
       para == "an" ~ "alpha[n]"
@@ -972,13 +1014,7 @@ df_gene_randmulti_summary_longer %>%
 df_gene_randmulti_longer %>% 
   dplyr::filter(para %in% c("ap", "an")) %>% 
   dplyr::mutate(
-    cond_rev = case_when(
-      sim == "cond_0/4" ~ "risk seeking/aversion = 0/4",
-      sim == "cond_1/3" ~ "risk seeking/aversion = 1/3",
-      sim == "cond_2/2" ~ "risk seeking/aversion = 2/2",
-      sim == "cond_3/1" ~ "risk seeking/aversion = 3/1",
-      sim == "cond_4/0" ~ "risk seeking/aversion = 4/0"
-    ),
+    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = "),
     para_rev = case_when(
       para == "ap" ~ "alpha[p]",
       para == "an" ~ "alpha[n]"
@@ -987,7 +1023,7 @@ df_gene_randmulti_longer %>%
   
   ggplot(aes(x = generation, y = mean)) + geom_line(aes(group = sim_i), size = 0.08) + 
   geom_line(data = df_gene_randmulti_summary_longer_rev, aes(x = generation, y = MEAN, color = para), size = 2.0) +
-  my_theme2 + labs(x = 'Generation', y = 'Parameter') + guides(color = "none") + 
+  my_theme2 + labs(x = 'Generation', y = 'Parameter', subtitle = "(a)") + guides(color = "none") + 
   scale_color_manual(name = "", values = c("#1F78B4", "#FF7F00"), 
                      labels = c(expression(paste(alpha[n])), expression(paste(alpha[p])))) +  
   theme(
@@ -996,13 +1032,47 @@ df_gene_randmulti_longer %>%
     strip.text.x = element_text(size = 15),
     strip.text.y = element_text(angle = 0)
   ) + 
-  facet_grid(para_rev~cond_rev, 
+  facet_grid(para_rev~sim_n, 
              labeller = labeller(para_rev = label_parsed)) + 
   coord_cartesian(ylim = c(0, 1.0)) ->
   g
   
-ggsave(plot = g, filename = here(output_path, "Fig4_Evo_RandMulti_apan.png"), width = 19.0, height = 7.0)
+ggsave(plot = g, filename = here(output_path, "Fig4.1_Evo_RandMulti_apan.png"), width = 19.0, height = 7.5)
 ```
+
+
+```{r}
+# 補足：最終世代のalpha_nの範囲を表示する
+
+df_gene_randmulti_summary_longer_rev %>% 
+  dplyr::filter(para == "an") %>% 
+  dplyr::filter(generation == 2999) -> a
+
+print(a)
+
+# リスク回避とリスク追求の混在条件をとりだし、平均値を求める
+a %>% 
+  dplyr::filter(sim %in% c("cond_1/3", "cond_2/2", "cond_3/1")) %>% 
+  dplyr::pull(MEAN) %>% 
+  mean(.)
+```
+
+
+```{r}
+# 最終世代にan > apであるようなシミュレーションの数をcountする
+
+df_gene_randmulti %>% 
+  dplyr::filter(generation == 2999) %>% 
+  dplyr::mutate(
+    positivity = if_else(mean_ap > mean_an, 1, 0)
+  ) %>% 
+  dplyr::group_by(sim) %>% 
+  dplyr::summarise(
+    positivity_count = sum(positivity),
+    positivity_rate = positivity_count/100
+  )
+```
+
 
 
 ## Fig 4-2 ランダム複数：$\alpha_p$は負の領域の大きさで説明される
@@ -1012,25 +1082,19 @@ ggsave(plot = g, filename = here(output_path, "Fig4_Evo_RandMulti_apan.png"), wi
 df_gene_randmulti_taskinfo_longer %>% 
   dplyr::filter(para %in% c("ap")) %>% 
   dplyr::mutate(
-    cond_rev = case_when(
-      sim == "cond_0/4" ~ "risk seeking/aversion = 0/4",
-      sim == "cond_1/3" ~ "risk seeking/aversion = 1/3",
-      sim == "cond_2/2" ~ "risk seeking/aversion = 2/2",
-      sim == "cond_3/1" ~ "risk seeking/aversion = 3/1",
-      sim == "cond_4/0" ~ "risk seeking/aversion = 4/0"
-    )
+    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
   ) %>% 
   
   ggplot(aes(x = mean_area_rate, y = mean)) + geom_point() + geom_smooth(method = "lm") + 
-  my_theme2 + facet_grid(.~cond_rev) + 
+  my_theme2 + facet_grid(.~sim_n) + 
   theme(
     axis.text.x = element_text(size = 18), 
     axis.text.y = element_text(size = 15), 
     strip.text.x = element_text(size = 15)
   ) + 
-  labs(x = "mean negative area rate", y = "parameter at the last generation") -> g
+  labs(x = "mean negative area rate", y = expression(alpha[p]), subtitle = "(b)") -> g
 
-ggsave(plot = g, filename = here(output_path, "Fig4.2_Relation_RandMulti_ap_NegaArea.png"), width = 17.0, height = 6.0)
+ggsave(plot = g, filename = here(output_path, "Fig4.2_Relation_RandMulti_ap_NegaArea.png"), width = 17.0, height = 6.5)
 ```
 
 
@@ -1066,6 +1130,25 @@ ggsave(plot = g, filename = here(output_path, "Fig5_FirstLastGene_RiskAversion_R
 
 
 ## Fig,5 補足：パフォーマンスの改善
+
+
+```{r}
+# リスク追求課題の第一世代での平均リスク回避率を表示する
+
+df_agent_randmulti_simMEAN %>% 
+  dplyr::filter(generation == 0) %>% 
+  dplyr::filter(task_type == "risk_seeking") %>% 
+  dplyr::select(sim, MEAN_risk_aversion) -> 
+  x_simMEAN
+
+print(x_simMEAN)
+
+# 平均を表示
+mean(x_simMEAN$MEAN_risk_aversion)
+
+```
+
+
 
 ```{r}
 # パフォーマンスの改善を計算する
@@ -1106,7 +1189,7 @@ df_agent_randmulti_summary %>%
 ```
 
 
-## Fig.6 ランダム複数：simごとの試行を通しての学習ダイナミクスを図示
+## Fig.6 ランダム複数：試行を通しての学習ダイナミクスを図示
 
 
 - 横軸: 試行、縦軸: リスク回避率
@@ -1173,6 +1256,98 @@ target_sim <- factor(c(
 g <- VisHeatmap_RiskAversion(df_withingene, target_sim, "Risk-seeking task")
 
 ggsave(plot = g, filename = here(output_path, "Fig7.2_Heatmap_RiskAversion_risk-seeking.png"), width = 17.0, height = 4.5)
+```
+
+
+```{r}
+# 論文に載せる数値 
+# リスク追求課題
+
+target_sim <- factor(c(
+  "30.5.50.20", "20.5.40.20", "10.5.30.20", "0.5.20.20", "-10.5.10.20", "-20.5.0.20", "-30.5.-10.20"
+))
+
+df_rev <- 
+  df_withingene %>%
+  dplyr::filter(sim %in% target_sim) %>% 
+  dplyr::mutate(
+    ap = round(ap, 4),
+    an = round(an, 4),
+    bt = round(bt, 4),
+    rate_risk_aversion = 1 - choice_rate1,
+    sim_fac = factor(sim, levels = target_sim) %>% as.numeric()
+  ) %>% 
+  dplyr::mutate(
+    sim_sort = factor(paste0('N(', m2, ',', sd2, ') vs N(', m1, ',', sd1, ')')) %>% forcats::fct_reorder(., sim_fac, .desc = TRUE)
+  ) %>%
+  dplyr::group_by(sim_sort, ap, an, bt) %>%
+  dplyr::summarise(
+    mean_pvalue = mean(average_pvalue), 
+    sd_pvalue = sqrt(variance(average_pvalue)),
+    mean_risk_aversion = mean(rate_risk_aversion),
+    sd_risk_aversion = sqrt(variance(rate_risk_aversion))
+  ) %>%
+  dplyr::filter(bt == 0.25)
+
+# apがある値の時にリスク回避率が大きく変わる部分を取り出す
+# → やめた
+df_rev %>%
+  dplyr::mutate(
+    sign = case_when(
+      mean_risk_aversion > 0.55 ~ '>',
+      (mean_risk_aversion > 0.45) & (mean_risk_aversion <= 0.55) ~ '-',
+      mean_risk_aversion <= 0.45 ~ '<'
+    )
+  ) %>% 
+  dplyr::select(sim_sort, ap, an, mean_risk_aversion, sign) 
+
+
+# 75%以上リスク回避ができる最小のanパラメータは？
+df_rev %>%
+  dplyr::filter(mean_risk_aversion > 0.75) %>% 
+  dplyr::select(sim_sort, ap, an, mean_risk_aversion) %>% 
+  dplyr::group_by(sim_sort, ap) %>% 
+  tidyr::nest() %>% 
+  dplyr::mutate(
+    min_risk_aversion = purrr::map(data, "mean_risk_aversion") %>% purrr::map_dbl(~min(.x))
+  ) %>% 
+  tidyr::unnest(data) %>%
+  dplyr::filter(mean_risk_aversion == min_risk_aversion) ->
+  df_min_an
+  
+print(df_min_an)
+
+df_min_an %>% 
+  ggplot(aes(x = ap, y = an)) + geom_point() + facet_wrap(~sim_sort)
+
+
+# an = 0.3を下回ったらリスク回避率はどうなる
+
+df_rev %>% 
+  dplyr::filter(an <= 0.3) %>% 
+  dplyr::group_by(sim_sort) %>% 
+  dplyr::summarise(
+   MEAN_risk_aversion = mean(mean_risk_aversion),
+   SD_risk_aversion = mean(sd_risk_aversion)
+  ) %>% 
+  dplyr::ungroup() ->
+  df_an_below03
+
+mean(df_an_below03$MEAN_risk_aversion)
+
+# an = 0.7を上回ったらリスク回避率はどうなる
+
+df_rev %>% 
+  dplyr::filter(an >= 0.7) %>% 
+  dplyr::group_by(sim_sort) %>% 
+  dplyr::summarise(
+   MEAN_risk_aversion = mean(mean_risk_aversion),
+   SD_risk_aversion = mean(sd_risk_aversion)
+  ) %>% 
+  dplyr::ungroup() ->
+  df_an_above07
+
+mean(df_an_above07$MEAN_risk_aversion)
 ```
 
 
@@ -1289,66 +1464,29 @@ df_choice_gain_loss %>%
 
 - 横軸: 課題の期待値、縦軸: 最終世代の遺伝子の平均値（+SD）
 
+
 ```{r, eval = FALSE}
 # リスク回避が適応的な課題
-target_sim <- c("-50 vs -30", "-40 vs -20", "-30 vs -10", "-20 vs 0", "-10 vs 10", "0 vs 20", "10 vs 30")
+target_simexp <- c("-50 vs -30", "-40 vs -20", "-30 vs -10", "-20 vs 0", "-10 vs 10", "0 vs 20", "10 vs 30")
 
-df_gene_longer %>% 
-  dplyr::filter(generation == 4999) %>% # 最終世代のみ取り出す
-  dplyr::filter(task_exp %in% target_sim) %>% 
-  dplyr::mutate(task_sd = paste0("Risk of Risky Option = ", sd1)) %>% 
-  dplyr::filter(para == "bt") %>% 
-  
-  ggplot(aes(x = task_exp, y = mean_rate, color = para, group = para)) + 
-  geom_linerange(aes(ymin = mean_rate - sd_rate, ymax = mean_rate + sd_rate), size = 1.4, position = position_dodge(width = 0.5)) + 
-  geom_line(position = position_dodge(width=0.7), size = 1.2, linetype = "twodash") + 
-  geom_point(size = 2.5, position = position_dodge(width=0.5), stroke = 2, shape = 21, fill = "white") + 
-  scale_color_manual(name = "", values = c("#33A02C"), labels = expression(beta)) +
-  scale_fill_manual(values = c("#33A02C")) + 
-  my_theme2 + 
-  theme(axis.text.x = element_text(size = 11, angle = 30, hjust = 1), axis.text.y = element_text(size = 15), axis.title=element_text(size=14, face="bold"), strip.text.x = element_text(size = 15), legend.text = element_text(family = "serif", face = "italic"), legend.background = element_rect(fill = "transparent"), legend.key = element_rect(fill = "white"), legend.position = c(1, 0.4), legend.justification = c(1, 1)) + 
-  coord_cartesian(ylim = c(0, 0.5)) + 
-  scale_x_discrete(limits = c("-50 vs -30", "-40 vs -20", "-30 vs -10", "-20 vs 0", "-10 vs 10", "0 vs 20", "10 vs 30")) + 
-  facet_grid(.~task_sd) + 
-  labs(x = "Location of two distributions (risky vs sure)", y = "Parameter value in the last generation",
-       subtitle = "Risk-aversion task") -> g
+g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "beta", "Risk-aversion task")
 
-ggsave(plot = g, filename = here(output_path, "Fig10_1_ExpChange_risk_aversion_bt_inrow.png"), width = 20.0, height = 6.0)
+ggsave(plot = g, filename = here(output_path, "Fig10.1_LastGene_bt_risk-aversion_inrow.png"), width = 20.0, height = 6.0)
 ```
 
 
 ```{r, eval = FALSE}
 # リスク追求が適応的な課題
-#target_sim <- c("-10 vs -30", "0 vs -20", "10 vs -10", "20 vs 0", "30 vs 10", "40 vs 20")
+target_simexp <- c("-10 vs -30", "0 vs -20", "10 vs -10", "20 vs 0", "30 vs 10", "40 vs 20", "50 vs 30")
 
-target_sim <- c("-10 vs -30", "0 vs -20", "10 vs -10", "20 vs 0", "30 vs 10", "40 vs 20", "50 vs 30")
+g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "beta", "Risk-seeking task", legend = FALSE)
 
-df_gene_longer %>% 
-  dplyr::filter(generation == 4999) %>% # 最終世代のみ取り出す 
-  dplyr::filter(task_exp %in% target_sim) %>% 
-  dplyr::mutate(task_sd = paste0("Risk of Risky Option = ", sd1)) %>% 
-  dplyr::filter(para == "bt") %>% 
-  
-  ggplot(aes(x = task_exp, y = mean_rate, color = para, group = para)) + 
-  geom_linerange(aes(ymin = mean_rate - sd_rate, ymax = mean_rate + sd_rate), size = 1.4, position = position_dodge(width = 0.5)) + 
-  geom_line(position = position_dodge(width=0.7), size = 1.2, linetype = "twodash") + 
-  geom_point(size = 2.5, position = position_dodge(width=0.5), stroke = 2, shape = 21, fill = "white") + 
-  scale_color_manual(name = "", values = c("#33A02C"), labels = expression(beta)) +
-  scale_fill_manual(values = c("#33A02C")) + 
-  my_theme2 + 
-  theme(axis.text.x = element_text(size = 11, angle = 30, hjust = 1), axis.text.y = element_text(size = 15), axis.title=element_text(size=14, face="bold"), strip.text.x = element_text(size = 15), legend.text = element_text(family = "serif", face = "italic"), legend.background = element_rect(fill = "transparent"), legend.key = element_rect(fill = "white"), legend.position = c(0.9, 0.6), legend.justification = c(1, 1)) + 
-  coord_cartesian(ylim = c(0, 0.5)) + 
-  scale_x_discrete(limits = c("-10 vs -30", "0 vs -20", "10 vs -10", "20 vs 0", "30 vs 10", "40 vs 20", "50 vs 30")) + 
-  facet_grid(.~task_sd) + 
-  labs(x = "Location of two distributions (risky vs sure)", y = "Parameter value in the last generation",
-       subtitle = "Risk-seeking task") + guides(color = "none") -> g
-
-ggsave(plot = g, filename = here(output_path, "Fig10_2_ExpChange_risk_seeking_bt_inrow.png"), width = 20.0, height = 6.0)
+ggsave(plot = g, filename = here(output_path, "Fig10.2_LastGene_bt_risk-seeking_inrow.png"), width = 20.0, height = 6.0)
 ```
 
 
-## Fig.11 複数$\beta$：ランダム複数課題シミュレーションの進化
 
+## Fig.11 複数$\beta$：ランダム複数課題シミュレーションの進化
 
  
 - 横軸: 世代、縦軸: 遺伝子の値（細い線は1つのシミュレーション）
@@ -1358,26 +1496,14 @@ ggsave(plot = g, filename = here(output_path, "Fig10_2_ExpChange_risk_seeking_bt
 df_gene_randmulti_summary_longer %>% 
   dplyr::filter(para %in% c("bt")) %>% 
   dplyr::mutate(
-    cond_rev = case_when(
-      sim == "cond_0/4" ~ "risk seeking/aversion = 0/4",
-      sim == "cond_1/3" ~ "risk seeking/aversion = 1/3",
-      sim == "cond_2/2" ~ "risk seeking/aversion = 2/2",
-      sim == "cond_3/1" ~ "risk seeking/aversion = 3/1",
-      sim == "cond_4/0" ~ "risk seeking/aversion = 4/0"
-    )
+    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
   ) -> 
   df_gene_randmulti_summary_longer_rev
 
 df_gene_randmulti_longer %>% 
   dplyr::filter(para %in% c("bt")) %>% 
   dplyr::mutate(
-    cond_rev = case_when(
-      sim == "cond_0/4" ~ "risk seeking/aversion = 0/4",
-      sim == "cond_1/3" ~ "risk seeking/aversion = 1/3",
-      sim == "cond_2/2" ~ "risk seeking/aversion = 2/2",
-      sim == "cond_3/1" ~ "risk seeking/aversion = 3/1",
-      sim == "cond_4/0" ~ "risk seeking/aversion = 4/0"
-    )
+    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
   ) %>% 
   
   ggplot(aes(x = generation, y = mean)) + geom_line(aes(group = sim_i), size = 0.08) + 
@@ -1391,7 +1517,7 @@ df_gene_randmulti_longer %>%
     strip.text.x = element_text(size = 15),
     strip.text.y = element_text(angle = 0)
   ) + 
-  facet_grid(.~cond_rev, 
+  facet_grid(.~sim_n, 
              labeller = labeller(para_rev = label_parsed)) + 
   coord_cartesian(ylim = c(0, 0.5)) ->
   g
