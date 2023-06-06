@@ -142,7 +142,7 @@ Agent::Agent()
     rate01 = 0.0;
     rate10 = 0.0;
     rate11 = 0.0;
-
+    
 }
 
 // functions to initialize // maybe a redundant function
@@ -732,9 +732,9 @@ void saveData::writeCSV_nat() {
 
     // short output ver.
     for (size_t data_i = 0; data_i < PopSize; ++data_i) {
-
+        
         for (size_t data_j = 0; data_j < 9; ++data_j) {
-
+            
             if (data_j != 8) {
                 fout_nat << output_nat[data_i][data_j] << ", ";
             } 
@@ -909,7 +909,7 @@ int main(int argc, char *argv[]){
                 
                 // record by-trial data to a vector (output_trial)
                 //savedat.recordData_trial(nAgent[pop_i], replication_i, gene_i, pop_i, trial_i); // * WARNING * This line should be usually commented out because we dont need by-trial csv
-
+                
             }
         
         }

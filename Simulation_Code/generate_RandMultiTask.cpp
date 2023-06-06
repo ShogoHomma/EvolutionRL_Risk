@@ -16,6 +16,7 @@
 using namespace std;
 
 const int SimN = 100;
+const string save_directory = "../shared/shonma/EvolutionRL_Risk/Analysis/Results"; // "./Analysis/Results"
 
 //---------------------- //
 // The values of these parameters are put into by command line args
@@ -232,7 +233,7 @@ saveData::saveData()
 // function to create directory to make files
 void saveData::create_dir() {
 
-    path_name = "./Analysis/Results";
+    path_name = save_directory;
     stringstream ss;
     
     // info about generation, popSize, trial
@@ -258,18 +259,19 @@ void saveData::create_dir() {
     ss << "_Taskg" << setw(4) << setfill('0') << Taskgroup_N;
     folder_name += ss.str(); ss.str(""); ss.clear(stringstream::goodbit);
 
-
     /* ------------------------------------------------------------- */
     // create path to save files
     path_name += "/"; path_name += folder_name; path_name += '_'; path_name += time_stamp_str; path_name += "/"; 
 
     // create the directory
+    /*
     if (mkdir("./Analysis", 0777) == 0) 
         cout << "---- create the directory ./Analysis/" << endl; 
-    if (mkdir("./Analysis/Results", 0777) == 0) 
-        cout << "---- create the directory ./Analysis/Results." << endl;
+    */
+    if (mkdir(save_directory.c_str(), 0777) == 0) 
+        cout << "---- create the directory " << save_directory.c_str() << endl;
     if (mkdir(path_name.c_str(), 0777) == 0) 
-        cout << "---- create the directory ..." << endl << path_name.c_str() << endl; 
+        cout << "---- create the directory ... " << endl << path_name.c_str() << endl; 
     
     // Copy this .cpp file to the directory
     system_order_st_cp = "cp generate_RandMultiTask.cpp ";
