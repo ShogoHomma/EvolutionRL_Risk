@@ -30,6 +30,7 @@ library(ggrepel)
 library(patchwork)
 ```
 
+
 ```{r}
 # 画像の保存先のパスを設定
 output_path <- here("Output", "FiguresForPaper")
@@ -169,13 +170,6 @@ discrim <- unique(df_gene_longer$discriminability)
 
 
 ```{r}
-# 上記のベクトルを削除
-rm(list = ls()[stringr::str_starts(string = ls(), pattern = "pattern_name")])
-rm(list = ls()[stringr::str_starts(string = ls(), pattern = "sim_name")])
-```
-
-
-```{r}
 # GeneAverageのデータだけ集める
 
 params <- list(
@@ -214,6 +208,13 @@ df_gene_riskaversion_mean <-
   ) %>% 
   dplyr::arrange(desc(discriminability))
 
+```
+
+
+```{r}
+# 上記のベクトルを削除
+rm(list = ls()[stringr::str_starts(string = ls(), pattern = "pattern_name")])
+rm(list = ls()[stringr::str_starts(string = ls(), pattern = "sim_name")])
 ```
 
 
@@ -305,139 +306,6 @@ df_withingene <- purrr::map2_dfr(params$pattern_name, params$sim_name, ~MakeDfWi
 ```
 
 
-### 複数課題のデータ
-
-```{r}
-## 世代平均の情報について
-## いったん、9つのシミュレーションを取り出す
-
-# pattern_name <- c("_20200604093559", "_20200604094009", "_20200604094228", "_20200613192231", "_20200613192352", "_20200613192639", "_20201214135554", "_20200618202649", "_20200618202802") # old directory
-
-pattern_name <- c("_20210201113232", "_20210204145614", "_20210204170716", "_20210209094209", "_20210209105123", "_20210215150639", "_20210215150804", "_20210219095243", "_20210219095637")
-
-sim_name <- c("P_2/2", "P_1/3", "P_3/1", "C_2/2", "C_1/3", "C_3/1", "N_2/2", "N_1/3", "N_3/1")
-
-
-params <- 
-  list(
-    pattern_name = pattern_name,
-    sim_name = sim_name
-  )
-
-# 世代情報のdfを作成
-DataDir <- "Data"
-DataDir_sub <- "Evo_Sim_MultipleTask"
-
-df_gene_multi <- purrr::map2_dfr(params$pattern_name, params$sim_name, ~MakeDf(.x, .y, DataDir, DataDir_sub, "_gene.csv")) %>% 
-  tidyr::separate(col = sim, into = c("loc", "task_config"), sep = "_", remove = FALSE)
-
-# 縦長に
-df_gene_multi_longer <- 
-  df_gene_multi %>% 
-  dplyr::select(sim, loc, task_config, replication, generation, mean_ap, mean_an, mean_bt, sd_ap, sd_an, sd_bt) %>% 
-dplyr::rename(
-    MEAN_ap = mean_ap,
-    MEAN_an = mean_an,
-    MEAN_bt = mean_bt,
-    SD_ap = sd_ap,
-    SD_an = sd_an,
-    SD_bt = sd_bt,
-  ) %>%
-  tidyr::pivot_longer(c(-sim, -loc, -task_config, -generation, -replication), names_to = c("statistics", "para"), values_to = 'value', names_sep = "_") %>%
-  tidyr::pivot_wider(names_from = statistics, values_from = value) %>% 
-  dplyr::group_by(sim, loc, task_config, generation, para) %>%
-  dplyr::summarise(
-    mean_rate = mean(MEAN), # Replicationに関して平均をとる
-    sd_rate = mean(SD)) %>% 
-  dplyr::ungroup()
-```
-
-
-```{r}
-## 世代, 課題平均の情報について（TaskGeneAverage）
-## いったん、9つのシミュレーションを取り出す
-
-# pattern_name <- c("_20200604093559", "_20200604094009", "_20200604094228", "_20200613192231", "_20200613192352", "_20200613192639", "_20201214135554", "_20200618202649", "_20200618202802") # old directory
-
-pattern_name <- c("_20210201113232", "_20210204145614", "_20210204170716", "_20210209094209", "_20210209105123", "_20210215150639", "_20210215150804", "_20210219095243", "_20210219095637")
-
-sim_name <- c("P_2/2", "P_1/3", "P_3/1", "C_2/2", "C_1/3", "C_3/1", "N_2/2", "N_1/3", "N_3/1")
-
-params <- 
-  list(
-    pattern_name = pattern_name,
-    sim_name = sim_name
-  )
-
-# dfを作成
-DataDir <- "Data"
-DataDir_sub <- "Evo_Sim_MultipleTask"
-
-df_gene_task_multi <- purrr::map2_dfr(params$pattern_name, params$sim_name, ~MakeDf(.x, .y, DataDir, DataDir_sub, "TaskGeneAverage_"))
-
-df_gene_task_riskaversion <-
-  df_gene_task_multi %>% 
-  dplyr::group_by(sim, generation, task) %>% # Replicationについて平均をとる
-  dplyr::summarise(
-    mean_choice1 = mean(MEAN_rate_choice1),
-    sd_choice1 = mean(SD_rate_choice1)
-  ) %>% 
-  dplyr::ungroup() %>% 
-  dplyr::mutate(
-    mean_risk_aversion = 1 - mean_choice1
-  )
-
-```
-
-
-```{r, eval = FALSE}
-## 試行情報について（_trial）
-## 複数課題シミュレーションの、第1世代と最終世代だけ、試行データを取り出す
-## データが多いので、シミュレーション1.0, 4.0, 7.0だけのデータを読み込む
-## -> このchunckの方法は使わない
-
-# pattern_name <- c("_20210201113232", "_20210204145614", "_20210204170716", "_20210209094209", "_20210209105123", "_20210215150639", "_20210215150804", "_20210219095243", "_20210219095637")
-
-pattern_name <- c("_20210201113232", "_20210209094209", "_20210215150804")
-
-sim_name <- c("multi1.0", "multi4.0", "multi7.0")
-
-params <- 
-  list(
-    pattern_name = pattern_name,
-    sim_name = sim_name
-  )
-
-#df_trial <- purrr::map2_dfr(params$pattern_name, params$sim_name, ~MakeDfTrial_meanSD())
-```
-
-```{r}
-## 上の方法では読み込みが遅いので、1つずつdfにする
-DataDir <- "Data"
-DataDir_sub <- "Evo_Sim_MultipleTask"
-
-df_trialP22_meanSD <- MakeDfTrial_meanSD("_20210201113232", "P_2/2", DataDir, DataDir_sub, "_trial.csv.gz")
-# Warning in mean.default(p) :
-#  argument is not numeric or logical: returning NA ← たまに出るwarning
-```
-
-
-```{r}
-# DataDir <- "Data"
-# DataDir_sub <- "Evo_Sim_MultipleTask"
-# 
-# df_trial4.0_meanSD <- MakeDfTrial_meanSD("_20210209094209", "multi4.0", DataDir, DataDir_sub, "_trial.csv.gz")
-```
-
-
-```{r}
-DataDir <- "Data"
-DataDir_sub <- "Evo_Sim_MultipleTask"
-
-df_trialN22_meanSD <- MakeDfTrial_meanSD("_20210215150804", "N_2/2", DataDir, DataDir_sub, "_trial.csv.gz")
-```
-
-
 ### ランダム複数課題シミュレーション
 
 
@@ -504,7 +372,8 @@ df_randmulti_taskinfo %>%
 
 
 ```{r}
-# _gene.csv # N = 1,000のもの 
+# _gene.csv
+
 pattern_name <- c("_20220905162206", "_20220909161625", "_20220919103516", "_20220921105827", "_20220923105509")
 sim_name <- c("cond_2/2", "cond_1/3", "cond_3/1", "cond_0/4", "cond_4/0")
 
@@ -628,7 +497,7 @@ df_agent_randmulti_summary %>%
 
 
 ```{r, eval=FALSE}
-# _trial.csv.gz # N = 1,000のもの 
+# _trial.csv.gz 
 
 # ------ 5種類のシミュレーション ------ #
 # 時間がかかるので実行しない方がいい
@@ -718,6 +587,7 @@ Extract_SimN <- 100
 
 ```{r, eval=FALSE}
 # 第一世代・最終世代のパラメータ
+
 df_agent_randmulti_FirstLastGenePara <- readRDS(here("Data", "Evo_RandMultiTask", "df_agent_randmulti_FirstLastGenePara.obj"))
 
 trial_N <- 500
@@ -867,130 +737,7 @@ df_choice_res_500T_latter100 %>%
 ```
 
 
-# 1. Introduction
-
-## Fig.X Q値が漸近していく図
-
-- alpha = 0.1とalpha = 0.6の2種類
-- beta = 0.1
-- N(20,5)とN(10,5)の2つの選択肢から選ぶ
-
-
-```{r, eval=FALSE}
-# シミュレーションを行う
-params <- 
-  tibble(
-    alpha = c(0.1, 0.6),
-    bt = c(0.1, 0.1)
-  )
-
-task_struct <- 
-  c(20, 5, 10, 5)
-
-trial_N <- 100
-
-Res_RunQL_single <- 
-  RunQL_single(params, task_struct, trial_N)
-
-# R objectに保存
-save(Res_RunQL_single, file = here("Data", "Other_Sim", "res_ql_single_Fig1.RData")
-```
-
-```{r, eval=FALSE}
-load(file = here("Data", "Other_Sim", "res_ql_single_Fig1.RData"))
-```
-
-```{r, eval=FALSE}
-# alpha = 0.1, beta = 0.1の個体
-g1 <- Res_RunQL_single$Q[1,,] %>% 
-  tibble::as_tibble() %>% 
-  dplyr::rename(
-    V1 = V1, 
-    V2 = V2
-    ) %>% 
-  tibble::rownames_to_column(var = "trial") %>% 
-  dplyr::mutate(trial = as.integer(trial)) %>% 
-  tidyr::pivot_longer(cols = c(-trial), names_to = "V", values_to = "Vvalue") %>% 
-  
-  ggplot(aes(x = trial, y = Vvalue, color = V)) + 
-  geom_line(size = 1.3) + 
-  labs(x = "Trial", y = "V value", color = "V") + 
-  my_theme2 + theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 15), axis.title=element_text(size = 18, face="bold"), legend.text = element_text(family = "serif"), legend.background = element_rect(fill = "transparent"), legend.key = element_rect(color = "transparent", fill = "white"), legend.position = c(1, 0.35), legend.justification = c(1, 1)) + 
-  coord_cartesian(ylim = c(0, 25)) + 
-  scale_color_manual(name = "", values = c("#FF7F00", "#1F78B4"), labels = c("V(1)", "V(2)")) + 
-  ggsave(here(output_path, "Fig1_1_Simulate_value.png"), width = 5.0, height = 5.5)
-  
-g2 <- Res_RunQL_single$p[1,] %>% 
-  tibble::as_tibble() %>% 
-  tibble::rownames_to_column(var = "trial") %>% 
-  dplyr::mutate(trial = as.integer(trial)) %>% 
-  
-  ggplot(aes(x = trial, y = value)) + 
-  geom_line(size = 1.5) + 
-  labs(x = "Trial", y = "P(action = 1)") + 
-  my_theme2 + theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 15), axis.title=element_text(size = 18, face="bold")) + 
-  coord_cartesian(ylim = c(0.0, 1.0)) +
-  ggsave(here(output_path, "Fig1_1_Simulate_p.png"), width = 5.0, height = 5.5)
-  
-g_fig <- g1 + g2
-
-ggsave(filename = here(output_path, "Fig1_Simulate_value_p.png"), plot = g_fig, width = 9.0, height = 5.0)
- 
-
-# alpha = 0.6, beta = 0.1の個体
-# 途中
-Res_RunQL_single$Q[2,,] %>% 
-  as_tibble(rownames = "trial") %>% 
-  dplyr::rename(
-    V1 = V1, 
-    V2 = V2
-    ) %>% 
-  dplyr::mutate(trial = as.integer(trial)) %>% 
-  tidyr::pivot_longer(cols = c(-trial), names_to = "V", values_to = "Vvalue") %>% 
-  
-  ggplot(aes(x = trial, y = Vvalue, color = V)) + 
-  geom_line(size = 1.3) + 
-  labs(x = "Trial", y = "V value", color = "V") + 
-  my_theme2 + theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 15), axis.title=element_text(size = 18, face="bold"), legend.text = element_text(family = "serif"), legend.background = element_rect(fill = "transparent"), legend.key = element_rect(color = "transparent", fill = "white"), legend.position = c(1, 0.35), legend.justification = c(1, 1)) + 
-  coord_cartesian(ylim = c(0, 30)) + 
-  scale_color_manual(name = "", values = c("#FF7F00", "#1F78B4"), labels = c("V(1)", "V(2)")) -> g
-
-ggsave(plot = g, filename = here(output_path, "Fig1_2_Simulate_value.png"), width = 5.0, height = 5.5)
-  
-```
-
-
-# 3. Results
-
-## Fig.X シミュレーションで変化させた2つの要因
-
-```{r}
-# 以下、全てリスク回避が適応的な課題で見せる
-
-g_posi_smallrisk <- TaskStrucFunc2(10, 10, 30, 5)
-
-g_nega_smallrisk <- TaskStrucFunc2(-30, 10, -10, 5)
-
-g_posi_largerisk <- TaskStrucFunc2(10, 30, 30, 5)
-
-g_nega_largerisk <- TaskStrucFunc2(-30, 30, -10, 5)
-
-g_Fig2 <- 
-  g_nega_smallrisk + plot_spacer() + g_posi_smallrisk + 
-  plot_spacer() + plot_spacer() + plot_spacer() +
-  g_nega_largerisk + plot_spacer() + g_posi_largerisk + 
-  plot_layout(ncol = 3, widths = c(4, 1, 4), heights = c(4, 1, 4))
-
-ggsave(filename = here(output_path, "Fig2_TwoFactors_posi_smallrisk.png"), plot = g_posi_smallrisk, width = 6.0, height = 6.0)
-ggsave(filename = here(output_path, "Fig2_TwoFactors_nega_smallrisk.png"), plot = g_nega_smallrisk, width = 6.0, height = 6.0)
-ggsave(filename = here(output_path, "Fig2_TwoFactors_posi_largerisk.png"), plot = g_posi_largerisk, width = 6.0, height = 6.0)
-ggsave(filename = here(output_path, "Fig2_TwoFactors_nega_largerisk.png"), plot = g_nega_largerisk, width = 6.0, height = 6.0)
-
-#ggsave(filename = "./FiguresForPaper/Fig2_TwoFactors_simulation.png", plot = g_Fig2, width = 7.0, height = 5.5)
-```
-
-
-## Fig.1 単一：全シミュレーション リスク回避率
+# Fig.1a 単一：全シミュレーション リスク回避率
 
 
 - 横軸: 課題の期待値、縦軸: 最終世代のリスク回避率の平均値(+SD)
@@ -999,9 +746,9 @@ ggsave(filename = here(output_path, "Fig2_TwoFactors_nega_largerisk.png"), plot 
 # リスク回避が適応的な課題
 target_simexp <- c("-50 vs -30", "-40 vs -20", "-30 vs -10", "-20 vs 0", "-10 vs 10", "0 vs 20", "10 vs 30")
 
-g <- VisFirstLastGene_RiskAversion(df_gene_riskaversion_mean, target_simexp, "Risk-aversion task")
+g <- VisFirstLastGene_RiskAversion(df_gene_riskaversion_mean, target_simexp, "Risk-aversion task", tag = "(a)")
 
-ggsave(plot = g, filename = here(output_path, "Fig1.1_FirstLastGene_RiskAversion_risk-aversion_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
+ggsave(plot = g, filename = here(output_path, "Fig1a.1_FirstLastGene_RiskAversion_risk-aversion_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
 ```
 
  
@@ -1009,9 +756,9 @@ ggsave(plot = g, filename = here(output_path, "Fig1.1_FirstLastGene_RiskAversion
 # リスク追求が適応的な課題
 target_simexp <- c("-10 vs -30", "0 vs -20", "10 vs -10", "20 vs 0", "30 vs 10", "40 vs 20", "50 vs 30")
 
-g <- VisFirstLastGene_RiskAversion(df_gene_riskaversion_mean, target_simexp, "Risk-seeking task", legend = FALSE)
+g <- VisFirstLastGene_RiskAversion(df_gene_riskaversion_mean, target_simexp, "Risk-seeking task", tag = "    ", legend = FALSE)
 
-ggsave(plot = g, filename = here(output_path, "Fig1.2_FirstLastGene_RiskAversion_risk-seeking_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
+ggsave(plot = g, filename = here(output_path, "Fig1a.2_FirstLastGene_RiskAversion_risk-seeking_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
 ```
 
 
@@ -1028,34 +775,7 @@ df_gene_riskaversion_mean %>%
 ```
 
 
-
-## Fig.2 単一：6つの典型的な結果 進化
-
-- 横軸: 世代、縦軸: 遺伝子の値
-
-```{r, eval = FALSE}
-# リスク回避が適応的な課題
-
-target_sim <- c("20.5.0.20", "0.5.-20.20", "-20.5.-40.20")
-
-g <- VisEvol_Para_RunMean_facetSim(df_gene_longer, target_sim, "alpha", "Risk-aversion task")
-
-ggsave(plot = g, filename = here(output_path, "Fig2.1_Evo_apan_risk-aversion_6.png"), width = 15.0, height = 6.0)
-```
-
-
-```{r, eval = FALSE}
-# リスク追求が適応的な課題
-
-target_sim <- c("20.5.40.20", "0.5.20.20", "-20.5.0.20")
-
-g <- VisEvol_Para_RunMean_facetSim(df_gene_longer, target_sim, "alpha", "Risk-seeking task", legend = FALSE)
-
-ggsave(plot = g, filename = here(output_path, "Fig2.2_Evo_apan_risk-seeking_6.png"), width = 15.0, height = 6.0)
-```
-
-
-## Fig.3 単一：全シミュレーション 進化
+# Fig.1b 単一：全シミュレーション 進化
 
 - 横軸: 課題の期待値、縦軸: 最終世代の遺伝子の平均値（+SD）
 
@@ -1064,9 +784,9 @@ ggsave(plot = g, filename = here(output_path, "Fig2.2_Evo_apan_risk-seeking_6.pn
 # リスク回避が適応的な課題
 target_simexp <- c("-50 vs -30", "-40 vs -20", "-30 vs -10", "-20 vs 0", "-10 vs 10", "0 vs 20", "10 vs 30")
 
-g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "alpha", "Risk-aversion task")
+g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "alpha", "Risk-aversion task", tag = "(b)")
 
-ggsave(plot = g, filename = here(output_path, "Fig3.1_LastGene_apan_risk-aversion_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
+ggsave(plot = g, filename = here(output_path, "Fig1b.1_LastGene_apan_risk-aversion_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
 ```
 
 
@@ -1074,9 +794,9 @@ ggsave(plot = g, filename = here(output_path, "Fig3.1_LastGene_apan_risk-aversio
 # リスク追求が適応的な課題
 target_simexp <- c("-10 vs -30", "0 vs -20", "10 vs -10", "20 vs 0", "30 vs 10", "40 vs 20", "50 vs 30")
 
-g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "alpha", "Risk-seeking task", legend = FALSE)
+g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "alpha", "Risk-seeking task", tag = "    ", legend = FALSE)
 
-ggsave(plot = g, filename = here(output_path, "Fig3.2_LastGene_apan_risk-seeking_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
+ggsave(plot = g, filename = here(output_path, "Fig1b.2_LastGene_apan_risk-seeking_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
 ```
 
 
@@ -1119,8 +839,7 @@ df_mean_rate %>%
 ```
 
 
-
-## Fig.4-1 ランダム複数：進化の結果
+# Fig.2a ランダム複数：進化の結果
 
   
 - 横軸: 世代、縦軸: 遺伝子の値（細い線は1つのシミュレーション）
@@ -1150,7 +869,8 @@ df_gene_randmulti_longer %>%
   
   ggplot(aes(x = generation, y = mean)) + geom_line(aes(group = sim_i), size = 0.08) + 
   geom_line(data = df_gene_randmulti_summary_longer_rev, aes(x = generation, y = MEAN, color = para), size = 2.0) +
-  my_theme2 + labs(x = 'Generation', y = 'Parameter value', subtitle = "(a)") + guides(color = "none") + 
+  my_theme2 + labs(x = 'Generation', y = 'Parameter value', 
+                   tag = "(a)") + guides(color = "none") + 
   scale_color_manual(name = "", values = c("#1F78B4", "#FF7F00"), 
                      labels = c(expression(paste(alpha[n])), expression(paste(alpha[p])))) +  
   theme(
@@ -1158,14 +878,15 @@ df_gene_randmulti_longer %>%
     axis.text.y = element_text(size = 15), 
     axis.title = element_text(size = 23, face = "bold"), 
     strip.text.x = element_text(size = 17),
-    strip.text.y = element_text(angle = 0)
+    strip.text.y = element_text(angle = 0),
+    plot.tag = element_text(size = 30)
   ) + 
   facet_grid(para_rev~sim_n, 
              labeller = labeller(para_rev = label_parsed)) + 
   coord_cartesian(ylim = c(0, 1.0)) ->
   g
   
-ggsave(plot = g, filename = here(output_path, "Fig4.1_Evo_RandMulti_apan.png"), width = 19.0, height = 7.5)
+ggsave(plot = g, filename = here(output_path, "Fig2a_Evo_RandMulti_apan.png"), width = 19.0, height = 7.5)
 ```
 
 
@@ -1187,7 +908,7 @@ a %>%
 
 
 ```{r}
-# 最終世代にan > apであるようなシミュレーションの数をcountする
+# 補足：最終世代にan > apであるようなシミュレーションの数をcountする
 
 df_gene_randmulti %>% 
   dplyr::filter(generation == 2999) %>% 
@@ -1203,7 +924,7 @@ df_gene_randmulti %>%
 
 
 
-## Fig 4-2 ランダム複数：$\alpha_p$は負の領域の大きさで説明される
+# Fig 2b ランダム複数：$\alpha_p$は負の領域の大きさで説明される
 
 
 ```{r}
@@ -1219,15 +940,17 @@ df_gene_randmulti_taskinfo_longer %>%
     axis.text.x = element_text(size = 18), 
     axis.text.y = element_text(size = 15), 
     axis.title = element_text(size = 23, face = "bold"), 
-    strip.text.x = element_text(size = 16)
+    strip.text.x = element_text(size = 17),
+    plot.tag = element_text(size = 30)
   ) + 
-  labs(x = "Mean negative area rate", y = expression(alpha[p]), subtitle = "(b)") -> g
+  labs(x = "Mean negative area rate", y = expression(alpha[p]), 
+       tag = "(b)") -> g
 
-ggsave(plot = g, filename = here(output_path, "Fig4.2_Relation_RandMulti_ap_NegaArea.png"), width = 17.0, height = 6.5)
+ggsave(plot = g, filename = here(output_path, "Fig2b_Relation_RandMulti_ap_NegaArea.png"), width = 18.0, height = 6.0)
 ```
 
 
-## Fig.5 ランダム複数：各条件でのリスク回避率
+# Fig.2c ランダム複数：各条件でのリスク回避率
 
 
 ```{r, eval=FALSE, fig.width=20, fig.height=8}
@@ -1251,24 +974,25 @@ df_agent_randmulti_simMEAN %>%
         legend.background = element_rect(fill = "transparent"), 
         legend.key = element_rect(fill = "white"), 
         legend.position = c(1, 0.98), 
-        legend.justification = c(1, 1)
+        legend.justification = c(1, 1),
+        plot.tag = element_text(size = 30)
         ) + 
   scale_color_manual(values=c("deepskyblue", "tan3")) + 
   coord_cartesian(ylim = c(0, 1)) + 
   labs(x = "Generation", 
        y = "Rate of risk aversion",
-       color = "Task") + 
+       color = "Task",
+       tag = "(c)") + 
   guides(fill = 'none') + 
   facet_wrap(~sim_n, ncol = 5) -> g
   
-ggsave(plot = g, filename = here(output_path, "Fig5_FirstLastGene_RiskAversion_RandMulti.png"), width = 18.0, height = 5.0, dpi = 400)
+ggsave(plot = g, filename = here(output_path, "Fig2c_FirstLastGene_RiskAversion_RandMulti.png"), width = 18.0, height = 6.0, dpi = 400)
 ```
 
 
-## Fig,5 補足：パフォーマンスの改善
-
-
 ```{r}
+# 論文に載せる数値
+
 # リスク追求課題の第一世代での平均リスク回避率を表示する
 
 df_agent_randmulti_simMEAN %>% 
@@ -1285,8 +1009,9 @@ mean(x_simMEAN$MEAN_risk_aversion)
 ```
 
 
-
 ```{r}
+# 論文に載せる数値
+
 # パフォーマンスの改善を計算する
 
 df_agent_randmulti_summary %>% 
@@ -1307,6 +1032,8 @@ df_agent_randmulti_summary %>%
 
 
 ```{r}
+# 論文に載せる数値
+
 # 最終世代で、リスク回避で0.9以上、リスク追求で0.1以下になった課題数を数える
 
 df_agent_randmulti_summary %>%
@@ -1325,55 +1052,8 @@ df_agent_randmulti_summary %>%
 ```
 
 
-## Fig.6 ランダム複数：試行を通しての学習ダイナミクスを図示
 
-
-- 横軸: 試行、縦軸: リスク回避率
-- 条件ごとに学習ダイナミクスを最初の世代と最終世代で比較する
-- 列：条件、行：課題、色の違いが世代
-
-- 影は各シミュレーション（課題）の平均値間のSD
-
-
-```{r, eval=FALSE}
-df_trial_randmulti_simMEAN %>% 
-  
-  dplyr::mutate(
-    generation = generation + 1,
-    task_type_rev = if_else(task_type == "risk_aversion", "risk aversion", "risk seeking")
-    ) %>% 
-  
-  ggplot(aes(x = trial, y = MEAN_risk_aversion)) + 
-  geom_line(aes(x = trial, y = MEAN_risk_aversion, color = task_type_rev), size = 1.2) + 
-  geom_ribbon(aes(x = trial, ymin = MEAN_risk_aversion - SD_risk_aversion, ymax = MEAN_risk_aversion + SD_risk_aversion, fill = task_type_rev), alpha = 0.6) + 
-  my_theme2 + 
-  theme(axis.text.x = element_text(size = 16),
-        axis.text.y = element_text(size = 16),
-        axis.title = element_text(size = 23, face = "bold"),
-        strip.text.x = element_text(size = 17),
-        legend.title = element_text(size = 16), #change legend title font size
-        legend.text = element_text(size = 16),
-        legend.background = element_rect(fill = "transparent"), 
-        legend.key = element_rect(fill = "white"), 
-        legend.position = c(1, 1), 
-        legend.justification = c(1, 1)
-        ) + 
-  scale_color_manual(values=c("deepskyblue", "tan3")) + 
-  scale_fill_manual(values=c("lightblue3", "goldenrod1")) + 
-  coord_cartesian(ylim = c(0, 1)) + 
-  labs(x = "Trial",
-       y = "Rate of risk aversion",
-       color = "Task",
-       fill = "Task") + 
-  
-  facet_grid(generation~sim_n, labeller = labeller(generation = label_both)) -> g
-
-ggsave(plot = g, filename = here(output_path, "Fig6_Trial_RiskAversion_RandMulti.png"), width = 20.0, height = 8.0, dpi = 400)
-```
-
-
-
-## Fig.7 apとanの組合せと平均リスク回避率
+# Fig.3 apとanの組合せと平均リスク回避率
 
 
 ```{r} 
@@ -1385,7 +1065,7 @@ target_sim <- as.factor(c(
 
 g <- VisHeatmap_RiskAversion(df_withingene, target_sim, "Risk-aversion task")
 
-ggsave(plot = g, filename = here(output_path, "Fig7.1_Heatmap_RiskAversion_risk-aversion.png"), width = 17.0, height = 4.5, dpi = 400)
+ggsave(plot = g, filename = here(output_path, "Fig3.1_Heatmap_RiskAversion_risk-aversion.png"), width = 17.0, height = 4.5, dpi = 400)
 ```
 
 
@@ -1398,7 +1078,7 @@ target_sim <- factor(c(
 
 g <- VisHeatmap_RiskAversion(df_withingene, target_sim, "Risk-seeking task")
 
-ggsave(plot = g, filename = here(output_path, "Fig7.2_Heatmap_RiskAversion_risk-seeking.png"), width = 17.0, height = 4.5, dpi = 400)
+ggsave(plot = g, filename = here(output_path, "Fig3.2_Heatmap_RiskAversion_risk-seeking.png"), width = 17.0, height = 4.5, dpi = 400)
 ```
 
 
@@ -1431,18 +1111,6 @@ df_rev <-
     sd_risk_aversion = sqrt(variance(rate_risk_aversion))
   ) %>%
   dplyr::filter(bt == 0.25)
-
-# apがある値の時にリスク回避率が大きく変わる部分を取り出す
-# → やめた
-df_rev %>%
-  dplyr::mutate(
-    sign = case_when(
-      mean_risk_aversion > 0.55 ~ '>',
-      (mean_risk_aversion > 0.45) & (mean_risk_aversion <= 0.55) ~ '-',
-      mean_risk_aversion <= 0.45 ~ '<'
-    )
-  ) %>% 
-  dplyr::select(sim_sort, ap, an, mean_risk_aversion, sign) 
 
 
 # 75%以上リスク回避ができる最小のanパラメータは？
@@ -1494,9 +1162,7 @@ mean(df_an_above07$MEAN_risk_aversion)
 ```
 
 
-
-## Fig.8 期待値が同じリスク回避率
-
+# Fig.4a 期待値が同じリスク回避率
 
 - 横軸: リスク回避率、縦軸: 頻度
 
@@ -1509,19 +1175,22 @@ df_choice_res_500T_latter100 %>%
   my_theme2 + 
   theme(axis.text.x = element_text(size = 18), 
         axis.text.y = element_text(size = 18), 
-        axis.title = element_text(size = 23, face = "bold"), 
-        strip.text.x = element_text(size = 17)
+        axis.title = element_text(size = 26, face = "bold"), 
+        strip.text.x = element_text(size = 17),
+        plot.tag = element_text(size = 30)
         ) + 
   facet_grid(sim_n~task_struct) + 
-  labs(x = "Rate of risk aversion", y = "Frequency of agent") -> g
+  labs(x = "Rate of risk aversion", y = "Frequency of agent",
+       tag = "(a)") -> g
 
-ggsave(plot = g, filename = here(output_path, "Fig8_RiskPref_RandMulti_latter100.png"), width = 16.0, height = 24.0, dpi = 400)
+ggsave(plot = g, filename = here(output_path, "Fig4a_RiskPref_RandMulti_latter100.png"), width = 17.0, height = 24.0, dpi = 400)
 ```
 
 
 ```{r}
 # 発表用：2/2条件のみでグラフを作成
 # 課題 * 条件のグラフを作成
+
 df_choice_res_500T_latter100 %>% 
   dplyr::filter(sim == "cond_2/2") %>% 
   
@@ -1536,14 +1205,15 @@ df_choice_res_500T_latter100 %>%
   facet_grid(.~task_struct) + 
   labs(x = "Rate of risk aversion", y = "Frequency of agent") -> g
 
-ggsave(plot = g, filename = here(output_path, "Fig8_RiskPref_RandMulti_latter100_cond2.png"), width = 18.0, height = 6.0)
+ggsave(plot = g, filename = here(output_path, "Fig4a_RiskPref_RandMulti_latter100_cond2.png"), width = 18.0, height = 6.0)
 ```
 
 
-## Fig.9 Gain-Lossの差のヒストグラム
+
+# Fig.4b Gain-Lossの差のヒストグラム
 
   
--  2つのGain課題、2つのLoss課題で、それぞれの課題の平均値を計算
+- 2つのGain課題、2つのLoss課題で、それぞれの課題の平均値を計算
 
 ```{r}
 df_choice_gainloss_500T_latter100_last %>% 
@@ -1554,23 +1224,23 @@ df_choice_gainloss_500T_latter100_last %>%
   theme(
     axis.text.x = element_text(size = 18), 
     axis.text.y = element_text(size = 18), 
-    axis.title.y = element_text(size = 22, face = "bold"), 
+    axis.title.y = element_text(size = 21, face = "bold"), 
     axis.title.x = element_text(size = 18, face = "bold"), 
-    strip.text.y = element_text(size = 18)
+    strip.text.y = element_text(size = 18),
+    plot.tag = element_text(size = 30)
     ) +
-  labs(x = "Gain-loss differece in risk aversion", y = "") + 
+  labs(x = "Gain-loss differece in risk aversion", y = "",
+       tag = "(b)") + 
   facet_grid(sim_n~.) -> g
 
-ggsave(plot = g, filename = here(output_path, "Fig9_RiskPrefDif_RandMulti_latter100_vert.png"), width = 5.0, height = 18.0, dpi = 400)
+ggsave(plot = g, filename = here(output_path, "Fig4b_RiskPrefDif_RandMulti_latter100_vert.png"), width = 5.5, height = 18.0, dpi = 400)
 ```
 
 
-## Fig.9 補足：各種統計量
-
-  
-- 分布のピークを取り出す
 
 ```{r}
+# 数値　分布のピークを取り出す
+
 df_choice_gainloss_500T_latter100_last %>% 
   
   dplyr::group_by(sim_n) %>% 
@@ -1583,10 +1253,10 @@ df_choice_gainloss_500T_latter100_last %>%
 ```
 
 
-- リスク回避増加/減少の割合：gain - loss > 0 (lossに比べてgainでリスク回避傾向が増加した) である個体の数を数えた
-
 
 ```{r}
+# リスク回避増加/減少の割合：gain - loss > 0 (lossに比べてgainでリスク回避傾向が増加した) である個体の数
+
 df_choice_gainloss_500T_latter100_last %>% 
   
   dplyr::mutate(
@@ -1603,705 +1273,10 @@ df_choice_gainloss_500T_latter100_last %>%
 ```
 
 
-
-## Fig.10 単一$\beta$：全シミュレーション 進化
-
-
-- 横軸: 課題の期待値、縦軸: 最終世代の遺伝子の平均値（+SD）
-
-
-```{r, eval = FALSE}
-# リスク回避が適応的な課題
-target_simexp <- c("-50 vs -30", "-40 vs -20", "-30 vs -10", "-20 vs 0", "-10 vs 10", "0 vs 20", "10 vs 30")
-
-g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "beta", "Risk-aversion task")
-
-ggsave(plot = g, filename = here(output_path, "Fig10.1_LastGene_bt_risk-aversion_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
-```
-
-
-```{r, eval = FALSE}
-# リスク追求が適応的な課題
-target_simexp <- c("-10 vs -30", "0 vs -20", "10 vs -10", "20 vs 0", "30 vs 10", "40 vs 20", "50 vs 30")
-
-g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "beta", "Risk-seeking task", legend = FALSE)
-
-ggsave(plot = g, filename = here(output_path, "Fig10.2_LastGene_bt_risk-seeking_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
-```
-
-
-
-## Fig.11 複数$\beta$：ランダム複数課題シミュレーションの進化
-
- 
-- 横軸: 世代、縦軸: 遺伝子の値（細い線は1つのシミュレーション）
-
-
-```{r, eval = FALSE} 
-df_gene_randmulti_summary_longer %>% 
-  dplyr::filter(para %in% c("bt")) %>% 
-  dplyr::mutate(
-    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
-  ) -> 
-  df_gene_randmulti_summary_longer_rev
-
-df_gene_randmulti_longer %>% 
-  dplyr::filter(para %in% c("bt")) %>% 
-  dplyr::mutate(
-    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
-  ) %>% 
-  
-  ggplot(aes(x = generation, y = mean)) + geom_line(aes(group = sim_i), size = 0.08) + 
-  geom_line(data = df_gene_randmulti_summary_longer_rev, aes(x = generation, y = MEAN, color = para), size = 2.0) +
-  my_theme2 + labs(x = 'Generation', y = 'Parameter value') + guides(color = "none") + 
-  scale_color_manual(name = "", values = c("#33A02C"), 
-                     labels = c(expression(beta))) +  
-  theme(
-    axis.text.x = element_text(size = 18), 
-    axis.text.y = element_text(size = 15), 
-    axis.title = element_text(size = 23, face = "bold"), 
-    strip.text.x = element_text(size = 16),
-    strip.text.y = element_text(angle = 0)
-  ) + 
-  facet_grid(.~sim_n, 
-             labeller = labeller(para_rev = label_parsed)) + 
-  coord_cartesian(ylim = c(0, 0.5)) ->
-  g
-  
-ggsave(plot = g, filename = here(output_path, "Fig11_Evo_RandMulti_bt.png"), width = 17.0, height = 5.0)
-```
-
-
----------------------------
-
-# その他論文に必要な情報
-
-## 複数課題シミュレーションのlocation
-
-  
-- 課題の構造
-
-- Posi1：sim1 (リスク回避2/4)
-
-    - Task 1: N(30, 20) > N(10, 5)（リスク追求が有利）
-    - Task 2: N(20, 20) > N(0, 5)（リスク追求が有利）
-    - Task 3: N(10, 20) < N(30, 5)（リスク回避が有利）
-    - Task 4: N(0, 20) < N(20, 5)（リスク回避が有利）
-    
-- Posi2：sim2 (リスク回避1/4)
-
-    - Task 1: N(30, 20) > N(10, 5)（リスク追求が有利）
-    - Task 2: N(20, 20) > N(0, 5)（リスク追求が有利）
-    - Task 3: N(10, 20) > N(-10, 5)（リスク追求が有利）
-    - Task 4: N(10, 20) < N(30, 5)（リスク回避が有利）
-    
-- Posi3：sim3 (リスク回避3/4)
-
-    - Task 1: N(30, 20) > N(10, 5)（リスク追求が有利）
-    - Task 2: N(10, 20) < N(30, 5)（リスク回避が有利）
-    - Task 3: N(0, 20) < N(20, 5)（リスク回避が有利）
-    - Task 4: N(-10, 20) < N(10, 5)（リスク回避が有利）
-
-- Cent1：sim4（リスク回避2/4）
-
-    - Task 1: N(10, 20) > N(-10, 5)（リスク追求が有利）
-    - Task 2: N(0, 20) > N(-20, 5)（リスク追求が有利）
-    - Task 3: N(-10, 20) < N(10, 5)（リスク回避が有利）
-    - Task 4: N(-20, 20) < N(0, 5)（リスク回避が有利）
-
-- Cent2：sim5 (リスク回避1/4)
-
-    - Task 1: N(10, 20) > N(-10, 5)（リスク追求が有利）
-    - Task 2: N(0, 20) > N(-20, 5)（リスク追求が有利）
-    - Task 3: N(-10, 20) > N(-30, 5)（リスク追求が有利）
-    - Task 4: N(-10, 20) < N(10, 5)（リスク回避が有利）
-
-- Cent3：sim6 (リスク回避3/4)
-
-    - Task 1: N(10, 20) > N(-10, 5)（リスク追求が有利）
-    - Task 2: N(-10, 20) < N(10, 5)（リスク回避が有利）
-    - Task 3: N(-20, 20) < N(0, 5)（リスク回避が有利）
-    - Task 4: N(-30, 20) < N(-10, 5)（リスク回避が有利）
-    
-    
-- Nega1：sim7（リスク回避2/4）
-
-    - Task 1: N(-10, 20), N(-30, 5)（リスク追求が有利）
-    - Task 2: N(-20, 20), N(-40, 5)（リスク追求が有利）
-    - Task 3: N(-30, 20), N(-10, 5)（リスク回避が有利）
-    - Task 4: N(-40, 20), N(-20, 5)（リスク回避が有利）
-
-
-- Nega2：sim8（リスク回避1/4）
-
-    - Task 1: N(-10, 20) > N(-30, 5)（リスク追求が有利）
-    - Task 2: N(-20, 20) > N(-40, 5)（リスク追求が有利）
-    - Task 3: N(-30, 20) > N(-50, 5)（リスク追求が有利）
-    - Task 4: N(-30, 20) < N(-10, 5)（リスク回避が有利）
-
-
-- Nega3：sim9（リスク回避3/4）
-
-    - Task 1: N(-10, 20), N(-30, 5)（リスク追求が有利）
-    - Task 2: N(-30, 20), N(-10, 5)（リスク回避が有利）
-    - Task 3: N(-40, 20), N(-20, 5)（リスク回避が有利）
-    - Task 4: N(-50, 20), N(-30, 5)（リスク回避が有利）
-
-
-- Posi 1
-
-```{r}
-TaskStrucFunc1(30, 20, 10, 5) + TaskStrucFunc1(20, 20, 0, 5) + TaskStrucFunc1(10, 20, 30, 5) + TaskStrucFunc1(0, 20, 20, 5) + plot_annotation(tag_levels = "1")
-```
-
-```{r}
-# 各正規分布について、0以下の領域の大きさを計算する
-# 全体を2として、その領域が占める割合を計算する
-t1 <- (pnorm(0, 30, 20) + pnorm(0, 10, 5))/2
-t2 <- (pnorm(0, 20, 20) + pnorm(0, 0, 5))/2
-t3 <- (pnorm(0, 10, 20) + pnorm(0, 30, 5))/2
-t4 <- (pnorm(0, 0, 20) + pnorm(0, 20, 5))/2
-
-# 4課題の平均
-(t1 + t2 + t3 + t4)/4
-```
-
-- Posi 2
-
-```{r}
-TaskStrucFunc1(30, 20, 10, 5) + TaskStrucFunc1(20, 20, 0, 5) + TaskStrucFunc1(10, 20, -10, 5) + TaskStrucFunc1(10, 20, 30, 5) + plot_annotation(tag_levels = "1")
-```
-
-```{r}
-# 各正規分布について、0以下の領域の大きさを計算する
-# 全体を2として、その領域が占める割合を計算する
-t1 <- (pnorm(0, 30, 20) + pnorm(0, 10, 5))/2
-t2 <- (pnorm(0, 20, 20) + pnorm(0, 0, 5))/2
-t3 <- (pnorm(0, 10, 20) + pnorm(0, -10, 5))/2
-t4 <- (pnorm(0, 10, 20) + pnorm(0, 30, 5))/2
-
-# 4課題の平均
-(t1 + t2 + t3 + t4)/4
-```
-
-- Posi3
-
-```{r}
-TaskStrucFunc1(30, 20, 10, 5) + TaskStrucFunc1(10, 20, 30, 5) + TaskStrucFunc1(0, 20, 20, 5) + TaskStrucFunc1(-10, 20, 10, 5) + plot_annotation(tag_levels = "1")
-```
-
-```{r}
-# 各正規分布について、0以下の領域の大きさを計算する
-# 全体を2として、その領域が占める割合を計算する
-t1 <- (pnorm(0, 30, 20) + pnorm(0, 10, 5))/2
-t2 <- (pnorm(0, 10, 20) + pnorm(0, 30, 5))/2
-t3 <- (pnorm(0, 0, 20) + pnorm(0, 20, 5))/2
-t4 <- (pnorm(0, -10, 20) + pnorm(0, 10, 5))/2
-
-# 4課題の平均
-(t1 + t2 + t3 + t4)/4
-```
-
-
-- Cent 1
-
-
-```{r}
-TaskStrucFunc1(10, 20, -10, 5) + TaskStrucFunc1(0, 20, -20, 5) + TaskStrucFunc1(-10, 20, 10, 5) + TaskStrucFunc1(-20, 20, 0, 5) + plot_annotation(tag_levels = "1")
-```
-
-```{r}
-# 各正規分布について、0以下の領域の大きさを計算する
-# 全体を2として、その領域が占める割合を計算する
-t1 <- (pnorm(0, 10, 20) + pnorm(0, -10, 5))/2
-t2 <- (pnorm(0, 0, 20) + pnorm(0, -20, 5))/2
-t3 <- (pnorm(0, -10, 20) + pnorm(0, 10, 5))/2
-t4 <- (pnorm(0, -20, 20) + pnorm(0, 0, 5))/2
-
-# 4課題の平均
-(t1 + t2 + t3 + t4)/4
-```
-
-- Cent 2
-
-```{r}
-TaskStrucFunc1(10, 20, -10, 5) + TaskStrucFunc1(0, 20, -20, 5) + TaskStrucFunc1(-10, 20, -30, 5) + TaskStrucFunc1(-10, 20, 10, 5) + plot_annotation(tag_levels = "1")
-```
-
-```{r}
-# 各正規分布について、0以下の領域の大きさを計算する
-# 全体を2として、その領域が占める割合を計算する
-t1 <- (pnorm(0, 10, 20) + pnorm(0, -10, 5))/2
-t2 <- (pnorm(0, 0, 20) + pnorm(0, -20, 5))/2
-t3 <- (pnorm(0, -10, 20) + pnorm(0, -30, 5))/2
-t4 <- (pnorm(0, -10, 20) + pnorm(0, 10, 5))/2
-
-# 4課題の平均
-(t1 + t2 + t3 + t4)/4
-```
-
-- Cent3
-
-
-```{r}
-TaskStrucFunc1(10, 20, -10, 5) + TaskStrucFunc1(-10, 20, 10, 5) + TaskStrucFunc1(-20, 20, 0, 5) + TaskStrucFunc1(-30, 20, -10, 5) + plot_annotation(tag_levels = "1")
-```
-
-```{r}
-# 各正規分布について、0以下の領域の大きさを計算する
-# 全体を2として、その領域が占める割合を計算する
-t1 <- (pnorm(0, 10, 20) + pnorm(0, -10, 5))/2
-t2 <- (pnorm(0, -10, 20) + pnorm(0, 10, 5))/2
-t3 <- (pnorm(0, -20, 20) + pnorm(0, 0, 5))/2
-t4 <- (pnorm(0, -30, 20) + pnorm(0, -10, 5))/2
-
-# 4課題の平均
-(t1 + t2 + t3 + t4)/4
-```
-
-
-- Nega1
-
-
-```{r}
-TaskStrucFunc1(-10, 20, -30, 5) + TaskStrucFunc1(-20, 20, -40, 5) + TaskStrucFunc1(-30, 20, -10, 5) + TaskStrucFunc1(-40, 20, -20, 5) + plot_annotation(tag_levels = "1")
-```
-
-```{r}
-# 各正規分布について、0以下の領域の大きさを計算する
-# 全体を2として、その領域が占める割合を計算する
-t1 <- (pnorm(0, -10, 20) + pnorm(0, -30, 5))/2
-t2 <- (pnorm(0, -20, 20) + pnorm(0, -40, 5))/2
-t3 <- (pnorm(0, -30, 20) + pnorm(0, -10, 5))/2
-t4 <- (pnorm(0, -40, 20) + pnorm(0, -20, 5))/2
-
-# 4課題の平均
-(t1 + t2 + t3 + t4)/4
-```
-
-
-- Nega2
-
-
-```{r}
-TaskStrucFunc1(-10, 20, -30, 5) + TaskStrucFunc1(-20, 20, -40, 5) + TaskStrucFunc1(-30, 20, -50, 5) + TaskStrucFunc1(-30, 20, -10, 5) + plot_annotation(tag_levels = "1")
-```
-
-```{r}
-# 各正規分布について、0以下の領域の大きさを計算する
-# 全体を2として、その領域が占める割合を計算する
-t1 <- (pnorm(0, -10, 20) + pnorm(0, -30, 5))/2
-t2 <- (pnorm(0, -20, 20) + pnorm(0, -40, 5))/2
-t3 <- (pnorm(0, -30, 20) + pnorm(0, -50, 5))/2
-t4 <- (pnorm(0, -30, 20) + pnorm(0, -10, 5))/2
-
-# 4課題の平均
-(t1 + t2 + t3 + t4)/4
-```
-
-
-- Nega3
-
-```{r}
-TaskStrucFunc1(-10, 20, -30, 5) + TaskStrucFunc1(-30, 20, -10, 5) + TaskStrucFunc1(-40, 20, -20, 5) + TaskStrucFunc1(-50, 20, -30, 5) + plot_annotation(tag_levels = "1")
-```
-
-```{r}
-# 各正規分布について、0以下の領域の大きさを計算する
-# 全体を2として、その領域が占める割合を計算する
-t1 <- (pnorm(0, -10, 20) + pnorm(0, -30, 5))/2
-t2 <- (pnorm(0, -30, 20) + pnorm(0, -10, 5))/2
-t3 <- (pnorm(0, -40, 20) + pnorm(0, -20, 5))/2
-t4 <- (pnorm(0, -50, 20) + pnorm(0, -30, 5))/2
-
-# 4課題の平均
-(t1 + t2 + t3 + t4)/4
-```
-
-
-## 複数課題シミュレーションの分布図（全て）
-
-```{r}
-mean1 <- c(30, 20, 10, 0, 
-           30, 20, 10, 10, 
-           30, 10, 0, -10, 
-           10, 0, -10, -20, 
-           10, 0, -10, -10,
-           10, -10, -20, -30,
-           -10, -20, -30, -40,
-           -10, -20, -30, -30,
-           -10, -30, -40, -50)
-
-sd1 <- rep(20, times = 4 * 9)
-
-mean2 <- c(10, 0, 30, 20,
-           10, 0, -10, 30,
-           10, 30, 20, 10,
-           -10, -20, 10, 0,
-           -10, -20, -30, 10,
-           -10, 10, 0, -10,
-           -30, -40, -10, -20,
-           -30, -40, -50, -10,
-           -30, -10, -20, -30)
-
-sd2 <- rep(5, times = 4 * 9)
-
-names <- rep(c("Posi 2/4", "Posi 1/4", "Posi 3/4", "Cent 2/4", "Cent 1/4", "Cent 3/4", "Nega 2/4", "Nega 1/4", "Nega 3/4"), each = 4)
-
-n <- rep(1:4, times = 9)
-
-task_struct <- tibble(
-  m1 = mean1,
-  sd1 = sd1,
-  m2 = mean2,
-  sd2 = sd2,
-  n = n,
-  names = names
-)
-
-ggplot(data = data.frame(x = c(-70, 70)), aes(x)) + 
-    stat_function(data = task_struct, fun = dnorm, args = list(mean = task_struct$m1, sd = task_struct$sd1), color = "#FF7F00", size = 1.0, geom="area", fill = "#FF7F00", alpha = 0.3) + 
-    stat_function(data = task_struct, fun = dnorm, args = list(mean = task_struct$m2, sd = task_struct$sd2), color = "#1F78B4", size = 1.0, geom="area", fill = "#1F78B4", alpha = 0.3) + 
-    geom_vline(xintercept = 0, color = "black", size = 1.3) + 
-    geom_segment(data = task_struct, aes(x = m1, xend = task_struct$m1, y = -0.002, yend = dnorm(task_struc$m1, task_struct$m1, task_struct$sd1)), linetype = "dashed", color = "#FF7F00", size = 0.7) +
-    geom_segment(data = task_struct, aes(x = m2, xend = task_struct$m2, y = -0.002, yend = dnorm(task_struct$m2, task_struct$m2, task_struct$sd2)), linetype = "dashed", color = "#1F78B4", size = 0.7) +
-    theme_classic() + 
-    theme(axis.text.x = element_text(size = 18, colour="black"), axis.line=element_line(colour="black", size=1.3, lineend="square"), axis.title=element_text(size=14, face="bold")) + 
-    labs(x = "Payoff", y = "") + 
-    scale_y_continuous(breaks = NULL) + 
-    scale_x_continuous(breaks = c(-60, -30, 0, 30, 60)) +
-    coord_cartesian(xlim = c(-60, 60)) + facet_wrap(names~n)
-```
-
-
-```{r}
-# 36個の分布
-p1_1 <- TaskStrucFunc3(30, 20, 10, 5); p1_2 <- TaskStrucFunc3(20, 20, 0, 5); p1_3 <- TaskStrucFunc3(10, 20, 30, 5); p1_4 <- TaskStrucFunc3(0, 20, 20, 5) 
-
-p1 <- p1_1 + p1_2 + p1_3 + p1_4 + plot_layout(ncol = 4) 
-
-p2_1 <- TaskStrucFunc3(30, 20, 10, 5); p2_2 <- TaskStrucFunc3(20, 20, 0, 5); p2_3 <- TaskStrucFunc3(10, 20, -10, 5); p2_4 <- TaskStrucFunc3(10, 20, 30, 5)
-
-p2 <- p2_1 + p2_2 + p2_3 + p2_4 + plot_layout(ncol = 4)
-
-p3_1 <- TaskStrucFunc3(30, 20, 10, 5); p3_2 <- TaskStrucFunc3(10, 20, 30, 5); p3_3 <- TaskStrucFunc3(0, 20, 20, 5); p3_4 <- TaskStrucFunc3(-10, 20, 10, 5)
-
-p3 <- p3_1 + p3_2 + p3_3 + p3_4 + plot_layout(ncol = 4)
-
-# 正に位置している課題図を保存
-gg_p <- p1 / p2 / p3 + plot_annotation(title = "Positively-located tasks, row1 = 2/4, row2 = 1/4, row3 = 3/4 (risk-aversion task)")
-ggsave(filename = here(output_path, "MultipleTask_Struct_p.png"), plot = gg_p, width = 20, height = 9)
-rm(list = ls()[stringr::str_detect(string = ls(), pattern = "^p1|^p2|^p3")])
-
-c1_1 <- TaskStrucFunc3(10, 20, -10, 5); c1_2 <- TaskStrucFunc3(0, 20, -20, 5); c1_3 <- TaskStrucFunc3(-10, 20, 10, 5); c1_4 <- TaskStrucFunc3(-20, 20, 0, 5)
-
-c1 <- c1_1 + c1_2 + c1_3 + c1_4 + plot_layout(ncol = 4)
-
-c2_1 <- TaskStrucFunc3(10, 20, -10, 5); c2_2 <- TaskStrucFunc3(0, 20, -20, 5); c2_3 <- TaskStrucFunc3(-10, 20, -30, 5); c2_4 <- TaskStrucFunc3(-10, 20, 10, 5)
-
-c2 <- c2_1 + c2_2 + c2_3 + c2_4 + plot_layout(ncol = 4)
-
-c3_1 <- TaskStrucFunc3(10, 20, -10, 5); c3_2 <- TaskStrucFunc3(-10, 20, 10, 5); c3_3 <- TaskStrucFunc3(-20, 20, 0, 5); c3_4 <- TaskStrucFunc3(-30, 20, -10, 5)
-
-c3 <- c3_1 + c3_2 + c3_3 + c3_4 + plot_layout(ncol = 4)
-
-# 中央に位置している課題図を保存
-gg_c <- c1 / c2 / c3 + plot_annotation(title = "Centrally-located tasks, row1 = 2/4, row2 = 1/4, row3 = 3/4 (risk-aversion task)")
-ggsave(filename = here(output_path, "MultipleTask_Struct_c.png"), plot = gg_c, width = 20, height = 9)
-rm(list = ls()[stringr::str_detect(string = ls(), pattern = "^c1|^c2|^c3")])
-
-n1_1 <- TaskStrucFunc3(-10, 20, -30, 5); n1_2 <- TaskStrucFunc3(-20, 20, -40, 5); n1_3 <- TaskStrucFunc3(-30, 20, -10, 5); n1_4 <- TaskStrucFunc3(-40, 20, -20, 5) 
-
-n1 <- n1_1 + n1_2 + n1_3 + n1_4 + plot_layout(ncol = 4)
-
-n2_1 <- TaskStrucFunc3(-10, 20, -30, 5); n2_2 <- TaskStrucFunc3(-20, 20, -40, 5); n2_3 <- TaskStrucFunc3(-30, 20, -50, 5); n2_4 <- TaskStrucFunc3(-30, 20, -10, 5)
-
-n2 <- n2_1 + n2_2 + n2_3 + n2_4 + plot_layout(ncol = 4)
-
-n3_1 <- TaskStrucFunc3(-10, 20, -30, 5); n3_2 <- TaskStrucFunc3(-30, 20, -10, 5); n3_3 <- TaskStrucFunc3(-40, 20, -20, 5); n3_4 <- TaskStrucFunc3(-50, 20, -30, 5)
-
-n3 <- n3_1 + n3_2 + n3_3 + n3_4 + plot_layout(ncol = 4)
-
-# 負に位置している課題図を保存
-gg_n <- n1 / n2 / n3 + plot_annotation(title = "Negatively-located tasks, row1 = 2/4, row2 = 1/4, row3 = 3/4 (risk-aversion task)")
-ggsave(filename = here(output_path, "MultipleTask_Struct_n.png"), plot = gg_n, width = 20, height = 9)
-rm(list = ls()[stringr::str_detect(string = ls(), pattern = "^n1|^n2|^n3")])
-
-```
-
-
-```{r}
-# 2/2課題だけ保存する
-
-# 正に位置する課題
-p1_1 <- TaskStrucFunc3(30, 20, 10, 5); p1_2 <- TaskStrucFunc3(20, 20, 0, 5); p1_3 <- TaskStrucFunc3(10, 20, 30, 5); p1_4 <- TaskStrucFunc3(0, 20, 20, 5)
-
-p1 <- p1_1 + p1_2 + p1_3 + p1_4 + plot_layout(ncol = 4) 
-ggsave(filename = here(output_path, "MultipleTask_Struct_p1.png"), plot = p1, width = 20, height = 4)
-
-
-# 負に位置する課題
-n1_1 <- TaskStrucFunc3(-10, 20, -30, 5); n1_2 <- TaskStrucFunc3(-20, 20, -40, 5); n1_3 <- TaskStrucFunc3(-30, 20, -10, 5); n1_4 <- TaskStrucFunc3(-40, 20, -20, 5) 
-
-n1 <- n1_1 + n1_2 + n1_3 + n1_4 + plot_layout(ncol = 4)
-ggsave(filename = here(output_path, "MultipleTask_Struct_n1.png"), plot = n1, width = 20, height = 4)
-```
-
-
-
-
-## Fig.X1 単一$\beta$：6つの典型的な結果 進化
-
-
-```{r, eval = FALSE}
-# リスク回避が適応的な課題
-
-sim_name <- c("20.5.0.20", "0.5.-20.20", "-20.5.-40.20")
-
-df_gene_longer %>% 
-  dplyr::filter(sim %in% sim_name) %>% # 3つのsim_nameのみを取り出す
-  dplyr::filter(para == "bt") %>% 
-  dplyr::mutate(
-    sim_sort = paste0('N(', m2, ',', sd2, ') vs N(', m1, ',', sd1, ')')
-  ) %>% 
-
-  ggplot(aes(x = generation, y = mean_rate)) + 
-  geom_line(aes(x = generation, y = mean_rate, color = para), size = 1.2) + 
-  geom_ribbon(aes(x = generation, ymin = mean_rate - mean_sd, ymax = mean_rate + mean_sd, fill = para), alpha = 0.6) + 
-  my_theme2 + 
-  theme(axis.text.x = element_text(size = 15), axis.text.y = element_text(size = 15), axis.title=element_text(size = 20, face="bold"), strip.text.x = element_text(size = 15), legend.text = element_text(family = "serif", face = "italic"), legend.background = element_rect(fill = "transparent"), legend.key = element_rect(color = "transparent", fill = "white"), legend.position = c(1, 0.35), legend.justification = c(1, 1)) + 
-  facet_grid(.~sim_sort) + 
-  labs(x= 'Generation', y= 'Mean parameter value', subtitle = 'Risk-aversion task') + 
-  scale_x_continuous(breaks = pretty) + 
-  scale_color_manual(name = "", values = c("#33A02C"), labels = expression(beta)) +
-  scale_fill_manual(name = "", values = c("#33A02C"), labels = expression(beta)) + 
-  coord_cartesian(ylim = c(-0.02, 0.5)) -> g
-
-ggsave(plot = g, filename = here(output_path, "FigX1_1_Evo_risk_aversion_6_bt.png"), width = 15.0, height = 6.0)
-```
-
-
-```{r, eval = FALSE}
-# リスク追求が適応的な課題
-
-sim_name <- c("20.5.40.20", "0.5.20.20", "-20.5.0.20")
-
-df_gene_longer %>% 
-  dplyr::filter(sim %in% sim_name) %>% # 3つのsim_nameのみを取り出す
-  dplyr::filter(para == "bt") %>% 
-  dplyr::mutate(
-    sim_sort = paste0('N(', m2, ',', sd2, ') vs N(', m1, ',', sd1, ')')
-  ) %>% 
-
-  ggplot(aes(x = generation, y = mean_rate)) + 
-  geom_line(aes(x = generation, y = mean_rate, color = para), size = 1.2) + 
-  geom_ribbon(aes(x = generation, ymin = mean_rate - mean_sd, ymax = mean_rate + mean_sd, fill = para), alpha = 0.6) + 
-  my_theme2 + 
-  theme(axis.text.x = element_text(size = 15), axis.text.y = element_text(size = 15), axis.title=element_text(size = 20, face="bold"), strip.text.x = element_text(size = 15), legend.text = element_text(family = "serif", face = "italic"), legend.background = element_rect(fill = "transparent"), legend.key = element_rect(color = "transparent", fill = "white"), legend.position = c(1, 0.9), legend.justification = c(1, 1)) + 
-  facet_grid(.~sim_sort) + 
-  labs(x= 'Generation', y= 'Mean parameter value', subtitle = 'Risk-seeking task') + 
-  scale_x_continuous(breaks = pretty) + 
-  scale_color_manual(name = "", values = c("#33A02C"), labels = expression(beta)) +
-  scale_fill_manual(name = "", values = c("#33A02C"), labels = expression(beta)) + 
-  coord_cartesian(ylim = c(-0.02, 0.5)) + guides(color = FALSE, fill = FALSE) -> g
-
-ggsave(plot = g, filename = here(output_path, "FigX1_2_Evo_risk_seeking_6_bt.png"), width = 15.0, height = 6.0)
-```
-
-
-
-## Fig.X4 $\beta$の値によってどれくらいの差が生まれるのか
-
-
-```{r}
-# 分布が正によっている課題群
-target_sim <- c("multi1.0", "multi2.0", "multi3.0")
-
-df_gene_multi_longer %>% 
-  dplyr::filter(sim %in% target_sim) %>% 
-  dplyr::filter(para == "bt") %>% 
-  dplyr::filter(generation == 4999) %>% 
-  dplyr::mutate(
-    sim_sort = 
-      case_when(sim == "multi1.0" ~ "2/4 risk-aversion task",
-                sim == "multi2.0" ~ "1/4 risk-aversion task",
-                sim == "multi3.0" ~ "3/4 risk-aversion task")
-  )
-```
-
-
-```{r}
-# 分布が中心〜負によっている課題群
-target_sim <- c("multi4.0", "multi5.0", "multi6.0")
-
-df_gene_multi_longer %>% 
-  dplyr::filter(sim %in% target_sim) %>% 
-  dplyr::filter(para == "bt") %>% 
-  dplyr::filter(generation == 4999) %>% 
-  dplyr::mutate(
-    sim_sort = 
-      case_when(sim == "multi4.0" ~ "2/4 risk-aversion task",
-                sim == "multi5.0" ~ "1/4 risk-aversion task",
-                sim == "multi6.0" ~ "3/4 risk-aversion task")
-  )
-
-```
-
-```{r}
-# 分布が負によっている課題群
-target_sim <- c("multi7.0", "multi8.0", "multi9.0")
-
-df_gene_multi_longer %>% 
-  dplyr::filter(sim %in% target_sim) %>% 
-  dplyr::filter(para == "bt") %>% 
-  dplyr::filter(generation == 4999) %>% 
-  dplyr::mutate(
-    sim_sort = 
-      case_when(sim == "multi7.0" ~ "2/4 risk-aversion task",
-                sim == "multi8.0" ~ "1/4 risk-aversion task",
-                sim == "multi9.0" ~ "3/4 risk-aversion task")
-  )
-```
-
-
-```{r} 
-# どれくらいの差なのか？
-# Softmax関数を描いてみる
-
-label_beta <- c("0.25(initial mean)", "0.3004(posi 2/4)", "0.4234(cent 2/4)", "0.4430(nega 2/4)")
-
-tibble(
-    x = seq(from = -60, to = 60, by = 0.1)
-  ) %>% 
-  tidyr::expand(crossing(x), beta = c(0.3004, 0.4234, 0.4430, 0.250)) %>% 
-  dplyr::mutate(p = softmax(x = x, bt = beta)) %>% 
-  
-  ggplot(aes(x = x, y = p)) + geom_line(aes(color = as.factor(beta)), size = 1.3) + 
-  labs(x = "V(1) - V(2)", y = "p(risky option)", color = expression(beta)) + 
-  my_theme2 + 
-  theme(legend.text = element_text(size = 10.0), legend.title = element_text(size = 12.0)) + 
-  scale_color_viridis_d(labels = label_beta) + 
-  coord_cartesian(ylim = c(0,1)) -> g
-
-ggsave(plot = g, filename = here(output_path, "FigX4_softmax_bt.png"), width = 8.0, height = 6.0)
-
-```
-
-```{r}
-tibble(
-    x = seq(from = -60, to = 60, by = 0.1)
-  ) %>% 
-  tidyr::expand(crossing(x), beta = c(0.3004, 0.4234, 0.4430, 0.250)) %>% 
-  dplyr::mutate(
-    p = softmax(x = x, bt = beta),
-    beta_n = case_when(
-      beta == 0.3004 ~ "posi",
-      beta == 0.4234 ~ "cent",
-      beta == 0.4430 ~ "nega",
-      beta == 0.25 ~ "init"
-    )) %>% 
-  tidyr::pivot_wider(id_cols = c(x), names_from = beta_n, values_from = p) %>% 
-  dplyr::mutate(
-    posi_init = posi - init,
-    cent_init = cent - init,
-    nega_init = nega - init,
-    nega_posi = nega - posi
-  ) %>% 
-  tidyr::pivot_longer(cols = c(posi_init, cent_init, nega_init, nega_posi), names_to = "compare", values_to = "p") %>% 
-  
-  ggplot(aes(x = x, y = p, )) + geom_line(aes(color = compare), size = 1.3) +
-  labs(x = "V(1) - V(2)", y = "difference in p(risky option)") + 
-  my_theme2 + 
-  theme(legend.text = element_text(size = 13.0), legend.title = element_text(size = 15.0)) + 
-  scale_color_viridis_d() + 
-  coord_cartesian(ylim = c(-0.2, 0.2)) -> g
-  
-ggsave(plot = g, filename = here(output_path, "FigX5_softmax_difference_bt.png"), width = 8.0, height = 6.0)
-```
-
-
-# 古い図
-
-## Fig.4 複数：進化の結果
-
-  
-- 横軸: 世代、縦軸: 遺伝子の平均値(+SD)
-
-
-```{r, eval = FALSE}
-# 2/2の正 & 負の課題
-target_sim <- c("P_2/2", "N_2/2")
-
-g <- VisEvol_Multi_Para_RunMean_facetSim(df_gene_multi_longer, target_sim, "alpha", "loc", "")
-
-ggsave(plot = g, filename = here(output_path, "Fig4_Evo_apan_Multi_PosiNega.png"), width = 10.0, height = 6.0)
-```
-
-```{r, eval = FALSE}
-# 2/2の正 & 中央、負の課題 for MultiRandTask
-target_sim <- c("P_2/2", "C_2/2", "N_2/2")
-
-g <- VisEvol_Multi_Para_RunMean_facetSim(df_gene_multi_longer, target_sim, "alpha", "loc", "")
-
-ggsave(plot = g, filename = here(output_path, "Evo_apan_Multi_PosiCentNega.png"), width = 13.0, height = 6.0)
-```
-
-
-
-## Fig.8 複数：4課題のリスク回避率
-
-- 2/2課題を抜き出す
-- 横軸: 世代、縦軸: リスク回避率の平均値(+SD)
-
-
-```{r, eval = FALSE}
-# 正の課題シミュレーション
-# 2/2課題を抜き出す
-
-target_sim <- c("P_2/2")
-
-g <- VisEvol_Multi_RiskAversion_RunMean_facetTask(df_gene_task_riskaversion, target_sim, "Positively located simulation")
-
-ggsave(plot = g, filename = here(output_path, "Fig8.1_Evo_RiskAversion_Multi_Positive.png"), width = 18.0, height = 6.0)
-```
-
-
-```{r, eval = FALSE}
-# 負の課題シミュレーション
-# 2/2課題を抜き出す
-
-target_sim <- c("N_2/2")
-
-g <- VisEvol_Multi_RiskAversion_RunMean_facetTask(df_gene_task_riskaversion, target_sim, "Positively located simultion")
-
-ggsave(plot = g, filename = here(output_path, "Fig8.2_Evo_RiskAversion_Multi_Negative.png"), width = 18.0, height = 6.0)
-```
-
-
-## Fig.9 複数：エージェントの学習ダイナミクス
-
-- 横軸: 試行、縦軸: リスク回避率
-- パネル：課題 * 世代
-
-
-```{r}
-g <- VisTrial_Multi_RiskAversion_facetTask(df_trialP22_meanSD, "Positively located simulation")
-
-ggsave(plot = g, filename = here(output_path, "Fig9.1_Trial_RiskAversion_MultiTask_Positive.png"), width = 18.0, height = 10.0)
-```
-
-```{r}
-g <- VisTrial_Multi_RiskAversion_facetTask(df_trialN22_meanSD, "Negatively located simulation")
-
-ggsave(plot = g, filename = here(output_path, "Fig9.2_Trial_RiskAversion_MultiTask_Negative.png"), width = 18.0, height = 10.0)
-```
-
-
-
-
 # Session Info
 
-- RStudio Version：1.3.1093
+- RStudio Version：1.4.1717
+    
     
 ```{r, eval = FALSE}
 RStudio.Version()$version
