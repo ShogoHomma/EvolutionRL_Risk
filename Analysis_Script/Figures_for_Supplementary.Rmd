@@ -1,5 +1,5 @@
 ---
-title: "Paper Supplementary"
+title: "Figures for Supplementary Information"
 author: "Shogo Homma"
 date: "`r format(Sys.time(), '%Y/%m/%d')`"
 output:
@@ -14,19 +14,16 @@ output:
     fig_width: 9
     fig_height: 8
     self_contained: true
-    css: mystyle.css
     md_extensions: -ascii_identifiers
 ---
 
 
-# セットアップ
+# Setup
 
 ```{r, include=FALSE}
 library(tidyverse)
 library(here)
 library(data.table)
-#library(GGally)
-library(ggrepel)
 library(patchwork)
 library(gt)
 library(webshot2)
@@ -34,11 +31,12 @@ library(webshot2)
 
 
 ```{r}
-# 画像の保存先のパスを設定
+# set the path for saving figs and sim results
 output_path <- here("Output", "FiguresForSupplementary")
-
 simout_SameExp_path <- here("Data", "SameExp_Sim_RandMultiTask")
+
 #dir.create(output_path)
+#dir.create(simout_SameExp_path)
 ```
 
 
@@ -47,7 +45,7 @@ knitr::opts_chunk$set(echo=TRUE, comment="", warning=FALSE, message=FALSE, fig.a
 ```
 
 
-## 関数の読み込み
+## Load functions
 
 ```{r}
 common_functions_path <- here("Analysis_Script", "_functions_common")
@@ -60,12 +58,16 @@ purrr::walk(project_functions, ~source(.x))
 ```
 
 
-## データの取得
+## Load data
 
-### 単一課題のデータ
+### Single-task simulations
 
 ```{r}
-## 世代平均の情報についてのデータ
+## load _gene.csv (averaged para info for each generation)
+
+## a directory, which corresponds to a simulation setting, is specified by a suffix "_YYYYMMDDHHMMSS"
+## e.g., G05000_N10000_T0500_apR_anR_btR_CN_1mean50.0_1sigma30.0_2mean30.0_2sigma5.0_V_20191214183504
+## pattern_name should be specified by the suffix number
 
 pattern_name_30_5 <- c(
   "_20191214183504", "_20191214183505", "_20191214183506", "_20191214183507", "_20191214183508",
@@ -150,46 +152,28 @@ sim_name_minus30_5 <- c(
   "-30.5.-20.30", "-30.5.-20.25", "-30.5.-20.20", "-30.5.-20.15", "-30.5.-20.10",
   "-30.5.-40.30", "-30.5.-40.25", "-30.5.-40.20", "-30.5.-40.15", "-30.5.-40.10",
   "-30.5.-50.30", "-30.5.-50.25", "-30.5.-50.20", "-30.5.-50.15", "-30.5.-50.10")
-```
 
 
-```{r}
-# 以上を一つのリストにまとめる
+# unite as a single list
 
 params <- list(
   pattern_name = c(pattern_name_30_5, pattern_name_20_5, pattern_name_10_5, pattern_name_0_5, pattern_name_minus10_5, pattern_name_minus20_5, pattern_name_minus30_5),
   sim_name = c(sim_name_30_5, sim_name_20_5, sim_name_10_5, sim_name_0_5, sim_name_minus10_5, sim_name_minus20_5, sim_name_minus30_5)
   )
 
-# 世代情報のdfを作成
 DataDir <- "Data"
 DataDir_sub <- "Evo_Sim_SingleTask"
+
+# a dataframe for averaged data by generation
 
 df_gene <- purrr::map2_dfr(params$pattern_name, params$sim_name, ~MakeDf(.x, .y, DataDir, DataDir_sub, "_gene.csv"))
 df_gene_longer <- ConvertDfGeneLonger_MeanSD(df_gene)
-
-discrim <- unique(df_gene_longer$discriminability)
 ```
 
 
-```{r}
-# 上記のベクトルを削除
-rm(list = ls()[stringr::str_starts(string = ls(), pattern = "pattern_name")])
-rm(list = ls()[stringr::str_starts(string = ls(), pattern = "sim_name")])
-```
-
 
 ```{r}
-# GeneAverageのデータだけ集める
-
-params <- list(
-  pattern_name = c(pattern_name_30_5, pattern_name_20_5, pattern_name_10_5, pattern_name_0_5, pattern_name_minus10_5, pattern_name_minus20_5, pattern_name_minus30_5),
-  sim_name = c(sim_name_30_5, sim_name_20_5, sim_name_10_5, sim_name_0_5, sim_name_minus10_5, sim_name_minus20_5, sim_name_minus30_5)
-  )
-
-# dfを作成
-DataDir <- "Data"
-DataDir_sub <- "Evo_Sim_SingleTask"
+# load GeneAverage_*.csv (averaged beha info for each generation)
 
 df_gene_riskaversion <- 
   purrr::map2_dfr(params$pattern_name, params$sim_name, ~MakeDf(.x, .y, DataDir, DataDir_sub, "GeneAverage_"))
@@ -204,7 +188,7 @@ df_gene_riskaversion_mean <-
   dplyr::ungroup() %>% 
   dplyr::mutate(
     mean_risk_aversion = 1 - mean_choice1
-  ) %>% # 以下、選択肢の効果量についての処理をする
+  ) %>% 
   tidyr::separate(col = "sim", into = c("m2", "sd2", "m1", "sd1"), sep = "\\.", remove = FALSE) %>% 
   dplyr::mutate(
     m1 = as.integer(m1),
@@ -221,12 +205,20 @@ df_gene_riskaversion_mean <-
 ```
 
 
+```{r}
+# remove vectors above
+rm(list = ls()[stringr::str_starts(string = ls(), pattern = "pattern_name")])
+rm(list = ls()[stringr::str_starts(string = ls(), pattern = "sim_name")])
+```
 
 
-### 単一課題（1世代内データ）を集める
+### Data of effect of learning rates in the single task (heatmap)
+
 
 ```{r}
-# 世代内データを集める（ヒートマップ作成のため）
+## a directory, which corresponds to a simulation setting, is specified by a suffix "_YYYYMMDDHHMMSS"
+## e.g., G05000_N10000_T0500_apR_anR_btR_CN_1mean50.0_1sigma30.0_2mean30.0_2sigma5.0_V_20191214183504
+## pattern_name should be specified by the suffix number
 
 pattern_name_30_5 <- c(
   "_20201227183815", "_20201227191810", "_20201227191811", "_20201227191812", "_20201227191813",
@@ -298,14 +290,16 @@ sim_name_minus30_5 <- c(
   "-30.5.-10.30", "-30.5.-10.25", "-30.5.-10.20", "-30.5.-10.15", "-30.5.-10.10"
   )
 
-# 以上を一つのリストにまとめる
+
+# unite as a single list
 
 params <- list(
   pattern_name = c(pattern_name_30_5, pattern_name_20_5, pattern_name_10_5, pattern_name_0_5, pattern_name_minus10_5, pattern_name_minus20_5, pattern_name_minus30_5),
   sim_name = c(sim_name_30_5, sim_name_20_5, sim_name_10_5, sim_name_0_5, sim_name_minus10_5, sim_name_minus20_5, sim_name_minus30_5)
   )
 
-# 上記のベクトルを削除
+
+# remove vectors above
 rm(list = ls()[stringr::str_starts(string = ls(), pattern = "pattern_name")])
 rm(list = ls()[stringr::str_starts(string = ls(), pattern = "sim_name")])
 
@@ -316,7 +310,7 @@ DataDir_sub <- "WithinGeneration_Sim_SingleTask"
 df_withingene <- purrr::map2_dfr(params$pattern_name, params$sim_name, ~MakeDfWithinGene(.x, .y, DataDir, DataDir_sub, "_nat.csv"))
 
 
-# rep間の平均をとる -> df_withingene_riskaverse_summaryの作成
+# averaged across replication -> df_withingene_riskaverse_summary
 df_withingene %>% 
   dplyr::mutate(
     ap = round(ap, 4),
@@ -337,10 +331,16 @@ df_withingene %>%
 ```
 
 
-### ランダム複数課題
+### Multiple-task simulation (random tasks)
+
 
 ```{r}
-# taskinfo系のdataframeを作成
+# create dataframes for task info
+
+
+## a directory, which corresponds to a simulation setting, is specified by a suffix "_YYYYMMDDHHMMSS"
+## e.g., G05000_N10000_T0500_apR_anR_btR_CN_1mean50.0_1sigma30.0_2mean30.0_2sigma5.0_V_20191214183504
+## pattern_name should be specified by the suffix number
 
 pattern_name <- c("_20220905162206", "_20220909161625", "_20220919103516", "_20220921105827", "_20220923105509")
 sim_name <- c("cond_2/2", "cond_1/3", "cond_3/1", "cond_0/4", "cond_4/0")
@@ -389,7 +389,8 @@ df_randmulti_taskgroup <-
     sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
   )
 
-# 各課題の平均的な効果量と負の領域量を計算
+
+# calculate the averaged effect size and negative area for each sim
 df_randmulti_taskinfo %>% 
   dplyr::group_by(sim, sim_n, sim_i) %>% 
   dplyr::summarise(
@@ -402,7 +403,12 @@ df_randmulti_taskinfo %>%
 
 
 ```{r}
-# _gene.csv 
+# load _gene.csv
+
+## a directory, which corresponds to a simulation setting, is specified by a suffix "_YYYYMMDDHHMMSS"
+## e.g., G05000_N10000_T0500_apR_anR_btR_CN_1mean50.0_1sigma30.0_2mean30.0_2sigma5.0_V_20191214183504
+## pattern_name should be specified by the suffix number
+
 pattern_name <- c("_20220905162206", "_20220909161625", "_20220919103516", "_20220921105827", "_20220923105509")
 sim_name <- c("cond_2/2", "cond_1/3", "cond_3/1", "cond_0/4", "cond_4/0")
 
@@ -427,14 +433,14 @@ df_gene_randmulti %>%
   df_gene_randmulti_summary
 
 
-# 課題情報と遺伝子のdfと結合
+# combine para df (filtered by last generation) and task info
 df_gene_randmulti %>% 
   dplyr::filter(generation == 2999) %>% 
   dplyr::full_join(df_randmulti_mean_taskinfo, by = c("sim", "sim_i")) ->
   df_gene_randmulti_taskinfo
 
 
-# 全体のまとめで使用するdfを作成
+# df for overall summary
 df_gene_randmulti %>% 
   dplyr::group_by(sim, generation) %>% 
   dplyr::summarise(
@@ -459,69 +465,21 @@ df_gene_randmulti_longer %>%
 ```
 
 
-```{r, eval=FALSE}
-# ---- 時間がかかるので実行しない方がいい ----
-# 下のRDSファイルの読み込みをした方がいい
-
-# 全条件にしたらどうなる？ → 処理に時間がかかる
-# 別々に読み込んで、後で結合する
-
-pattern_name <- c("_20220905162206", "_20220909161625", "_20220919103516", "_20220921105827", "_20220923105509")
-sim_name <- c("cond_2/2", "cond_1/3", "cond_3/1", "cond_0/4", "cond_4/0")
-
-DataDir <- "Data"
-DataDir_sub <- "Evo_RandMultiTask"
-
-AgentN <- 1000
-GeneN <- 3000
-TaskN <- 4
-Extract_SimN <- 100
-
-
-# - 個々の条件のagentデータを保存する
-
-#df_agent_randmulti <- purrr::map2_dfr(pattern_name, sim_name, ~MakeDfNat_Rand(.x, .y, DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN))
-
-
-#df_agent_randmulti_22 <- MakeDfNat_Rand(pattern_name[1], sim_name[1], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
-
-#saveRDS(df_agent_randmulti_22, file = here(DataDir, DataDir_sub, "df_agent_randmulti_22.obj"))
-
-
-#df_agent_randmulti_13 <- MakeDfNat_Rand(pattern_name[2], sim_name[2], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
-
-#saveRDS(df_agent_randmulti_13, file = here(DataDir, DataDir_sub, "df_agent_randmulti_13.obj"))
-
-
-#df_agent_randmulti_31 <- MakeDfNat_Rand(pattern_name[3], sim_name[3], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
-
-#saveRDS(df_agent_randmulti_31, file = here(DataDir, DataDir_sub, "df_agent_randmulti_31.obj"))
-
-
-#df_agent_randmulti_04 <- MakeDfNat_Rand(pattern_name[4], sim_name[4], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
-
-#saveRDS(df_agent_randmulti_04, file = here(DataDir, DataDir_sub, "df_agent_randmulti_04.obj"))
-
-
-#df_agent_randmulti_40 <- MakeDfNat_Rand(pattern_name[5], sim_name[5], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
-
-#saveRDS(df_agent_randmulti_40, file = here(DataDir, DataDir_sub, "df_agent_randmulti_40.obj"))
-```
-
-
 ```{r}
-# df_agent_randmultiの読み込み
+# --- Before running this code, you should run and generate df_beha_agent_randmulti_XX.RDS in Figures_for_Paper.Rmd ----
+
+# load df_beha_agent_randmulti_XX.RDS & create df_agent_randmulti_summary etc.
 
 DataDir <- "Data"
 DataDir_sub <- "Evo_RandMultiTask"
 
-names_randmulti_obj <- c("df_agent_randmulti_22.obj", "df_agent_randmulti_31.obj", "df_agent_randmulti_13.obj", "df_agent_randmulti_04.obj", "df_agent_randmulti_40.obj")
+names_randmulti_rds <- c("df_agent_randmulti_22.RDS", "df_agent_randmulti_31.RDS", "df_agent_randmulti_13.RDS", "df_agent_randmulti_04.RDS", "df_agent_randmulti_40.RDS")
 
 df_agent_randmulti <-
-  purrr::map_dfr(names_randmulti_obj, ~readRDS(here(DataDir, DataDir_sub, .x)))
+  purrr::map_dfr(names_randmulti_rds, ~readRDS(here(DataDir, DataDir_sub, .x)))
 
 
-# _summaryを作成
+# create _summary dataframe
 df_agent_randmulti %>% 
   dplyr::group_by(sim, sim_i, task_i, generation) %>%
   dplyr::summarise(
@@ -539,20 +497,31 @@ df_agent_randmulti %>%
   ) ->
   df_agent_randmulti_summary
 
-# 課題情報と結合する
+
+# combine _summary with taskinfo
+
 df_randmulti_taskinfo %>% 
   dplyr::full_join(df_agent_randmulti_summary, by = c("sim_n", "sim", "sim_i", "task_i")) ->
   df_agent_randmulti_summary
 
-df_agent_randmulti_summary %>% 
-  dplyr::group_by(task_i, generation) %>% 
+
+# summmarise by sim & generation
+
+df_agent_randmulti_summary %>%
+  dplyr::group_by(sim, generation, task_type) %>%
   dplyr::summarise(
-    MEAN_risk_aversion = mean(mean_risk_aversion)
+    MEAN_risk_aversion = mean(mean_risk_aversion),
+    SD_risk_aversion = sqrt(variance(mean_risk_aversion)),
+    N = n()
+  ) %>%
+  dplyr::ungroup() %>% 
+  dplyr::mutate(
+    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
   ) ->
   df_agent_randmulti_simMEAN
 
 
-# 課題番号をつける
+# add task number
 df_agent_randmulti_summary %>% 
   dplyr::group_by(generation, task_number) %>% 
   tidyr::nest() -> 
@@ -575,7 +544,7 @@ nested_df %>%
   df_agent_randmulti_summary_bytask
 
 
-# sim番号をつける
+# add sim number
 df_agent_randmulti_summary %>% 
   dplyr::group_by(sim_n, sim, generation, sim_i) %>% 
   dplyr::mutate(
@@ -589,37 +558,51 @@ df_agent_randmulti_summary %>%
 ```
 
 
-```{r}
-#  ------ # _nat.csv：続き ------ #
 
-df_agent_randmulti_summary_rev <- readRDS(here("Data", "Evo_RandMultiTask", "df_agent_randmulti_summary_rev.obj"))
+```{r, eval=FALSE}
+# load _trial.csv.gz (trial-by-trial data of the first and last generation)
 
-# 課題情報と結合する
-df_randmulti_taskinfo %>%
-  dplyr::full_join(df_agent_randmulti_summary_rev, by = c("sim", "sim_i", "task_i")) ->
-  df_agent_randmulti_summary
+## Because the size of _trial.csv is big, we create another object for containing only the info of the first and last generation (the .RDS file below).
 
-df_agent_randmulti_summary %>%
-  dplyr::group_by(sim, generation, task_type) %>%
-  dplyr::summarise(
-    MEAN_risk_aversion = mean(mean_risk_aversion),
-    SD_risk_aversion = sqrt(variance(mean_risk_aversion)),
-    N = n()
-  ) %>%
-  dplyr::ungroup() %>% 
-  dplyr::mutate(
-    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
-  ) ->
-  df_agent_randmulti_simMEAN
+## This process takes much time and memory. So, once the .RDS file is created, you should not run this chunk again. 
+
+## The main code is temporarily commented out in case that you run this chunk mistakenly. If you want to run, the comment should be removed. 
+
+
+## a directory, which corresponds to a simulation setting, is specified by a suffix "_YYYYMMDDHHMMSS"
+## e.g., G05000_N10000_T0500_apR_anR_btR_CN_1mean50.0_1sigma30.0_2mean30.0_2sigma5.0_V_20191214183504
+## pattern_name should be specified by the suffix number
+
+pattern_name <- c("_20220905162206", "_20220909161625", "_20220919103516", "_20220921105827", "_20220923105509")
+sim_name <- c("cond_2/2", "cond_1/3", "cond_3/1", "cond_0/4", "cond_4/0")
+
+DataDir <- "Data"
+DataDir_sub <- "Evo_RandMultiTask"
+
+Extract_SimN <- 100
+
+# df_beha_trial_randmulti_summary <- purrr::map2_dfr(pattern_name, sim_name, ~MakeDfTrial_Rand(.x, .y, DataDir, DataDir_sub, "_trial.csv.gz", Extract_SimN))
+
+
+# # combine df trial with task info
+
+# df_randmulti_taskinfo %>%
+#   dplyr::full_join(df_beha_trial_randmulti_summary, by = c("sim", "sim_i", "task_i")) %>% 
+#   dplyr::mutate(
+#     sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
+#   ) -> 
+#   df_beha_trial_randmulti_summary
+
+# saveRDS(df_beha_trial_randmulti_summary, file = here("Data", "Evo_RandMultiTask", "df_beha_trial_randmulti_summary.RDS"))
 ```
 
 
 ```{r}
-# _trial.csv.gz：続き ------ #
+# ------ load _trial.csv data from .RDS file ------ #
 
-df_trial_randmulti_summary <- readRDS(here("Data", "Evo_RandMultiTask", "df_trial_randmulti_summary.obj"))
+df_beha_trial_randmulti_summary <- readRDS(here("Data", "Evo_RandMultiTask", "df_beha_trial_randmulti_summary.RDS"))
 
-df_trial_randmulti_summary %>% 
+df_beha_trial_randmulti_summary %>% 
   dplyr::group_by(sim_n, generation, trial, task_type) %>% # sim_i間の平均とSDを計算する
   dplyr::summarise(
     MEAN_risk_aversion = mean(mean_risk_aversion),
@@ -629,58 +612,42 @@ df_trial_randmulti_simMEAN
 ```
 
 
-### 2つの学習率：期待値が同じ課題
+### Tasks where the expected values are the same (two learning rates)
 
 
-#### シミュレーションの実行
+#### Run simiulations
 
 
-```{r, eval=FALSE}
-# _nat.csvについて
+```{r}
+# --- Before running this code, you should run and generate df_beha_agent_randmulti_XX.RDS in Figures_for_Paper.Rmd ----
 
-# ------ 5種類のシミュレーション ------ #
-# 時間がかかるので実行しない方がいい
-# 下のRDSファイルの読み込みをした方がいい
-
-pattern_name <- c("_20220905162206", "_20220909161625", "_20220919103516", "_20220921105827", "_20220923105509")
-sim_name <- c("cond_2/2", "cond_1/3", "cond_3/1", "cond_0/4", "cond_4/0")
+# load df_beha_agent_randmulti.RDS
+# -> create and save df_para_agent_randmulti_FirstLastGene.RDS
 
 DataDir <- "Data"
 DataDir_sub <- "Evo_RandMultiTask"
 
-AgentN <- 1000
-GeneN <- 3000
-TaskN <- 4
-Extract_SimN <- 100
+names_randmulti_rds <- c("df_agent_randmulti_22.RDS", "df_agent_randmulti_31.RDS", "df_agent_randmulti_13.RDS", "df_agent_randmulti_04.RDS", "df_agent_randmulti_40.RDS")
 
+df_agent_randmulti <-
+  purrr::map_dfr(names_randmulti_rds, ~readRDS(here(DataDir, DataDir_sub, .x)))
 
-# df_agent_randmulti_FisrtLastGenePara <- purrr::map2_dfr(pattern_name, sim_name, ~MakeDfNat_Rand(.x, .y, DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)) %>%
-#   dplyr::filter(task_i == 0) %>%  # 4つの課題は必要ないので1つだけ取り出す
-#   dplyr::select(sim, sim_i, generation, agent, ap, an, bt)
-# 
-# saveRDS(df_agent_randmulti_FisrtLastGenePara, file = here(DataDir, DataDir_sub, "df_agent_randmulti_FirstLastGenePara.obj"))
-
-
-# df_agent_randmulti %>%
-#   dplyr::group_by(sim, sim_i, task_i, generation) %>%
-#   dplyr::summarise(
-#     MEAN_payoff = mean(mean_payoff),
-#     SD_payoff = sqrt(variance(mean_payoff)),
-#     MEAN_rate_choice1 = mean(rate_choice1),
-#     SD_rate_choice1 = sqrt(variance(rate_choice1))
-#   ) %>%
-#   dplyr::mutate(
-#     mean_risk_aversion = 1 - MEAN_rate_choice1
-#   ) ->
-#   df_agent_randmulti_summary
+df_para_agent_randmulti_FirstLastGene <-
+  df_agent_randmulti %>%
+  dplyr::filter(task_i == 0) %>%  # one task is adequate
+  dplyr::select(sim, sim_i, generation, agent, ap, an, bt)
+  
+#saveRDS(df_para_agent_randmulti_FirstLastGene, file = here(DataDir, DataDir_sub, "df_para_agent_randmulti_FirstLastGene.RDS"))
 ```
 
 
 ```{r, eval=FALSE}
-# シミュレーションを実行。コメントを外すこと
+# Simulate task where the expected values are the same
+# -> this simulation code is identical to that of Figures_for_Paper.Rmd. So if you already run it, you need not run this code.
 
-# 第一世代・最終世代のパラメータを読み込む
-df_agent_randmulti_FirstLastGenePara <- readRDS(here("Data", "Evo_RandMultiTask", "df_agent_randmulti_FirstLastGenePara.obj"))
+# load para info of the first and last generation
+
+df_para_agent_randmulti_FisrtLastGene <- readRDS(here("Data", "Evo_RandMultiTask", "df_para_agent_randmulti_FirstLastGene.RDS"))
 
 trial_N <- 500
 task_struct_list <- list(
@@ -690,12 +657,10 @@ task_struct_list <- list(
   c(-20, 20, -20, 5)
 )
 
+# Simulation of agents of the last generation
 
-# 最終世代
-
-df_agent_randmulti_Last <- df_agent_randmulti_FirstLastGenePara %>% 
-  dplyr::filter(generation == 2999)
-
+df_agent_randmulti_Last <- df_para_agent_randmulti_FisrtLastGene %>% 
+  dplyr::filter(generation == 2999) # filtered by the last generation
 
 # res_ql_list <- purrr::map(task_struct_list, ~RunQL_dual(df_agent_randmulti_Last, .x, trial_N))
 # 
@@ -703,13 +668,17 @@ df_agent_randmulti_Last <- df_agent_randmulti_FirstLastGenePara %>%
 #   res_ql_list %>%
 #   purrr::map("Choice")
 
-# RDS保存
+# save RDS file
 # saveRDS(object = res_ql_list_choice, file = here(simout_SameExp_path, "res_ql_list_choice_LastGene_500T.RDS"))
+```
 
 
-# 最初の世代
+```{r}
+# Simulation of agents of the first generation
 
-df_agent_randmulti_First <- df_agent_randmulti_FirstLastGenePara %>% 
+# The main code is temporarily commented out in case that you run this chunk mistakenly. If you want to run, the comment should be removed. 
+
+df_agent_randmulti_First <- df_para_agent_randmulti_FisrtLastGene %>% 
   dplyr::filter(generation == 0)
 
 
@@ -719,12 +688,13 @@ df_agent_randmulti_First <- df_agent_randmulti_FirstLastGenePara %>%
 #   res_ql_list %>%
 #   purrr::map("Choice")
 
-# RDS保存
+# save RDS file
 #saveRDS(object = res_ql_list_choice, file = here(simout_SameExp_path, "res_ql_list_choice_FirstGene_500T.RDS"))
 ```
 
 
-#### データの読み込み
+
+#### Load simulations results
 
 ```{r}
 trial_N <- 500
@@ -735,104 +705,105 @@ task_struct_list <- list(
   c(-20, 20, -20, 5)
 )
 
-# 最終世代
+# sim results of last generation
 res_ql_list_choice_500T_last <- readRDS(file = here(simout_SameExp_path, "res_ql_list_choice_LastGene_500T.RDS"))
 
-# 最初の世代
+# sim results of first generation
 res_ql_list_choice_500T_first <- readRDS(file = here(simout_SameExp_path, "res_ql_list_choice_FirstGene_500T.RDS"))
 
-# 第一世代・最終世代のパラメータ
-df_agent_randmulti_FirstLastGenePara <- readRDS(here("Data", "Evo_RandMultiTask", "df_agent_randmulti_FirstLastGenePara.obj"))
+# para info of the first and last generation
+df_para_agent_randmulti_FisrtLastGene <- readRDS(here("Data", "Evo_RandMultiTask", "df_para_agent_randmulti_FirstLastGene.RDS"))
 
 df_agent_randmulti_Last <-
-  df_agent_randmulti_FirstLastGenePara %>% 
+  df_para_agent_randmulti_FisrtLastGene %>% 
   dplyr::filter(generation == 2999)
 
 df_agent_randmulti_First <-
-  df_agent_randmulti_FirstLastGenePara %>% 
+  df_para_agent_randmulti_FisrtLastGene %>% 
   dplyr::filter(generation == 0)
 ```
 
 
 ```{r}
-# 最後の100試行
-# 時間がかかるので実行しない方がいい
-# 下のRDSファイルの読み込みをした方がいい
+# extract the data of the last 100 trials
 
-purrr::map(res_ql_list_choice_500T_last, 
-           ~{.x %>% 
-               tibble::as_tibble(.) %>% 
-               dplyr::bind_cols(df_agent_randmulti_Last) %>% 
-               tidyr::pivot_longer(
-                 cols = starts_with("V"),
-                 names_to = "trial",
-                 names_prefix = "V",
-                 values_to = "choice",
-                 names_transform = list(trial = as.integer)
-               ) %>% 
-               dplyr::mutate(
-                 choice = if_else(choice == 2, 0, 1)
-               ) %>% 
-               dplyr::filter(trial > 400) %>% # 最後の100試行だけ取り出す
-               dplyr::group_by(sim, sim_i, agent, an, ap, bt) %>% # trialで平均をとる
-               dplyr::summarise(
-                 risk_aversion = 1 - mean(choice)
-               ) %>% 
-               dplyr::ungroup() %>% 
-               dplyr::mutate(an_ap = (an - ap)/(an + ap))
-               }) %>% 
-  dplyr::bind_rows(.id = "task") %>% 
-  dplyr::mutate(generation = 2999) ->
-  df_choice_res_latter100_last
+## The main code is temporarily commented out in case that you run this chunk mistakenly. If you want to run, the comment should be removed. 
+
+# purrr::map(res_ql_list_choice_500T_last, 
+#            ~{.x %>% 
+#                tibble::as_tibble(.) %>% 
+#                dplyr::bind_cols(df_agent_randmulti_Last) %>% 
+#                tidyr::pivot_longer(
+#                  cols = starts_with("V"),
+#                  names_to = "trial",
+#                  names_prefix = "V",
+#                  values_to = "choice",
+#                  names_transform = list(trial = as.integer)
+#                ) %>% 
+#                dplyr::mutate(
+#                  choice = if_else(choice == 2, 0, 1)
+#                ) %>% 
+#                dplyr::filter(trial > 400) %>% # extract the last 100 trials
+#                dplyr::group_by(sim, sim_i, agent, an, ap, bt) %>% # averaging across trial
+#                dplyr::summarise(
+#                  risk_aversion = 1 - mean(choice)
+#                ) %>% 
+#                dplyr::ungroup() %>% 
+#                dplyr::mutate(an_ap = (an - ap)/(an + ap))
+#                }) %>% 
+#   dplyr::bind_rows(.id = "task") %>% 
+#   dplyr::mutate(generation = 2999) ->
+#   df_choice_res_latter100_last
+# 
+# 
+# purrr::map(res_ql_list_choice_500T_first, 
+#            ~{.x %>% 
+#                tibble::as_tibble(.) %>% 
+#                dplyr::bind_cols(df_agent_randmulti_First) %>% 
+#                tidyr::pivot_longer(
+#                  cols = starts_with("V"),
+#                  names_to = "trial",
+#                  names_prefix = "V",
+#                  values_to = "choice",
+#                  names_transform = list(trial = as.integer)
+#                ) %>% 
+#                dplyr::mutate(
+#                  choice = if_else(choice == 2, 0, 1)
+#                ) %>% 
+#                dplyr::filter(trial > 400) %>% # extract the last 100 trials
+#                dplyr::group_by(sim, sim_i, agent, an, ap, bt) %>% # averaging across trial
+#                dplyr::summarise(
+#                  risk_aversion = 1 - mean(choice)
+#                ) %>% 
+#                dplyr::ungroup() %>% 
+#                dplyr::mutate(an_ap = (an - ap)/(an + ap))
+#                }) %>% 
+#   dplyr::bind_rows(.id = "task") %>% 
+#   dplyr::mutate(generation = 0) ->
+#   df_choice_res_latter100_first
 
 
-purrr::map(res_ql_list_choice_500T_first, 
-           ~{.x %>% 
-               tibble::as_tibble(.) %>% 
-               dplyr::bind_cols(df_agent_randmulti_First) %>% 
-               tidyr::pivot_longer(
-                 cols = starts_with("V"),
-                 names_to = "trial",
-                 names_prefix = "V",
-                 values_to = "choice",
-                 names_transform = list(trial = as.integer)
-               ) %>% 
-               dplyr::mutate(
-                 choice = if_else(choice == 2, 0, 1)
-               ) %>% 
-               dplyr::filter(trial > 400) %>% # 最後の100試行だけ取り出す
-               dplyr::group_by(sim, sim_i, agent, an, ap, bt) %>% # trialで平均をとる
-               dplyr::summarise(
-                 risk_aversion = 1 - mean(choice)
-               ) %>% 
-               dplyr::ungroup() %>% 
-               dplyr::mutate(an_ap = (an - ap)/(an + ap))
-               }) %>% 
-  dplyr::bind_rows(.id = "task") %>% 
-  dplyr::mutate(generation = 0) ->
-  df_choice_res_latter100_first
+# df_choice_res_latter100_last %>% 
+#   dplyr::bind_rows(df_choice_res_latter100_first) %>% 
+#   dplyr::mutate(task = as.integer(task)) %>% 
+#   dplyr::mutate(
+#     task_struct =
+#       case_when(
+#         task == 1 ~ "N(20, 20) vs N(20, 5) (Gain)",
+#         task == 2 ~ "N(10, 20) vs N(10, 5) (Gain)",
+#         task == 3 ~ "N(-10, 20) vs N(-10, 5) (Loss)",
+#         task == 4 ~ "N(-20, 20) vs N(-20, 5) (Loss)",
+#       ) %>% forcats::fct_reorder(., task),
+#     sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
+#   ) ->
+#   df_choice_res_500T_latter100
 
-
-df_choice_res_latter100_last %>% 
-  dplyr::bind_rows(df_choice_res_latter100_first) %>% 
-  dplyr::mutate(task = as.integer(task)) %>% 
-  dplyr::mutate(
-    task_struct =
-      case_when(
-        task == 1 ~ "N(20, 20) vs N(20, 5) (Gain)",
-        task == 2 ~ "N(10, 20) vs N(10, 5) (Gain)",
-        task == 3 ~ "N(-10, 20) vs N(-10, 5) (Loss)",
-        task == 4 ~ "N(-20, 20) vs N(-20, 5) (Loss)",
-      ) %>% forcats::fct_reorder(., task),
-    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
-  ) ->
-  df_choice_res_500T_latter100
-
-#saveRDS(df_choice_res_500T_latter100, file = here(simout_SameExp_path, "df_choice_res_500T_lat.RDS"))
+# saveRDS(df_choice_res_500T_latter100, file = here(simout_SameExp_path, "df_choice_res_500T_lat.RDS"))
 ```
 
 
 ```{r}
+# load 500-trials simulation, last 100-trials data
 df_choice_res_500T_latter100 <- readRDS(file = here(simout_SameExp_path, "df_choice_res_500T_lat.RDS"))
 ```
 
@@ -867,17 +838,22 @@ df_choice_res_500T_latter100 %>%
   dplyr::ungroup() %>% 
   tidyr::pivot_wider(id_cols = c(sim_n, sim_i, agent, ap, an, bt, an_ap), names_from = gain_loss, values_from = mean_risk_aversion) %>% 
   dplyr::mutate(
-    risk_aver_gain_loss = gain - loss
+    risk_aver_gain_loss = gain - loss # calculate gain-loss difference
   ) ->
   df_choice_gainloss_500T_latter100_last
 ```
 
 
-### 1つの学習率
+### Model with the single learning rate
 
 
 ```{r}
-# taskinfo系のdataframeを作成
+# create dataframes for task info
+
+
+## a directory, which corresponds to a simulation setting, is specified by a suffix "_YYYYMMDDHHMMSS"
+## e.g., G05000_N10000_T0500_apR_anR_btR_CN_1mean50.0_1sigma30.0_2mean30.0_2sigma5.0_V_20191214183504
+## pattern_name should be specified by the suffix number
 
 pattern_name <- c("_20230221152956", "_20230223100048", "_20230223222143", "_20230224180738", "_20230225091934")
 sim_name <- c("cond_2/2", "cond_1/3", "cond_3/1", "cond_0/4", "cond_4/0")
@@ -925,7 +901,8 @@ df_randmulti_taskgroup_sLR <-
     sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
     )
 
-# 各課題の平均的な効果量と負の領域量を計算
+
+# calculate the averaged effect size and negative area for each sim
 df_randmulti_taskinfo_sLR %>% 
   dplyr::group_by(sim, sim_i) %>% 
   dplyr::summarise(
@@ -938,7 +915,12 @@ df_randmulti_taskinfo_sLR %>%
 
 
 ```{r}
-# _gene.csv 
+# load _gene.csv
+
+
+## a directory, which corresponds to a simulation setting, is specified by a suffix "_YYYYMMDDHHMMSS"
+## e.g., G05000_N10000_T0500_apR_anR_btR_CN_1mean50.0_1sigma30.0_2mean30.0_2sigma5.0_V_20191214183504
+## pattern_name should be specified by the suffix number
 
 pattern_name <- c("_20230221152956", "_20230223100048", "_20230223222143", "_20230224180738", "_20230225091934")
 sim_name <- c("cond_2/2", "cond_1/3", "cond_3/1", "cond_0/4", "cond_4/0")
@@ -963,14 +945,14 @@ df_gene_randmulti_sLR %>%
   df_gene_randmulti_sLR_summary
 
 
-# 課題情報と遺伝子のdfと結合
+# combine para df (filtered by last generation) with task info
 df_gene_randmulti_sLR %>% 
   dplyr::filter(generation == 2999) %>% 
   dplyr::full_join(df_randmulti_mean_taskinfo_sLR, by = c("sim", "sim_i")) ->
   df_gene_randmulti_sLR_taskinfo
 
 
-# 全体のまとめで使用するdfを作成
+# df for overall summary
 df_gene_randmulti_sLR %>% 
   dplyr::group_by(sim, generation) %>% 
   dplyr::summarise(
@@ -995,7 +977,18 @@ df_gene_randmulti_sLR_longer %>%
 
 
 ```{r, eval=FALSE}
-# _nat.csvの読み込み
+# load _nat.csv.gz (averaged info for each agent)
+
+## Because the size of _nat.csv is big, we create another object for containing only the info of the first and last generation (the .RDS file below).
+
+## This process takes much time and memory. So, once the .RDS file is created, you should not run this chunk again. 
+
+## The main code is temporarily commented out in case that you run this chunk mistakenly. If you want to run, the comment # should be removed. 
+
+
+## a directory, which corresponds to a simulation setting, is specified by a suffix "_YYYYMMDDHHMMSS"
+## e.g., G05000_N10000_T0500_apR_anR_btR_CN_1mean50.0_1sigma30.0_2mean30.0_2sigma5.0_V_20191214183504
+## pattern_name should be specified by the suffix number
 
 pattern_name <- c("_20230221152956", "_20230223100048", "_20230223222143", "_20230224180738", "_20230225091934")
 sim_name <- c("cond_2/2", "cond_1/3", "cond_3/1", "cond_0/4", "cond_4/0")
@@ -1010,49 +1003,50 @@ TaskN <- 4
 Extract_SimN <- 100
 
 
-# - 個々の条件のagentデータを保存する
+# # save agent data for each condition
 
-#df_agent_randmulti_sLR_22 <- MakeDfNat_Rand(pattern_name[1], sim_name[1], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
+# df_agent_randmulti_sLR_22 <- MakeDfNat_Rand(pattern_name[1], sim_name[1], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
 
-#saveRDS(df_agent_randmulti_sLR_22, file = here(DataDir, DataDir_sub, "df_agent_randmulti_sLR_22.obj"))
+# saveRDS(df_agent_randmulti_sLR_22, file = here(DataDir, DataDir_sub, "df_agent_randmulti_sLR_22.RDS"))
 
 
 # df_agent_randmulti_sLR_13 <- MakeDfNat_Rand(pattern_name[2], sim_name[2], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
 # 
-# saveRDS(df_agent_randmulti_sLR_13, file = here(DataDir, DataDir_sub, "df_agent_randmulti_sLR_13.obj"))
+# saveRDS(df_agent_randmulti_sLR_13, file = here(DataDir, DataDir_sub, "df_agent_randmulti_sLR_13.RDS"))
 
 
 # df_agent_randmulti_sLR_31 <- MakeDfNat_Rand(pattern_name[3], sim_name[3], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
 # 
-# saveRDS(df_agent_randmulti_sLR_31, file = here(DataDir, DataDir_sub, "df_agent_randmulti_sLR_31.obj"))
+# saveRDS(df_agent_randmulti_sLR_31, file = here(DataDir, DataDir_sub, "df_agent_randmulti_sLR_31.RDS"))
 
 
 # df_agent_randmulti_sLR_04 <- MakeDfNat_Rand(pattern_name[4], sim_name[4], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
 # 
-# saveRDS(df_agent_randmulti_sLR_04, file = here(DataDir, DataDir_sub, "df_agent_randmulti_sLR_04.obj"))
+# saveRDS(df_agent_randmulti_sLR_04, file = here(DataDir, DataDir_sub, "df_agent_randmulti_sLR_04.RDS"))
 
 
 # df_agent_randmulti_sLR_40 <- MakeDfNat_Rand(pattern_name[5], sim_name[5], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
 # 
-# saveRDS(df_agent_randmulti_sLR_40, file = here(DataDir, DataDir_sub, "df_agent_randmulti_sLR_40.obj"))
+# saveRDS(df_agent_randmulti_sLR_40, file = here(DataDir, DataDir_sub, "df_agent_randmulti_sLR_40.RDS"))
 
 ```
 
 
 
 ```{r, eval=FALSE}
-#  ------ # _nat.csv：続き ------ #
+# ------ load _nat.csv data from .RDS file ------ #
 
 DataDir <- "Data"
 DataDir_sub <- "Evo_RandMultiTask_SingleLR"
 
-names_randmulti_sLR_obj <- c("df_agent_randmulti_sLR_22.obj", "df_agent_randmulti_sLR_31.obj", "df_agent_randmulti_sLR_13.obj", "df_agent_randmulti_sLR_04.obj", "df_agent_randmulti_sLR_40.obj")
+names_randmulti_sLR_rds <- c("df_agent_randmulti_sLR_22.RDS", "df_agent_randmulti_sLR_31.RDS", "df_agent_randmulti_sLR_13.RDS", "df_agent_randmulti_sLR_04.RDS", "df_agent_randmulti_sLR_40.RDS")
 
 df_agent_randmulti_sLR <-
-  purrr::map_dfr(names_randmulti_sLR_obj, ~readRDS(here(DataDir, DataDir_sub, .x)))
+  purrr::map_dfr(names_randmulti_sLR_rds, ~readRDS(here(DataDir, DataDir_sub, .x)))
 
 
-# _summaryを作成
+# create _summary dataframe
+
 df_agent_randmulti_sLR %>% 
   dplyr::group_by(sim, sim_i, task_i, generation) %>%
   dplyr::summarise(
@@ -1071,11 +1065,12 @@ df_agent_randmulti_sLR %>%
   df_agent_randmulti_sLR_summary
 
 
-# 課題情報と結合する
+# combine _summary with task info
 df_randmulti_taskinfo_sLR %>%
   dplyr::full_join(df_agent_randmulti_sLR_summary, by = c("sim", "sim_i", "task_i")) ->
   df_agent_randmulti_sLR_summary
 
+# summmarise by sim & generation
 df_agent_randmulti_sLR_summary %>%
   dplyr::group_by(sim, generation, task_type) %>%
   dplyr::summarise(
@@ -1092,11 +1087,18 @@ df_agent_randmulti_sLR_summary %>%
 
 
 ```{r, eval=FALSE}
-# _trial.csv.gz 
+# load _trial.csv.gz (trial-by-trial data of the first and last generation)
 
-# ------ 5種類のシミュレーション ------ #
-# 時間がかかるので実行しない方がいい
-# 下のRDSファイルの読み込みをした方がいい
+## Because the size of _trial.csv is big, we create another object for containing only the info of the first and last generation (the .RDS file below).
+
+## This process takes much time and memory. So, once the .RDS file is created, you should not run this chunk again. 
+
+## The main code is temporarily commented out in case that you run this chunk mistakenly. If you want to run, the comment should be removed. 
+
+
+## a directory, which corresponds to a simulation setting, is specified by a suffix "_YYYYMMDDHHMMSS"
+## e.g., G05000_N10000_T0500_apR_anR_btR_CN_1mean50.0_1sigma30.0_2mean30.0_2sigma5.0_V_20191214183504
+## pattern_name should be specified by the suffix number
 
 pattern_name <- c("_20230221152956", "_20230223100048", "_20230223222143", "_20230224180738", "_20230225091934")
 sim_name <- c("cond_2/2", "cond_1/3", "cond_3/1", "cond_0/4", "cond_4/0")
@@ -1106,76 +1108,73 @@ DataDir_sub <- "Evo_RandMultiTask_SingleLR"
 
 Extract_SimN <- 100
 
-#df_trial_randmulti_sLR_summary <- purrr::map2_dfr(pattern_name, sim_name, ~MakeDfTrial_Rand(.x, .y, DataDir, DataDir_sub, "_trial.csv.gz", Extract_SimN))
+# df_beha_trial_randmulti_sLR_summary <- purrr::map2_dfr(pattern_name, sim_name, ~MakeDfTrial_Rand(.x, .y, DataDir, DataDir_sub, "_trial.csv.gz", Extract_SimN))
 
-# 課題情報と結合する
-df_randmulti_taskinfo_sLR %>%
-  dplyr::full_join(df_trial_randmulti_sLR_summary, by = c("sim", "sim_i", "task_i")) %>% 
-  dplyr::mutate(
-    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
-  ) -> 
-  df_trial_randmulti_sLR_summary
+# # combine df trial with task info
+# df_randmulti_taskinfo_sLR %>%
+#   dplyr::full_join(df_beha_trial_randmulti_sLR_summary, by = c("sim", "sim_i", "task_i")) %>% 
+#   dplyr::mutate(
+#     sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
+#   ) -> 
+#   df_beha_trial_randmulti_sLR_summary
 
-#saveRDS(df_trial_randmulti_sLR_summary, file = here(DataDir, DataDir_sub, "df_trial_randmulti_sLR_summary.obj"))
+# saveRDS(df_beha_trial_randmulti_sLR_summary, file = here(DataDir, DataDir_sub, "df_beha_trial_randmulti_sLR_summary.RDS"))
 ```
 
 
 ```{r}
-#  ------ _trial.csv：続き ------ #
+# ------ load _trial.csv data from .RDS file ------ #
 
 DataDir <- "Data"
 DataDir_sub <- "Evo_RandMultiTask_SingleLR"
 
-df_trial_randmulti_sLR_summary <- readRDS(here(DataDir, DataDir_sub, "df_trial_randmulti_sLR_summary.obj"))
+df_beha_trial_randmulti_sLR_summary <- readRDS(here(DataDir, DataDir_sub, "df_beha_trial_randmulti_sLR_summary.RDS"))
 
-df_trial_randmulti_sLR_summary %>% 
-  dplyr::group_by(sim_n, generation, trial, task_type) %>% # sim_i間の平均とSDを計算する
+df_beha_trial_randmulti_sLR_summary %>% 
+  dplyr::group_by(sim_n, generation, trial, task_type) %>% # calculate mean and SD across sim_iる
   dplyr::summarise(
     MEAN_risk_aversion = mean(mean_risk_aversion),
-    SD_risk_aversion = sqrt(variance(mean_risk_aversion)) # sim_i間のSD
+    SD_risk_aversion = sqrt(variance(mean_risk_aversion)) # SD across sim_i
   ) -> 
 df_trial_randmulti_sLR_simMEAN
 ```
 
 
 
-### 1つの学習率：期待値が同じ課題
+### Tasks where the expected values are the same (single learning rate)
 
-#### シミュレーションの実行コード
+
+#### Run simulations
 
 ```{r, eval=FALSE}
-# _nat.csvについて
-
-# ------ 5種類のシミュレーション ------ #
-# 時間がかかるので実行しない方がいい
-# 下のRDSファイルの読み込みをした方がいい
-
-pattern_name <- c("_20230221152956", "_20230223100048", "_20230223222143", "_20230224180738", "_20230225091934")
-sim_name <- c("cond_2/2", "cond_1/3", "cond_3/1", "cond_0/4", "cond_4/0")
+# load df_beha_agent_randmulti.RDS
+# -> create and save df_para_agent_randmulti_sLR_FirstLastGene.RDS
 
 DataDir <- "Data"
 DataDir_sub <- "Evo_RandMultiTask_SingleLR"
 
-AgentN <- 1000
-GeneN <- 3000
-TaskN <- 4
-Extract_SimN <- 100
+names_randmulti_sLR_rds <- c("df_agent_randmulti_sLR_22.RDS", "df_agent_randmulti_sLR_31.RDS", "df_agent_randmulti_sLR_13.RDS", "df_agent_randmulti_sLR_04.RDS", "df_agent_randmulti_sLR_40.RDS")
 
-# df_agent_randmulti_sLR_FirstLastGenePara <- purrr::map2_dfr(pattern_name, sim_name, ~MakeDfNat_Rand(.x, .y, DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)) %>%
-#   dplyr::filter(task_i == 0) %>%  # 4つの課題は必要ないので1つだけ取り出す
-#   dplyr::select(sim, sim_i, generation, agent, alpha, bt)
-# 
-# saveRDS(df_agent_randmulti_sLR_FirstLastGenePara, file = here(DataDir, DataDir_sub, "df_agent_randmulti_sLR_FirstLastGenePara.obj"))
+df_agent_randmulti_sLR <-
+  purrr::map_dfr(names_randmulti_sLR_rds, ~readRDS(here(DataDir, DataDir_sub, .x)))
+
+df_para_agent_randmulti_sLR_FirstLastGene <-
+  df_agent_randmulti_sLR %>%
+  dplyr::filter(task_i == 0) %>%  # one task is adequate
+  dplyr::select(sim, sim_i, generation, agent, alpha, bt)
+  
+# saveRDS(df_para_agent_randmulti_sLR_FirstLastGene, file = here(DataDir, DataDir_sub, "df_para_agent_randmulti_sLR_FirstLastGene.RDS"))
 ```
 
 
-
 ```{r, eval=FALSE}
+# Simulate task where the expected values are the same
 
-# 500試行 → 最後の100試行だけで比較する
+## The main code is temporarily commented out in case that you run this chunk mistakenly. If you want to run, the comment should be removed. 
 
-# 第一世代・最終世代のパラメータ
-df_agent_randmulti_sLR_FirstLastGenePara <- readRDS(here("Data", "Evo_RandMultiTask_SingleLR", "df_agent_randmulti_sLR_FirstLastGenePara.obj"))
+
+# load para info of the first and last generation
+df_para_agent_randmulti_sLR_FirstLastGene <- readRDS(here("Data", "Evo_RandMultiTask_SingleLR", "df_para_agent_randmulti_sLR_FirstLastGene.RDS"))
 
 trial_N <- 500
 task_struct_list <- list(
@@ -1185,13 +1184,11 @@ task_struct_list <- list(
   c(-20, 20, -20, 5)
 )
 
-# 最終世代
 
-df_agent_randmulti_sLR_Last <- df_agent_randmulti_sLR_FirstLastGenePara %>% 
+# Simulation of agents of the last generation
+
+df_agent_randmulti_sLR_Last <- df_para_agent_randmulti_sLR_FirstLastGene %>% 
   dplyr::filter(generation == 2999)
-
-
-# 本番の実行
 
 # res_ql_list_sLR <- purrr::map(task_struct_list, ~RunQL_single(df_agent_randmulti_sLR_Last, .x, trial_N))
 # 
@@ -1199,24 +1196,25 @@ df_agent_randmulti_sLR_Last <- df_agent_randmulti_sLR_FirstLastGenePara %>%
 #   res_ql_list_sLR %>%
 #   purrr::map("Choice")
 # 
-# # RDS保存
 # saveRDS(object = res_ql_list_choice_sLR, file = here(simout_SameExp_path, "res_ql_list_choice_sLR_LastGene_500T.RDS"))
 
 
-# 最初の世代
+# Simulation of agents of the first generation
 
-df_agent_randmulti_sLR_First <- df_agent_randmulti_sLR_FirstLastGenePara %>% 
+df_agent_randmulti_sLR_First <- df_para_agent_randmulti_sLR_FirstLastGene %>% 
   dplyr::filter(generation == 0)
 
-#res_ql_list_sLR <- purrr::map(task_struct_list, ~RunQL_single(df_agent_randmulti_sLR_First, .x, trial_N))
+# res_ql_list_sLR <- purrr::map(task_struct_list, ~RunQL_single(df_agent_randmulti_sLR_First, .x, trial_N))
 
-res_ql_list_choice_sLR <-
-  res_ql_list_sLR %>%
-  purrr::map("Choice")
+# res_ql_list_choice_sLR <-
+#   res_ql_list_sLR %>%
+#   purrr::map("Choice")
 
-# RDS保存
 # saveRDS(object = res_ql_list_choice_sLR, file = here(simout_SameExp_path, "res_ql_list_choice_sLR_FirstGene_500T.RDS"))
 ```
+
+
+#### Load simulations results
 
 
 ```{r}
@@ -1228,109 +1226,103 @@ task_struct_list <- list(
   c(-20, 20, -20, 5)
 )
 
-# 最終世代
+# sim results of last generation
 res_ql_list_choice_sLR_500T_last <- readRDS(file = here(simout_SameExp_path, "res_ql_list_choice_sLR_LastGene_500T.RDS"))
 
-# 最初の世代
+# sim results of first generation
 res_ql_list_choice_sLR_500T_first <- readRDS(file = here(simout_SameExp_path, "res_ql_list_choice_sLR_FirstGene_500T.RDS"))
 
-# 第一世代・最終世代のパラメータ
-df_agent_randmulti_FirstLastGenePara <- readRDS(here("Data", "Evo_RandMultiTask_SingleLR", "df_agent_randmulti_sLR_FirstLastGenePara.obj"))
+# load of the para info of the first and last generation
+df_para_agent_randmulti_sLR_FirstLastGene <- readRDS(here("Data", "Evo_RandMultiTask_SingleLR", "df_para_agent_randmulti_sLR_FirstLastGene.RDS"))
 
 df_agent_randmulti_sLR_Last <-
-  df_agent_randmulti_sLR_FirstLastGenePara %>% 
+  df_para_agent_randmulti_sLR_FirstLastGene %>% 
   dplyr::filter(generation == 2999)
 
 df_agent_randmulti_sLR_First <-
-  df_agent_randmulti_sLR_FirstLastGenePara %>% 
+  df_para_agent_randmulti_sLR_FirstLastGene %>% 
   dplyr::filter(generation == 0)
 ```
 
 
-#### データの読み込み
-
-
 ```{r, eval=FALSE}
-# データを整形してRDSに保存する
-# 時間がかかるので実行しない方がいい
-# 下のRDSファイルの読み込みをした方がいい
+# extract the data of the last 100 trials
+
+## The main code is temporarily commented out in case that you run this chunk mistakenly. If you want to run, the comment should be removed. 
+
+# purrr::map(res_ql_list_choice_sLR_500T_last, 
+#            ~{.x %>% 
+#                tibble::as_tibble(.) %>% 
+#                dplyr::bind_cols(df_agent_randmulti_sLR_Last) %>% 
+#                tidyr::pivot_longer(
+#                  cols = starts_with("V"),
+#                  names_to = "trial",
+#                  names_prefix = "V",
+#                  values_to = "choice",
+#                  names_transform = list(trial = as.integer)
+#                ) %>% 
+#                dplyr::mutate(
+#                  choice = if_else(choice == 2, 0, 1)
+#                ) %>% 
+#                dplyr::filter(trial > 400) %>% # extract the last 100 trials
+#                dplyr::group_by(sim, sim_i, agent, alpha, bt) %>% # averaging across trial
+#                dplyr::summarise(
+#                  risk_aversion = 1 - mean(choice)
+#                ) %>% 
+#                dplyr::ungroup()
+#                }) %>% 
+#   dplyr::bind_rows(.id = "task") %>% 
+#   dplyr::mutate(generation = 2999) ->
+#   df_choice_res_sLR_latter100_last
+# 
+# 
+# purrr::map(res_ql_list_choice_sLR_500T_first, 
+#            ~{.x %>% 
+#                tibble::as_tibble(.) %>% 
+#                dplyr::bind_cols(df_agent_randmulti_sLR_First) %>% 
+#                tidyr::pivot_longer(
+#                  cols = starts_with("V"),
+#                  names_to = "trial",
+#                  names_prefix = "V",
+#                  values_to = "choice",
+#                  names_transform = list(trial = as.integer)
+#                ) %>% 
+#                dplyr::mutate(
+#                  choice = if_else(choice == 2, 0, 1)
+#                ) %>% 
+#                dplyr::filter(trial > 400) %>% # extract the last 100 trials
+#                dplyr::group_by(sim, sim_i, agent, alpha, bt) %>% # averaging across trial
+#                dplyr::summarise(
+#                  risk_aversion = 1 - mean(choice)
+#                ) %>% 
+#                dplyr::ungroup()
+#                }) %>% 
+#   dplyr::bind_rows(.id = "task") %>% 
+#   dplyr::mutate(generation = 0) ->
+#   df_choice_res_sLR_latter100_first
 
 
-# 最後の100試行
+# df_choice_res_sLR_latter100_last %>% 
+#   dplyr::bind_rows(df_choice_res_sLR_latter100_first) %>% 
+#   dplyr::mutate(task = as.integer(task)) %>% 
+#   dplyr::mutate(
+#     task_struct =
+#       case_when(
+#         task == 1 ~ "N(20, 20) vs N(20, 5) (Gain)",
+#         task == 2 ~ "N(10, 20) vs N(10, 5) (Gain)",
+#         task == 3 ~ "N(-10, 20) vs N(-10, 5) (Loss)",
+#         task == 4 ~ "N(-20, 20) vs N(-20, 5) (Loss)",
+#       ) %>% forcats::fct_reorder(., task),
+#     sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
+#   ) ->
+#   df_choice_res_sLR_500T_latter100
 
-purrr::map(res_ql_list_choice_sLR_500T_last, 
-           ~{.x %>% 
-               tibble::as_tibble(.) %>% 
-               dplyr::bind_cols(df_agent_randmulti_sLR_Last) %>% 
-               tidyr::pivot_longer(
-                 cols = starts_with("V"),
-                 names_to = "trial",
-                 names_prefix = "V",
-                 values_to = "choice",
-                 names_transform = list(trial = as.integer)
-               ) %>% 
-               dplyr::mutate(
-                 choice = if_else(choice == 2, 0, 1)
-               ) %>% 
-               dplyr::filter(trial > 400) %>% # 最後の100試行だけ取り出す
-               dplyr::group_by(sim, sim_i, agent, alpha, bt) %>% # trialで平均をとる
-               dplyr::summarise(
-                 risk_aversion = 1 - mean(choice)
-               ) %>% 
-               dplyr::ungroup()
-               }) %>% 
-  dplyr::bind_rows(.id = "task") %>% 
-  dplyr::mutate(generation = 2999) ->
-  df_choice_res_sLR_latter100_last
-
-
-purrr::map(res_ql_list_choice_sLR_500T_first, 
-           ~{.x %>% 
-               tibble::as_tibble(.) %>% 
-               dplyr::bind_cols(df_agent_randmulti_sLR_First) %>% 
-               tidyr::pivot_longer(
-                 cols = starts_with("V"),
-                 names_to = "trial",
-                 names_prefix = "V",
-                 values_to = "choice",
-                 names_transform = list(trial = as.integer)
-               ) %>% 
-               dplyr::mutate(
-                 choice = if_else(choice == 2, 0, 1)
-               ) %>% 
-               dplyr::filter(trial > 400) %>% # 最後の100試行だけ取り出す
-               dplyr::group_by(sim, sim_i, agent, alpha, bt) %>% # trialで平均をとる
-               dplyr::summarise(
-                 risk_aversion = 1 - mean(choice)
-               ) %>% 
-               dplyr::ungroup()
-               }) %>% 
-  dplyr::bind_rows(.id = "task") %>% 
-  dplyr::mutate(generation = 0) ->
-  df_choice_res_sLR_latter100_first
-
-
-df_choice_res_sLR_latter100_last %>% 
-  dplyr::bind_rows(df_choice_res_sLR_latter100_first) %>% 
-  dplyr::mutate(task = as.integer(task)) %>% 
-  dplyr::mutate(
-    task_struct =
-      case_when(
-        task == 1 ~ "N(20, 20) vs N(20, 5) (Gain)",
-        task == 2 ~ "N(10, 20) vs N(10, 5) (Gain)",
-        task == 3 ~ "N(-10, 20) vs N(-10, 5) (Loss)",
-        task == 4 ~ "N(-20, 20) vs N(-20, 5) (Loss)",
-      ) %>% forcats::fct_reorder(., task),
-    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
-  ) ->
-  df_choice_res_sLR_500T_latter100
-
-#saveRDS(df_choice_res_sLR_500T_latter100, file = here(simout_SameExp_path, "df_choice_res_sLR_500T_lat.RDS"))
+# saveRDS(df_choice_res_sLR_500T_latter100, file = here(simout_SameExp_path, "df_choice_res_sLR_500T_lat.RDS"))
 ```
 
 
 ```{r}
-# 上記のRDSを読み込む
+# load 500-trials simulation, last 100-trials data
 df_choice_res_sLR_500T_latter100 <- readRDS(file = here(simout_SameExp_path, "df_choice_res_sLR_500T_lat.RDS"))
 ```
 
@@ -1365,18 +1357,23 @@ df_choice_res_sLR_500T_latter100 %>%
   dplyr::ungroup() %>% 
   tidyr::pivot_wider(id_cols = c(sim_n, sim_i, agent, alpha, bt), names_from = gain_loss, values_from = mean_risk_aversion) %>% 
   dplyr::mutate(
-    risk_aver_gain_loss = gain - loss
+    risk_aver_gain_loss = gain - loss # calculate gain-loss difference
   ) ->
   df_choice_gainloss_sLR_500T_latter100_first
 
 ```
 
 
-### 固執パラメータ
+### Model with perseverance parameter
 
 
 ```{r}
-# taskinfo系のdataframeを作成
+# create dataframes for task info
+
+
+## a directory, which corresponds to a simulation setting, is specified by a suffix "_YYYYMMDDHHMMSS"
+## e.g., G05000_N10000_T0500_apR_anR_btR_CN_1mean50.0_1sigma30.0_2mean30.0_2sigma5.0_V_20191214183504
+## pattern_name should be specified by the suffix number
 
 pattern_name <- c("_20230303173752", "_20230304132536", "_20230306103038", "_20230307111756", "_20230308184847")
 sim_name <- c("cond_2/2", "cond_1/3", "cond_3/1", "cond_0/4", "cond_4/0")
@@ -1424,7 +1421,7 @@ df_randmulti_taskgroup_Psv <-
     sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
     )
 
-# 各課題の平均的な効果量と負の領域量を計算
+# calculate the averaged effect size and negative area for each sim
 df_randmulti_taskinfo_Psv %>% 
   dplyr::group_by(sim, sim_i) %>% 
   dplyr::summarise(
@@ -1437,7 +1434,12 @@ df_randmulti_taskinfo_Psv %>%
 
 
 ```{r}
-# _gene.csv  
+# load _gene.csv  
+
+
+## a directory, which corresponds to a simulation setting, is specified by a suffix "_YYYYMMDDHHMMSS"
+## e.g., G05000_N10000_T0500_apR_anR_btR_CN_1mean50.0_1sigma30.0_2mean30.0_2sigma5.0_V_20191214183504
+## pattern_name should be specified by the suffix number
 
 pattern_name <- c("_20230303173752", "_20230304132536", "_20230306103038", "_20230307111756", "_20230308184847")
 sim_name <- c("cond_2/2", "cond_1/3", "cond_3/1", "cond_0/4", "cond_4/0")
@@ -1464,14 +1466,14 @@ df_gene_randmulti_Psv %>%
   df_gene_randmulti_Psv_summary
 
 
-# 課題情報と遺伝子のdfと結合
+# combine para df (filtered by last generation) with task info
 df_gene_randmulti_Psv %>% 
   dplyr::filter(generation == 2999) %>% 
   dplyr::full_join(df_randmulti_mean_taskinfo_Psv, by = c("sim", "sim_i")) ->
   df_gene_randmulti_Psv_taskinfo
 
 
-# 全体のまとめで使用するdfを作成
+# df for overall summary
 df_gene_randmulti_Psv %>% 
   dplyr::group_by(sim, generation) %>% 
   dplyr::summarise(
@@ -1498,7 +1500,18 @@ df_gene_randmulti_Psv_longer %>%
 
 
 ```{r, eval=FALSE}
-# _nat.csvの読み込み
+# load _nat.csv.gz (averaged info for each agent)
+
+## Because the size of _nat.csv is big, we create another object for containing only the info of the first and last generation (the .RDS file below).
+
+## This process takes much time and memory. So, once the .RDS file is created, you should not run this chunk again. 
+
+## The main code is temporarily commented out in case that you run this chunk mistakenly. If you want to run, the comment should be removed.
+
+
+## a directory, which corresponds to a simulation setting, is specified by a suffix "_YYYYMMDDHHMMSS"
+## e.g., G05000_N10000_T0500_apR_anR_btR_CN_1mean50.0_1sigma30.0_2mean30.0_2sigma5.0_V_20191214183504
+## pattern_name should be specified by the suffix number
 
 pattern_name <- c("_20230303173752", "_20230304132536", "_20230306103038", "_20230307111756", "_20230308184847")
 sim_name <- c("cond_2/2", "cond_1/3", "cond_3/1", "cond_0/4", "cond_4/0")
@@ -1513,48 +1526,49 @@ TaskN <- 4
 Extract_SimN <- 100
 
 
-# - 個々の条件のagentデータを保存する
 
 # df_agent_randmulti_Psv_22 <- MakeDfNat_Rand(pattern_name[1], sim_name[1], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
 # 
-# saveRDS(df_agent_randmulti_Psv_22, file = here(DataDir, DataDir_sub, "df_agent_randmulti_Psv_22.obj"))
+# saveRDS(df_agent_randmulti_Psv_22, file = here(DataDir, DataDir_sub, "df_agent_randmulti_Psv_22.RDS"))
 
 
 # df_agent_randmulti_Psv_13 <- MakeDfNat_Rand(pattern_name[2], sim_name[2], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
 # 
-# saveRDS(df_agent_randmulti_Psv_13, file = here(DataDir, DataDir_sub, "df_agent_randmulti_Psv_13.obj"))
+# saveRDS(df_agent_randmulti_Psv_13, file = here(DataDir, DataDir_sub, "df_agent_randmulti_Psv_13.RDS"))
 
 
 # df_agent_randmulti_Psv_31 <- MakeDfNat_Rand(pattern_name[3], sim_name[3], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
 # 
-# saveRDS(df_agent_randmulti_Psv_31, file = here(DataDir, DataDir_sub, "df_agent_randmulti_Psv_31.obj"))
+# saveRDS(df_agent_randmulti_Psv_31, file = here(DataDir, DataDir_sub, "df_agent_randmulti_Psv_31.RDS"))
 
 
 # df_agent_randmulti_Psv_04 <- MakeDfNat_Rand(pattern_name[4], sim_name[4], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
 # 
-# saveRDS(df_agent_randmulti_Psv_04, file = here(DataDir, DataDir_sub, "df_agent_randmulti_Psv_04.obj"))
+# saveRDS(df_agent_randmulti_Psv_04, file = here(DataDir, DataDir_sub, "df_agent_randmulti_Psv_04.RDS"))
 
 
 # df_agent_randmulti_Psv_40 <- MakeDfNat_Rand(pattern_name[5], sim_name[5], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
 # 
-# saveRDS(df_agent_randmulti_Psv_40, file = here(DataDir, DataDir_sub, "df_agent_randmulti_Psv_40.obj"))
-
+# saveRDS(df_agent_randmulti_Psv_40, file = here(DataDir, DataDir_sub, "df_agent_randmulti_Psv_40.RDS"))
 ```
 
 
+- load agent data
+
+
 ```{r, eval=FALSE}
-#  ------ # _nat.csv：続き ------ #
+# ------ load _nat.csv data from .RDS file ------ #
 
 DataDir <- "Data"
 DataDir_sub <- "Evo_RandMultiTask_Perseverance"
 
-names_randmulti_Psv_obj <- c("df_agent_randmulti_Psv_22.obj", "df_agent_randmulti_Psv_13.obj", "df_agent_randmulti_Psv_31.obj", "df_agent_randmulti_Psv_04.obj", "df_agent_randmulti_Psv_40.obj")
+names_randmulti_Psv_rds <- c("df_agent_randmulti_Psv_22.RDS", "df_agent_randmulti_Psv_13.RDS", "df_agent_randmulti_Psv_31.RDS", "df_agent_randmulti_Psv_04.RDS", "df_agent_randmulti_Psv_40.RDS")
 
 df_agent_randmulti_Psv <-
-  purrr::map_dfr(names_randmulti_Psv_obj, ~readRDS(here(DataDir, DataDir_sub, .x)))
+  purrr::map_dfr(names_randmulti_Psv_rds, ~readRDS(here(DataDir, DataDir_sub, .x)))
 
 
-# _summaryを作成
+# create _summary dataframe
 df_agent_randmulti_Psv %>% 
   dplyr::group_by(sim, sim_i, task_i, generation) %>%
   dplyr::summarise(
@@ -1573,7 +1587,7 @@ df_agent_randmulti_Psv %>%
   df_agent_randmulti_Psv_summary
 
 
-# 課題情報と結合する
+# combine _summary with task info
 df_randmulti_taskinfo_Psv %>%
   dplyr::full_join(df_agent_randmulti_Psv_summary, by = c("sim", "sim_i", "task_i")) ->
   df_agent_randmulti_Psv_summary
@@ -1595,11 +1609,14 @@ df_agent_randmulti_Psv_summary %>%
 
 
 ```{r, eval=FALSE}
-# _trial.csv.gz 
+# load _trial.csv.gz (trial-by-trial data of the first and last generation)
 
-# ------ 5種類のシミュレーション ------ #
-# 時間がかかるので実行しない方がいい
-# 下のRDSファイルの読み込みをした方がいい
+## Because the size of _trial.csv is big, we create another object for containing only the info of the first and last generation (the .RDS file below).
+
+## This process takes much time and memory. So, once the .RDS file is created, you should not run this chunk again. 
+
+## The main code is temporarily commented out in case that you run this chunk mistakenly. If you want to run, the comment should be removed. 
+
 
 pattern_name <- c("_20230303173752", "_20230304132536", "_20230306103038", "_20230307111756", "_20230308184847")
 sim_name <- c("cond_2/2", "cond_1/3", "cond_3/1", "cond_0/4", "cond_4/0")
@@ -1609,49 +1626,49 @@ DataDir_sub <- "Evo_RandMultiTask_Perseverance"
 
 Extract_SimN <- 100
 
-df_trial_randmulti_Psv_summary <- purrr::map2_dfr(pattern_name, sim_name, ~MakeDfTrial_Rand(.x, .y, DataDir, DataDir_sub, "_trial.csv.gz", Extract_SimN))
+# df_beha_trial_randmulti_Psv_summary <- purrr::map2_dfr(pattern_name, sim_name, ~MakeDfTrial_Rand(.x, .y, DataDir, DataDir_sub, "_trial.csv.gz", Extract_SimN))
+# 
+# # combine df with task nifo
+# df_randmulti_taskinfo_Psv %>%
+#   dplyr::full_join(df_beha_trial_randmulti_Psv_summary, by = c("sim", "sim_i", "task_i")) %>% 
+#   dplyr::mutate(
+#     sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
+#   ) -> 
+#   df_beha_trial_randmulti_Psv_summary
 
-# 課題情報と結合する
-df_randmulti_taskinfo_Psv %>%
-  dplyr::full_join(df_trial_randmulti_Psv_summary, by = c("sim", "sim_i", "task_i")) %>% 
-  dplyr::mutate(
-    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
-  ) -> 
-  df_trial_randmulti_Psv_summary
-
-#saveRDS(df_trial_randmulti_Psv_summary, file = here(DataDir, DataDir_sub, "df_trial_randmulti_Psv_summary.obj"))
+# saveRDS(df_beha_trial_randmulti_Psv_summary, file = here(DataDir, DataDir_sub, "df_beha_trial_randmulti_Psv_summary.RDS"))
 ```
 
 
 ```{r}
-#  ------ _trial.csv：続き ------ #
+# ------ load _trial.csv data from .RDS file ------ #
 
 DataDir <- "Data"
 DataDir_sub <- "Evo_RandMultiTask_Perseverance"
 
-df_trial_randmulti_Psv_summary <- readRDS(here(DataDir, DataDir_sub, "df_trial_randmulti_Psv_summary.obj"))
+df_beha_trial_randmulti_Psv_summary <- readRDS(here(DataDir, DataDir_sub, "df_beha_trial_randmulti_Psv_summary.RDS"))
 
-df_trial_randmulti_Psv_summary %>% 
-  dplyr::group_by(sim_n, generation, trial, task_type) %>% # sim_i間の平均とSDを計算する
+df_beha_trial_randmulti_Psv_summary %>% 
+  dplyr::group_by(sim_n, generation, trial, task_type) %>% # calculate mean and SD across sim_i
   dplyr::summarise(
     MEAN_risk_aversion = mean(mean_risk_aversion),
-    SD_risk_aversion = sqrt(variance(mean_risk_aversion)) # sim_i間のSD
+    SD_risk_aversion = sqrt(variance(mean_risk_aversion)) # SD across sim_i
   ) -> 
 df_trial_randmulti_Psv_simMEAN
 ```
 
 
 
-# S1 単一：リスク回避率（Fig.1aの補足）
+# S1 Single task：Risk aversion rate
 
 
-- D = +-10の場合の結果を載せる
+- results with D = +-10
 
-- 横軸: 課題の期待値、縦軸: 最終世代のリスク回避率の平均値(+SD)
+- horizontal axis: task, vertical axis: mean rate of risk aversion in the last generation (+SD)
 
 
 ```{r, eval = FALSE}
-# リスク回避が適応的な課題
+# Risk-aversion task
 target_simexp <- c("-40 vs -30", "-30 vs -20", "-20 vs -10", "-10 vs 0", "0 vs 10", "10 vs 20", "20 vs 30")
 
 g <- VisFirstLastGene_RiskAversion(df_gene_riskaversion_mean, target_simexp, "Risk-aversion task (D = -10)", tag = "")
@@ -1661,7 +1678,7 @@ ggsave(plot = g, filename = here(output_path, "S1.1_FirstLastGene_RiskAversion_r
 
  
 ```{r, eval = FALSE}
-# リスク追求が適応的な課題
+# Risk-seeking task
 target_simexp <- c("-20 vs -30", "-10 vs -20", "0 vs -10", "10 vs 0", "20 vs 10", "30 vs 20", "40 vs 30")
 
 g <- VisFirstLastGene_RiskAversion(df_gene_riskaversion_mean, target_simexp, "Risk-seeking task (D = +10)", tag = "", legend = FALSE)
@@ -1671,22 +1688,23 @@ ggsave(plot = g, filename = here(output_path, "S1.2_FirstLastGene_RiskAversion_r
 
 
 
-# S2 単一：apanの進化
+# S2 Single task：Evolutionary dynamics of alpha_p and alpha_n
 
 
-- 全課題を並べて表示する
+- display all tasks
 
 
-## リスク回避課題
+## Risk-aversion task
 
-- 横軸：世代、縦軸: 遺伝子の平均値
 
-- 行：non-riskyの選択肢（7個）、列：各課題（5個）を並べる
+- horizontal axis: generation, vertical axis: mean value of parameters (+SD)
+
+- row：non-risky option (seven)、column：risk of risky option (five)
+
 
 ```{r}
-# リスク回避課題 D = -20
+# Risk-aversion task D = -20
 
-#maintext_sim <- c("20.5.0.20", "0.5.-20.20", "-20.5.-40.20")
 maintext_sim <- ""
 
 g <- VisEvol_Para_RunMean_facet_sd1_nonrisky(df_gene_longer, "alpha", "risk-aversion", 20, maintext_sim, legend = FALSE)
@@ -1696,7 +1714,7 @@ ggsave(plot = g, filename = here(output_path, "S2.1_Evo_risk_aversion_apan_D20.p
 
 
 ```{r}
-# リスク回避課題 D = -10
+# Risk-aversion task D = -10
 
 maintext_sim <- ""
 
@@ -1706,16 +1724,16 @@ ggsave(plot = g, filename = here(output_path, "S2.2_Evo_risk_aversion_apan_D10.p
 ```
 
 
-## リスク追求課題
+## Risk-seeking task
 
-- 横軸：世代、縦軸: 遺伝子の平均値
+  
+- horizontal axis: generation, vertical axis: mean value of parameters (+SD)
 
-- 行：non-riskyの選択肢（7個）、列：各課題（5個）を並べる
+- row：non-risky option (seven)、column：risk of risky option (five)
 
 ```{r}
-# リスク追求課題 D = +20
+# Risk-seeking task D = +20
 
-#maintext_sim <- c("20.5.40.20", "0.5.20.20", "-20.5.0.20")
 maintext_sim <- ""
 
 g <- VisEvol_Para_RunMean_facet_sd1_nonrisky(df_gene_longer, "alpha", "risk-seeking", 20, maintext_sim, legend = FALSE)
@@ -1725,7 +1743,7 @@ ggsave(plot = g, filename = here(output_path, "S2.3_Evo_risk_seeking_apan_D20.pn
 
 
 ```{r}
-# リスク回避課題 D = +10
+# Risk-seeking task D = +10
 
 maintext_sim <- ""
 
@@ -1735,16 +1753,17 @@ ggsave(plot = g, filename = here(output_path, "S2.4_Evo_risk_seeking_apan_D10.pn
 ```
 
 
-# S3 単一：apan進化（Fig.1bの補足）
+# S3 Single task：Evolutionary results of alpha_p and alpha_n
 
   
-- D = +-10の場合の結果を載せる
+- results with D = +-10
 
-- 横軸: 課題の期待値、縦軸: 最終世代の遺伝子の平均値（+SD）
+- horizontal axis: task, vertical axis: mean parameter values of the last generation (+SD）
 
 
 ```{r, eval = FALSE}
-# リスク回避課題
+# Risk-aversion task
+
 target_simexp <- c("-40 vs -30", "-30 vs -20", "-20 vs -10", "-10 vs 0", "0 vs 10", "10 vs 20", "20 vs 30")
 
 g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "alpha", "Risk-aversion task (D = -10)", tag = "")
@@ -1754,7 +1773,8 @@ ggsave(plot = g, filename = here(output_path, "S3.1_LastGene_apan_risk-aversion_
 
 
 ```{r, eval = FALSE}
-# リスク追求課題
+# Risk-seeking task
+
 target_simexp <- c("-20 vs -30", "-10 vs -20", "0 vs -10", "10 vs 0", "20 vs 10", "30 vs 20", "40 vs 30")
 
 g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "alpha", "Risk-seeking task (D = +10)", tag = "", legend = FALSE)
@@ -1764,22 +1784,23 @@ ggsave(plot = g, filename = here(output_path, "S3.2_LastGene_apan_risk-seeking_i
 
 
 
-# S4 単一：betaの進化
+# S4 Single task：Evolutionary dynamics of beta
 
 
-- 全課題を並べて表示する
+- display all tasks
 
 
-## リスク回避課題
+## Risk-aversion task
 
-- 横軸：世代、縦軸: 遺伝子の平均値
 
-- 行：non-riskyの選択肢（7個）、列：各課題（5個）を並べる
+- horizontal axis: generation, vertical axis: mean value of parameters (+SD)
+
+- row：non-risky option (seven)、column：risk of risky option (five)
+
 
 ```{r}
-# リスク回避課題 D = -20
+# Risk-aversion task D = -20
 
-#maintext_sim <- c("20.5.0.20", "0.5.-20.20", "-20.5.-40.20")
 maintext_sim <- ""
 
 g <- VisEvol_Para_RunMean_facet_sd1_nonrisky(df_gene_longer, "beta", "risk-aversion", 20, maintext_sim, legend = FALSE)
@@ -1789,7 +1810,7 @@ ggsave(plot = g, filename = here(output_path, "S4.1_Evo_risk_aversion_bt_D20.png
 
 
 ```{r}
-# リスク回避課題 D = -10
+# Risk-aversion task D = -10
 
 maintext_sim <- ""
 
@@ -1799,16 +1820,17 @@ ggsave(plot = g, filename = here(output_path, "S4.2_Evo_risk_aversion_bt_D10.png
 ```
 
 
-## リスク追求課題
+## Risk-seeking task
 
-- 横軸：世代、縦軸: 遺伝子の平均値
+  
+- horizontal axis: generation, vertical axis: mean value of parameters (+SD)
 
-- 行：non-riskyの選択肢（7個）、列：各課題（5個）を並べる
+- row：non-risky option (seven)、column：risk of risky option (five)
+
 
 ```{r}
-# リスク追求課題 D = +20
+# Risk-seeking task D = +20
 
-#maintext_sim <- c("20.5.40.20", "0.5.20.20", "-20.5.0.20")
 maintext_sim <- ""
 
 g <- VisEvol_Para_RunMean_facet_sd1_nonrisky(df_gene_longer, "beta", "risk-seeking", 20, maintext_sim, legend = FALSE)
@@ -1818,7 +1840,7 @@ ggsave(plot = g, filename = here(output_path, "S4.3_Evo_risk_seeking_bt_D20.png"
 
 
 ```{r}
-# リスク回避課題 D = +10
+# Risk-seeking task D = +10
 
 maintext_sim <- ""
 
@@ -1829,14 +1851,17 @@ ggsave(plot = g, filename = here(output_path, "S4.4_Evo_risk_seeking_bt_D10.png"
 
 
 
-# S5 単一：beta全シミュレーション 進化
+# S5 Single task：Evolutionary results of beta
 
 
-- 横軸: 課題の期待値、縦軸: 最終世代の遺伝子の平均値（+SD）
+- results with D = +-20
+
+- horizontal axis: task, vertical axis: mean parameter values of the last generation (+SD）
 
 
 ```{r, eval = FALSE}
-# リスク回避が適応的な課題
+# Risk-aversion task D = -20
+
 target_simexp <- c("-50 vs -30", "-40 vs -20", "-30 vs -10", "-20 vs 0", "-10 vs 10", "0 vs 20", "10 vs 30")
 
 g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "beta", "Risk-aversion task (D = -20)", tag = "")
@@ -1846,7 +1871,8 @@ ggsave(plot = g, filename = here(output_path, "S5.1_LastGene_bt_risk-aversion_in
 
 
 ```{r, eval = FALSE}
-# リスク追求が適応的な課題
+# Risk-seeking task D = +20
+
 target_simexp <- c("-10 vs -30", "0 vs -20", "10 vs -10", "20 vs 0", "30 vs 10", "40 vs 20", "50 vs 30")
 
 g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "beta", "Risk-seeking task (D = +20)", tag = "", legend = FALSE)
@@ -1855,13 +1881,15 @@ ggsave(plot = g, filename = here(output_path, "S5.3_LastGene_bt_risk-seeking_inr
 ```
 
 
-- D = +-10の場合の結果を載せる
+- results with D = +-10
 
-- 横軸: 課題の期待値、縦軸: 最終世代の遺伝子の平均値（+SD）
+- horizontal axis: task, vertical axis: mean parameter values of the last generation (+SD）
+
 
 
 ```{r, eval = FALSE}
-# リスク回避課題
+# Risk-aversion task D = -10
+
 target_simexp <- c("-40 vs -30", "-30 vs -20", "-20 vs -10", "-10 vs 0", "0 vs 10", "10 vs 20", "20 vs 30")
 
 g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "beta", "Risk-aversion task (D = -10)", tag = "")
@@ -1871,7 +1899,8 @@ ggsave(plot = g, filename = here(output_path, "S5.2_LastGene_bt_risk-aversion_in
 
 
 ```{r, eval = FALSE}
-# リスク追求課題
+# Risk-seeking task D = +10
+
 target_simexp <- c("-20 vs -30", "-10 vs -20", "0 vs -10", "10 vs 0", "20 vs 10", "30 vs 20", "40 vs 30")
 
 g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "beta", "Risk-seeking task (D = +10)", tag = "", legend = FALSE)
@@ -1881,10 +1910,10 @@ ggsave(plot = g, filename = here(output_path, "S5.4_LastGene_bt_risk-seeking_inr
 
 
 
+# S6 Task structure of multiple-task simulations
 
-# S6 複数：課題群の利得構造
 
-## 効果量の分布
+## Distribution of effect size
 
 ```{r}
 df_randmulti_taskgroup %>% 
@@ -1904,7 +1933,7 @@ ggsave(plot = g, filename = here(output_path, "S6.1_randmulti_taskgroup_effsize.
 ```
 
 
-## 負の領域の分布
+## Distribution of mean negative rate
 
 ```{r}
 df_randmulti_taskgroup %>% 
@@ -1924,9 +1953,10 @@ ggsave(plot = g, filename = here(output_path, "S6.2_randmulti_taskgroup_arearate
 ```
 
 
-## 条件ごとの課題セット
+## Task set for all conditions
 
-- 表にしてpdf or pngで出力
+
+- save table as .png file
 
 ```{r}
 df_randmulti_taskinfo %>% 
@@ -1985,23 +2015,22 @@ gtsave(gt_tab, filename = here(output_path, "S6_Table_taskinfo_40.png"), vwidth 
 
 
 
-# S7 複数：リスク回避率（Fig.5の補足）
+# S7 Multiple-task：Risk aversion rate of conditions
 
 
-- 全シミュレーション・課題のリスク回避率を表示する
+- display all simulations and tasks
+  
+- horizontal axis: task number、vertical axis：mean rate of risk aversion
+  
+- separately display risk-aversion task and risk-seeking task
 
-- 横軸：課題番号、縦軸：平均リスク回避率
 
-- リスク回避課題とリスク追求課題で分ける
+## condition 0/4
 
-
-## 0/4条件
-
-- リスク追求/回避 = 0/4の条件
 
 ```{r}
-# 0/4課題
-# リスク回避課題 1~25
+# seeking/aversion = 0/4
+# risk-aversion task 1~25
 
 sim_filt <- "cond_0/4" 
 main_title <- "risk seeking/aversion = 0/4"
@@ -2015,8 +2044,8 @@ ggsave(plot = g, filename = here(output_path, "S7_RiskAversion_04_risk_aversion_
 
 
 ```{r}
-# 0/4課題
-# リスク回避課題 26~50
+# seeking/aversion = 0/4
+# risk-aversion task 26~50
 
 sim_filt <- "cond_0/4"
 main_title <- "risk seeking/aversion = 0/4"
@@ -2030,8 +2059,8 @@ ggsave(plot = g, filename = here(output_path, "S7_RiskAversion_04_risk_aversion_
 
 
 ```{r}
-# 0/4課題
-# リスク回避課題 51~75
+# seeking/aversion = 0/4
+# risk-aversion task 51~75
 
 sim_filt <- "cond_0/4"
 main_title <- "risk seeking/aversion = 0/4"
@@ -2045,8 +2074,8 @@ ggsave(plot = g, filename = here(output_path, "S7_RiskAversion_04_risk_aversion_
 
 
 ```{r}
-# 0/4課題
-# リスク回避課題 76~100
+# seeking/aversion = 0/4
+# risk-aversion task 76~100
 
 sim_filt <- "cond_0/4"
 main_title <- "risk seeking/aversion = 0/4"
@@ -2059,14 +2088,12 @@ ggsave(plot = g, filename = here(output_path, "S7_RiskAversion_04_risk_aversion_
 ```
 
 
-## 1/3条件
-
-- リスク追求/回避 = 1/3の条件
+## condition 1/3
 
 
 ```{r}
-# 1/3条件
-# リスク回避課題 1~33
+# seeking/aversion = 1/3
+# risk-aversion task 1~33
 
 sim_filt <- "cond_1/3"
 main_title <- "risk seeking/aversion = 1/3"
@@ -2080,8 +2107,8 @@ ggsave(plot = g, filename = here(output_path, "S7_RiskAversion_13_risk_aversion_
 
 
 ```{r}
-# 1/3課題
-# リスク回避課題 34~66
+# seeking/aversion = 1/3
+# risk-aversion task 34~66
 
 sim_filt <- "cond_1/3"
 main_title <- "risk seeking/aversion = 1/3"
@@ -2095,8 +2122,8 @@ ggsave(plot = g, filename = here(output_path, "S7_RiskAversion_13_risk_aversion_
 
 
 ```{r}
-# 1/3条件
-# リスク回避課題 67~150
+# seeking/aversion = 1/3
+# risk-aversion task 67~100
 
 sim_filt <- "cond_1/3"
 main_title <- "risk seeking/aversion = 1/3"
@@ -2110,8 +2137,8 @@ ggsave(plot = g, filename = here(output_path, "S7_RiskAversion_13_risk_aversion_
 
 
 ```{r}
-# 1/3条件
-# リスク追求課題 1~100
+# seeking/aversion = 1/3
+# risk-seeking task 1~100
 
 sim_filt <- "cond_1/3"
 main_title <- "risk seeking/aversion = 1/3"
@@ -2124,13 +2151,12 @@ ggsave(plot = g, filename = here(output_path, "S7_RiskAversion_13_risk_seeking_1
 ```
 
 
-## 2/2条件
+## condition 2/2
 
-- リスク追求/回避 = 2/2の条件
 
 ```{r}
-# 2/2条件
-# リスク回避課題 1~50
+# seeking/aversion = 2/2
+# risk-aversion task 1~50
 
 sim_filt <- "cond_2/2"
 main_title <- "risk seeking/aversion = 2/2"
@@ -2144,8 +2170,8 @@ ggsave(plot = g, filename = here(output_path, "S7_RiskAversion_22_risk_aversion_
 
 
 ```{r}
-# 2/2課題
-# リスク回避課題 51~100
+# seeking/aversion = 2/2
+# risk-aversion task 51~100
 
 sim_filt <- "cond_2/2"
 main_title <- "risk seeking/aversion = 2/2"
@@ -2159,8 +2185,8 @@ ggsave(plot = g, filename = here(output_path, "S7_RiskAversion_22_risk_aversion_
 
 
 ```{r}
-# 2/2条件
-# リスク追求課題 1~50
+# seeking/aversion = 2/2
+# risk-seeking task 1~50
 
 sim_filt <- "cond_2/2"
 main_title <- "risk seeking/aversion = 2/2"
@@ -2174,8 +2200,8 @@ ggsave(plot = g, filename = here(output_path, "S7_RiskAversion_22_risk_seeking_1
 
 
 ```{r}
-# 2/2条件
-# リスク追求課題 51~100
+# seeking/aversion = 2/2
+# risk-seeking task 51~100
 
 sim_filt <- "cond_2/2"
 main_title <- "risk seeking/aversion = 2/2"
@@ -2188,14 +2214,12 @@ ggsave(plot = g, filename = here(output_path, "S7_RiskAversion_22_risk_seeking_5
 ```
 
 
-## 3/1条件
-
-- リスク追求/回避 = 3/1の条件
+## condition 3/1
 
 
 ```{r}
-# 3/1条件
-# リスク回避課題 1~100
+# seeking/aversion = 3/1
+# risk-aversion task 1~100
 
 sim_filt <- "cond_3/1"
 main_title <- "risk seeking/aversion = 3/1"
@@ -2209,8 +2233,8 @@ ggsave(plot = g, filename = here(output_path, "S7_RiskAversion_31_risk_aversion_
 
 
 ```{r}
-# 3/1課題
-# リスク追求課題 1~33
+# seeking/aversion = 3/1
+# risk-seeking task 1~33
 
 sim_filt <- "cond_3/1"
 main_title <- "risk seeking/aversion = 3/1"
@@ -2224,8 +2248,8 @@ ggsave(plot = g, filename = here(output_path, "S7_RiskAversion_31_risk_seeking_1
 
 
 ```{r}
-# 3/1条件
-# リスク追求課題 34~66
+# seeking/aversion = 3/1
+# risk-seeking task 34~66
 
 sim_filt <- "cond_3/1"
 main_title <- "risk seeking/aversion = 3/1"
@@ -2239,8 +2263,8 @@ ggsave(plot = g, filename = here(output_path, "S7_RiskAversion_31_risk_seeking_3
 
 
 ```{r}
-# 3/1条件
-# リスク追求課題 67~100
+# seeking/aversion = 3/1
+# risk-seeking task 67~100
 
 sim_filt <- "cond_3/1"
 main_title <- "risk seeking/aversion = 3/1"
@@ -2253,14 +2277,12 @@ ggsave(plot = g, filename = here(output_path, "S7_RiskAversion_31_risk_seeking_6
 ```
 
 
-## 4/0条件
-
-- リスク追求/回避 = 4/0の条件
+## condition 4/0
 
 
 ```{r}
-# 4/0条件
-# リスク追求課題 1~25
+# seeking/aversion = 4/0
+# risk-seeking task 1~25
 
 sim_filt <- "cond_4/0"
 main_title <- "risk seeking/aversion = 4/0"
@@ -2274,8 +2296,8 @@ ggsave(plot = g, filename = here(output_path, "S7_RiskAversion_40_risk_seeking_1
 
 
 ```{r}
-# 4/0課題
-# リスク追求課題 26~50
+# seeking/aversion = 4/0
+# risk-seeking task 26~50
 
 sim_filt <- "cond_4/0"
 main_title <- "risk seeking/aversion = 4/0"
@@ -2289,8 +2311,8 @@ ggsave(plot = g, filename = here(output_path, "S7_RiskAversion_40_risk_seeking_2
 
 
 ```{r}
-# 4/0条件
-# リスク追求課題 51~75
+# seeking/aversion = 4/0
+# risk-seeking task 51~75
 
 sim_filt <- "cond_4/0"
 main_title <- "risk seeking/aversion = 4/0"
@@ -2304,8 +2326,8 @@ ggsave(plot = g, filename = here(output_path, "S7_RiskAversion_40_risk_seeking_5
 
 
 ```{r}
-# 4/0条件
-# リスク追求課題 76~100
+# seeking/aversion = 4/0
+# risk-seeking task 76~100
 
 sim_filt <- "cond_4/0"
 main_title <- "risk seeking/aversion = 4/0"
@@ -2319,14 +2341,10 @@ ggsave(plot = g, filename = here(output_path, "S7_RiskAversion_40_risk_seeking_7
 
 
 
-# S8 複数：学習ダイナミクス
+# S8 Multiple-task：Learning dynamics
 
 
-- 横軸: 試行、縦軸: リスク回避率
-- 条件ごとに学習ダイナミクスを最初の世代と最終世代で比較する
-- 列：条件、行：課題、色の違いが世代
-
-- 影は各シミュレーション（課題）の平均値間のSD
+- horizontal axis: trial, vertical axis: Risk aversion rate
 
 
 ```{r, eval=FALSE}
@@ -2366,10 +2384,10 @@ ggsave(plot = g, filename = here(output_path, "S8_Trial_RiskAversion_RandMulti.p
 ```
 
 
-# S9 複数：beta 進化
+# S9 Multiple-task：Evolutionary dynamics of beta
 
  
-- 横軸: 世代、縦軸: 遺伝子の値（細い線は1つのシミュレーション）
+- horizontal axis: generation, vertical axis: alpha value（each line corresponds to a simulation）
 
 
 ```{r, eval = FALSE} 
@@ -2409,12 +2427,12 @@ ggsave(plot = g, filename = here(output_path, "S9_Evo_RandMulti_bt.png"), width 
 
 
 
-# S10 ヒートマップ：他の課題
+# S10 Effect of combination of ap and an on the risk aversion (heatmap)
 
-## リスク回避：bt = 0.10
+
+## Risk-aversion task：bt = 0.10
 
 ```{r}
-# リスク回避課題
 # D = -20
 
 bt_filt <- 0.10
@@ -2427,10 +2445,9 @@ ggsave(plot = g, filename = here(output_path, "S10_Heatmap_RiskAversion_risk-ave
 ```
 
 
-## リスク回避：bt = 0.25
+## Risk-aversion task：bt = 0.25
 
 ```{r}
-# リスク回避課題
 # D = -20
 
 bt_filt <- 0.25
@@ -2445,10 +2462,9 @@ ggsave(plot = g, filename = here(output_path, "S10_Heatmap_RiskAversion_risk-ave
 ```
 
 
-## リスク回避：bt = 0.40
+## Risk-aversion task：bt = 0.40
 
 ```{r}
-# リスク回避課題
 # D = -20
 
 bt_filt <- 0.40
@@ -2461,10 +2477,9 @@ ggsave(plot = g, filename = here(output_path, "S10_Heatmap_RiskAversion_risk-ave
 ```
 
 
-## リスク追求：bt = 0.10
+## Risk-seeking task：bt = 0.10
 
 ```{r}
-# リスク追求課題
 # D = +20
 
 bt_filt <- 0.10
@@ -2477,10 +2492,9 @@ ggsave(plot = g, filename = here(output_path, "S10_Heatmap_RiskAversion_risk-see
 ```
 
 
-## リスク追求：bt = 0.25
+## Risk-seeking task：bt = 0.25
 
 ```{r}
-# リスク追求課題
 # D = +20
 
 bt_filt <- 0.25
@@ -2495,10 +2509,9 @@ ggsave(plot = g, filename = here(output_path, "S10_Heatmap_RiskAversion_risk-see
 ```
 
 
-## リスク追求：bt = 0.40
+## Risk-seeking task：bt = 0.40
 
 ```{r}
-# リスク追求課題
 # D = +20
 
 bt_filt <- 0.40
@@ -2511,13 +2524,12 @@ ggsave(plot = g, filename = here(output_path, "S10_Heatmap_RiskAversion_risk-see
 ```
 
 
-# S11 期待値が同じ課題：最初の世代
+# S11 The tasks where the expected values are the same：first generation
 
 
-## リスク回避率のヒストグラム
+## Histogram of risk aversion 
 
 ```{r}
-# 課題 * 条件のグラフを作成
 
 df_choice_res_500T_latter100 %>% 
   
@@ -2540,7 +2552,7 @@ ggsave(plot = g, filename = here(output_path, "S11a_RiskPref_RandMulti_First_500
 ```
 
 
-## Gain-Loss差
+## Histogram of difference in gain-loss
 
 
 ```{r}
@@ -2565,11 +2577,9 @@ ggsave(plot = g, filename = here(output_path, "S11b_RiskPrefDif_RandMulti_First_
 ```
 
 
-
-## Gain-Lossヒストグラムのピーク
-
-
 ```{r}
+# peak of the histogram
+
 df_choice_gainloss_500T_latter100_first %>% 
   
   dplyr::group_by(sim_n) %>% 
@@ -2582,13 +2592,12 @@ df_choice_gainloss_500T_latter100_first %>%
 ```
 
 
-## リスク回避の増減の割合
+## Table of gain - loss > 0
   
-  
-- gain - loss > 0 (lossに比べてgainでリスク回避傾向が増加した) である個体の数を数えた
-
 
 ```{r}
+# the rate of gain - loss > 0
+
 #webshot::install_phantomjs()
 
 df_choice_gainloss_500T_latter100_first %>% 
@@ -2615,21 +2624,20 @@ df_gt %>%
              first = "rate gain > loss in first generation",
              last = "rate gain > loss in last generation") %>% 
   tab_options(
-      table.width = pct(30), # 表全体の幅をやや拡げる
-      table_body.hlines.width = 0, # tableの中の水平線は引かない
-      # spannerの下線を適切にするための設定
+      table.width = pct(30), # expand width of overall table
+      table_body.hlines.width = 0, # not include a horizontal line
       column_labels.border.top.width = 2, 
       column_labels.border.top.color = "black", 
       column_labels.border.bottom.width = 1, 
       column_labels.border.bottom.color = "black",
       table.border.top.width = 2,
-      table_body.border.top.color = "black", #最上線は黒
+      table_body.border.top.color = "black", 
       table.border.bottom.width = 2,
-      table_body.border.bottom.color = "black" #最下線は黒
+      table_body.border.bottom.color = "black"
     ) %>% 
     cols_align(align = "center") %>%
     tab_style(
-      style = list(cell_text(align="center")), #列名を中央揃えに
+      style = list(cell_text(align="center")),
       locations = cells_row_groups()
     ) ->
   gt_tab
@@ -2639,9 +2647,9 @@ gtsave(gt_tab, filename = here(output_path, "S11_Table_riskdif.png"), vwidth = 2
 
 
 
-# S12 固執パラメータ：パラメータの進化
+# S12 Perseverance parameter：evolutionary dynamics of parameters
 
-## apan
+## alpha_p and alpha_n
 
 ```{r, fig.width = 19.0, fig.height = 7.5, eval=FALSE}
 df_gene_randmulti_Psv_summary_longer %>% 
@@ -2688,26 +2696,8 @@ ggsave(plot = g, filename = here(output_path, "S12a_Evo_RandMulti_apan_Psv.png")
 ```
 
 
+## $\alpha_p$ and negative area rate
 
-- 最終世代でan > apであるようなシミュレーションの数
-
-```{r}
-# 最終世代にan > apであるようなシミュレーションの数をcountする
-
-df_gene_randmulti_Psv %>% 
-  dplyr::filter(generation == 2999) %>% 
-  dplyr::mutate(
-    positivity = if_else(mean_ap > mean_an, 1, 0)
-  ) %>% 
-  dplyr::group_by(sim) %>% 
-  dplyr::summarise(
-    positivity_count = sum(positivity),
-    positivity_rate = positivity_count/100
-  )
-```
-
-
-- $\alpha_p$は負の領域の大きさで説明される
 
 ```{r, eval=FALSE}
 df_gene_randmulti_Psv_taskinfo_longer %>% 
@@ -2734,8 +2724,7 @@ ggsave(plot = g, filename = here(output_path, "S12d_Relation_RandMulti_ap_NegaAr
 
 
 
-## bt
-
+## beta
 
 ```{r, fig.width = 19.0, fig.height = 5.0, eval=FALSE}
 df_gene_randmulti_Psv_summary_longer %>% 
@@ -2774,7 +2763,7 @@ ggsave(plot = g, filename = here(output_path, "S12b_Evo_RandMulti_bt_Psv.png"), 
 ```
 
 
-## phi
+## Phi
 
 
 ```{r, fig.width = 19.0, fig.height = 7.5, eval=FALSE}
@@ -2812,10 +2801,10 @@ ggsave(plot = g, filename = here(output_path, "S12c_Evo_RandMulti_phi_Psv.png"),
 ```
 
 
-# S13 固執パラメータ：行動
+# S13 Perseverance parameter：behavior
 
 
-## リスク回避率
+## Risk aversion rate of conditions
 
 
 ```{r, fig.width = 20.0, fig.height = 5.0, eval=FALSE}
@@ -2857,7 +2846,7 @@ ggsave(plot = g, filename = here(output_path, "S13a_FirstLastGene_RiskAversion_R
 ```
 
 
-## 学習ダイナミクス
+## Learning dynamics
 
 
 ```{r, eval=FALSE}
@@ -2898,57 +2887,11 @@ ggsave(plot = g, filename = here(output_path, "S13b_Trial_RiskAversion_RandMulti
 ```
 
 
-## 最終世代phiでのソフトマックス
+
+# S14 Single learning rate: evolutionary dynamics of parameters
 
 
-- 最終世代の$\phi$でのソフトマックス関数
-
-```{r, fig.width=17, fig.height=5}
-# btを固定して（1つのパネルにして）、phiを変化させたグラフを作る
-
-bt_vec <- seq(from = 0.1, to = 0.4, by = 0.1)
-phi_vec <- c(0, 1.46, 1.83, 1.19, 1.21, 3.05)
-
-params_set <- 
-  tibble(
-    x = seq(from = -60, to = 60, by = 0.1)
-  ) %>% 
-  tidyr::expand(x, crossing(phi = phi_vec, bt = bt_vec)) %>% 
-  dplyr::mutate(
-    Cc = 1,
-    Cu = 0,
-    phi_lab = case_when(
-      phi == phi_vec[1] ~ paste0(phi, " (no phi)"),
-      phi == phi_vec[2] ~ paste0(phi, " (2/2)"),
-      phi == phi_vec[3] ~ paste0(phi, " (1/3)"),
-      phi == phi_vec[4] ~ paste0(phi, " (3/1)"),
-      phi == phi_vec[5] ~ paste0(phi, " (4/0)"),
-      phi == phi_vec[6] ~ paste0(phi, " (0/4)")
-    )
-  ) %>% 
-  dplyr::mutate(
-    y = softmax_perseverance(x, bt, phi, Cc, Cu)
-  ) %>% 
-  dplyr::select(bt, x, phi, phi_lab, y, Cc, Cu)
-
-
-params_set %>% 
-  
-  ggplot(aes(x = x, y = y)) + geom_line(aes(color = as.factor(phi_lab)), size = 1.2) + 
-  facet_wrap(~bt, labeller = labeller(bt = label_both), ncol = 5) + 
-  labs(x = "Q(1) - Q(0)", y = "P(Op(t) = 1|Op(t-1) = 1)", color = "phi") + 
-  my_theme2 + scale_color_viridis_d() ->
-  g
-
-#ggsave(plot = g, filename = here(output_path, "SX_Psv_Softmax.png"), width = 17.0, height = 5.0)
-```
-
-
-
-# S14 1つの学習率：パラメータ
-
-
-## alphaの進化
+## alpha
 
 
 ```{r}
@@ -2986,7 +2929,7 @@ ggsave(plot = g, filename = here(output_path, "S14a_Evo_RandMulti_sLR_alpha.png"
 ```
 
 
-## btの進化
+## beta
 
 
 ```{r}
@@ -3025,9 +2968,10 @@ ggsave(plot = g, filename = here(output_path, "S14b_Evo_RandMulti_sLR_bt.png"), 
 ```
 
 
-# S15 1つの学習率：行動
+# S15 Single learning rate：behavior
 
-## リスク回避率
+
+## Risk aversion rate of conditions
 
 ```{r}
 df_agent_randmulti_sLR_simMEAN %>% 
@@ -3067,7 +3011,7 @@ ggsave(plot = g, filename = here(output_path, "S15a_FirstLastGene_RiskAversion_R
 ```
 
 
-## 学習ダイナミクス
+## Learning dynamics
 
 ```{r}
 df_trial_randmulti_sLR_simMEAN %>% 
@@ -3107,15 +3051,15 @@ ggsave(plot = g, filename = here(output_path, "S15b_Trial_RiskAversion_RandMulti
 ```
 
 
-# S16 1つの学習率：期待値が同じ課題
-
-## リスク回避率
+# S16 Single learning rate：The tasks where the expected values are the same
 
 
-- 最初の世代
+## Histogram of risk aversion rate 
+
 
 ```{r, fig.width = 15.0, fig.height = 20.0}
-# 課題 * 条件のグラフを作成
+# agents of the first generation
+
 df_choice_res_sLR_500T_latter100 %>% 
   
   dplyr::filter(generation == 0) %>% 
@@ -3138,10 +3082,10 @@ ggsave(plot = g, filename = here(output_path, "S16a_sLR_RiskPref_RandMulti_First
 ```
 
   
-- 最終世代
 
 ```{r, fig.width = 15.0, fig.height = 20.0}
-# 課題 * 条件のグラフを作成
+# agents of the last generation
+
 df_choice_res_sLR_500T_latter100 %>% 
   
   dplyr::filter(generation == 2999) %>% 
@@ -3163,12 +3107,13 @@ df_choice_res_sLR_500T_latter100 %>%
 ggsave(plot = g, filename = here(output_path, "S16c_sLR_RiskPref_RandMulti_Last_500T_lat.png"), width = 17.0, height = 24.0, dpi = 400)
 ```
 
-## Gain - Loss差
 
+## Histogram of difference in gain-loss
 
-- 最初の世代
 
 ```{r, fig.width = 18.0, fig.height = 6.0}
+# agents of the first generation
+
 df_choice_gainloss_sLR_500T_latter100_first %>% 
   
   ggplot(aes(x = risk_aver_gain_loss)) + geom_histogram() + 
@@ -3191,9 +3136,10 @@ ggsave(plot = g, filename = here(output_path, "S16b_sLR_RiskPrefDif_RandMulti_Fi
 ```
 
 
-- 最終世代
 
 ```{r, fig.width = 18.0, fig.height = 6.0}
+# agents of the last generation
+
 df_choice_gainloss_sLR_500T_latter100_last %>% 
   
   ggplot(aes(x = risk_aver_gain_loss)) + geom_histogram() + 
@@ -3216,48 +3162,7 @@ ggsave(plot = g, filename = here(output_path, "S16d_sLR_RiskPrefDif_RandMulti_La
 ```
 
 
-## リスク回避率の増減の割合
-
-  
-- gain - loss > 0 (lossに比べてgainでリスク回避傾向が増加した) である個体の数を数えた
-  
-- 最終世代
-
-
-```{r}
-df_choice_gainloss_sLR_500T_latter100_last %>% 
-  
-  dplyr::mutate(
-    gain_loss_plus = if_else(risk_aver_gain_loss > 0, "gain > loss", "loss > gain")
-  ) %>% 
-  dplyr::group_by(sim_n, gain_loss_plus) %>% 
-  dplyr::summarise(
-    n = n(),
-    rate = n/100000
-  ) %>% 
-  dplyr::select(sim_n, gain_loss_plus, rate) %>% 
-  dplyr::filter(gain_loss_plus == "gain > loss") %>% 
-  formattable::formattable(.)
-```
-
-
-- 最初の世代
-
-```{r}
-df_choice_gainloss_sLR_500T_latter100_first %>% 
-  
-  dplyr::mutate(
-    gain_loss_plus = if_else(risk_aver_gain_loss > 0, "gain > loss", "loss > gain")
-  ) %>% 
-  dplyr::group_by(sim_n, gain_loss_plus) %>% 
-  dplyr::summarise(
-    n = n(),
-    rate = n/100000
-  ) %>% 
-  dplyr::select(sim_n, gain_loss_plus, rate) %>% 
-  dplyr::filter(gain_loss_plus == "gain > loss") %>% 
-  formattable::formattable(.)
-```
+## Table of gain - loss > 0
 
 
 ```{r}
@@ -3285,27 +3190,27 @@ df_gt %>%
              first = "rate gain > loss in first generation",
              last = "rate gain > loss in last generation") %>% 
   tab_options(
-      table.width = pct(30), # 表全体の幅をやや拡げる
-      table_body.hlines.width = 0, # tableの中の水平線は引かない
-      # spannerの下線を適切にするための設定
+      table.width = pct(30), 
+      table_body.hlines.width = 0,
       column_labels.border.top.width = 2, 
       column_labels.border.top.color = "black", 
       column_labels.border.bottom.width = 1, 
       column_labels.border.bottom.color = "black",
       table.border.top.width = 2,
-      table_body.border.top.color = "black", #最上線は黒
+      table_body.border.top.color = "black", 
       table.border.bottom.width = 2,
-      table_body.border.bottom.color = "black" #最下線は黒
+      table_body.border.bottom.color = "black" 
     ) %>% 
     cols_align(align = "center") %>%
     tab_style(
-      style = list(cell_text(align="center")), #列名を中央揃えに
+      style = list(cell_text(align="center")), 
       locations = cells_row_groups()
     ) ->
   gt_tab
 
 gtsave(gt_tab, filename = here(output_path, "S16_Table_riskdif.png"), vwidth = 2000, vheight = 4500)
 ```
+
 
 
 # Session Info
