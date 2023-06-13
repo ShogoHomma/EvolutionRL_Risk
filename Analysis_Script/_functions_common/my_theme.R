@@ -1,4 +1,4 @@
-# ggplot2で使用するmy theme
+# my theme for ggolot2
 
 my_theme1 <- 
   theme_classic(base_size = 25) + 

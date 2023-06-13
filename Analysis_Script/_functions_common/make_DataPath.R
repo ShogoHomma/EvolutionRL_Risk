@@ -1,6 +1,6 @@
-# 一つ or 複数のデータファイル (.csvなど) のパスを作成する関数
-## Dir：プロジェクトディレクトリの直下にある、焦点のディレクトリ
-## Dir_sub：もう1つ下のディレクトリ
+# make paths for one or multiple data file (e.g., .csv)
+## Dir：target directory, directly under the project directory
+## Dir_sub：sub directory under target directory
 
 #library(here)
 
