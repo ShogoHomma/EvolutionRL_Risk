@@ -1,5 +1,7 @@
-# Random Multiple Taskのリスク回避率を網羅的に載せる
-# df_agent_randmulti_summary_bysimを渡し、横軸：シミュレーション・課題、縦軸：リスク回避率
+# Comprehensively display the risk aversion rate of simulations of random multiple-task simulations
+# pass df_agent_randmulti_summary_bysim and make figures
+# horizontal axis：task of a simulation, vertical axis：risk aversion rate
+
 # sim_range <- c(first, last)
 
 VisFirstLastGene_RandMulti_RiskAversion_bySim <- function(df, sim_filt, tasktype, sim_range, main_title, sub_title, legend = TRUE) {

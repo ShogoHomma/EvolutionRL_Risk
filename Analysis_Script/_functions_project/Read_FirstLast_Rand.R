@@ -1,4 +1,4 @@
-# Random課題の_nat.csvで、最初と最後の世代の情報だけ取り出す
+# extract the first and last generation data from _nat.csv of random multiple-task simulation
 
 Read_FirstLast_Rand <- function(path_i, data_path, GeneN, AgentN, TaskN) {
   

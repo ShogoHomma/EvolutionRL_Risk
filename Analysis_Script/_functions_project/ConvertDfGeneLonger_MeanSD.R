@@ -1,4 +1,4 @@
-# MakeDfで作成したdfを縦長型にする(replicationに関する平均をとる)
+# make dataframe longer (averaged across replications)
 
 ConvertDfGeneLonger_MeanSD <- function(df) {
   

@@ -1,4 +1,5 @@
-# 1つの学習率の強化学習シミュレーションを行う
+# Run simulation of model with the single learning rate
+# mainly used for the simulation in the tasks where the expected values are the same
 
 RunQL_single <- function(params, task_struct, trial_N) {
   
@@ -7,9 +8,9 @@ RunQL_single <- function(params, task_struct, trial_N) {
   beta <- params %>% dplyr::pull(bt)
   
   # task struct
-  m1 <- task_struct[1] # リスキー
+  m1 <- task_struct[1] # risky option
   sd1 <- task_struct[2]
-  m2 <- task_struct[3] # 非リスキー
+  m2 <- task_struct[3] # non-risky option
   sd2 <- task_struct[4]
   
   sim_N <- nrow(params) # number of agents
@@ -20,7 +21,7 @@ RunQL_single <- function(params, task_struct, trial_N) {
   
   p <- matrix(0, nrow = sim_N, ncol = trial_N) # p[sim_i, trial]
   Q <- array(0, dim = c(sim_N, trial_N + 1, 2)) 
-  # Q[, t, 1] がリスキー選択肢、Q[, t, 2] が非リスキー選択肢
+  # Q[, t, 1] : risky option、Q[, t, 2] : non-risky option
   
   for (t in 1:trial_N) {
     
@@ -34,14 +35,14 @@ RunQL_single <- function(params, task_struct, trial_N) {
     ## get payoff
     reward_list <- rep(0, times = sim_N)
     
-    Choices_1 <- Choice[, t] == 1 # 1を選んだ個体
+    Choices_1 <- Choice[, t] == 1 # agents who chose option 1
     if (length(which(Choices_1)) > 0) {
       
       sim_reward <- rnorm(n = length(which(Choices_1)), mean = m1, sd = sd1)
       reward_list[Choices_1] <- sim_reward
       
     }
-    Choices_2 <- Choice[, t] == 2 # 2を選んだ個体
+    Choices_2 <- Choice[, t] == 2 # agents who chose option 2
     if (length(which(Choices_2)) > 0) {
       
       sim_reward <- rnorm(n = length(which(Choices_2)), mean = m2, sd = sd2)

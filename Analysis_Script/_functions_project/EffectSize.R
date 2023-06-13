@@ -1,4 +1,5 @@
 # calculate effect size
+# Cohen's d when sample size of two groups is equal
 
 EffectSize <- function(m1, sd1, m2, sd2) {
   

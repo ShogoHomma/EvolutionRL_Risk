@@ -1,8 +1,7 @@
-# single-task simulationのパラメータの進化を網羅的に載せる
+# comprehensively display the evolutionary dynamics of parameters in the single-task simulation
 
-# 縦長のdf_geneを渡し、横軸：世代、縦軸：パラメータ
-# 影はrepのSD平均
-# facetで、行：sd1、列：nonrisky option
+# horizontal axis：generation, vertical axis：parameter value, colored area: SD averaged across replications
+# row：non-risky option (seven)、column：risk of risky option (five)
 
 VisEvol_Para_RunMean_facet_sd1_nonrisky <- function(df, params, tasktype, abs_Dvalue, maintext_sim, legend = TRUE) {
   
@@ -21,7 +20,7 @@ VisEvol_Para_RunMean_facet_sd1_nonrisky <- function(df, params, tasktype, abs_Dv
       sim_sort = paste0(sim_sort_tmp, maintext_sim_sign)
     )
   
-  # --- paramsに応じてfilter
+  # --- filter by params
   
   if (params == "all") {  # ap, an, & bt
     
@@ -51,7 +50,7 @@ VisEvol_Para_RunMean_facet_sd1_nonrisky <- function(df, params, tasktype, abs_Dv
     
     df_rev <-
       df_rev %>% 
-      dplyr::filter(m2 > m1) # リスク回避課題なのでm2の方が大きい課題を取り出す
+      dplyr::filter(m2 > m1) 
     
     #main_title <- "Risk-aversion task"
     sub_title <- paste0("Risk-aversion task (D = -", abs_Dvalue, ")")
@@ -60,7 +59,7 @@ VisEvol_Para_RunMean_facet_sd1_nonrisky <- function(df, params, tasktype, abs_Dv
     
     df_rev <-
       df_rev %>% 
-      dplyr::filter(m2 < m1) # リスク追求課題なのでm1の方が大きい課題を取り出す
+      dplyr::filter(m2 < m1) 
     
     #main_title <- "Risk-seeking task"
     sub_title <- paste0("Risk-seeking task (D = +", abs_Dvalue, ")")

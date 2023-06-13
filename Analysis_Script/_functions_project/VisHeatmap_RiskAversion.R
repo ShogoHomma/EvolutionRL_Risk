@@ -1,4 +1,5 @@
-# 世代内シミュレーションのdfを使い、ヒートマップ：横軸 ap, 縦軸 an
+# make heatmap
+# horizontal axis: ap, vertical axis : an, color : risk aversion rate
 
 VisHeatmap_RiskAversion <- function(df, target_sim, sub_title) {
   

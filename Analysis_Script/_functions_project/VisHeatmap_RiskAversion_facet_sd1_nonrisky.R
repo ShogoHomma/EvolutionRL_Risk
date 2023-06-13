@@ -1,4 +1,5 @@
-# 世代内シミュレーションのdfを使い、ヒートマップ：横軸 ap, 縦軸 an
+# comprehensively display heatmap
+# horizontal axis: ap, vertical axis : an, color : risk aversion rate
 
 VisHeatmap_RiskAversion_facet_sd1_nonrisky <- function(df, tasktype, abs_Dvalue, maintext_sim, bt_filt) {
   

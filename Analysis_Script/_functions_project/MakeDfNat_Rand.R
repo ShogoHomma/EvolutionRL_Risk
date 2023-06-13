@@ -1,4 +1,4 @@
-# ランダム複数課題シミュレーションのnat (agent) データで、第1世代と最終世代の情報を取り出す
+# extract the first and last generation data from _nat (agent) data of random multiple-task simulation
 
 MakeDfNat_Rand <- function(dir_pattern, sim_name, DataDir, DataDir_sub, csv_pattern, GeneN, AgentN, TaskN, Extract_SimN) {
   

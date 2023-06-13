@@ -1,12 +1,11 @@
-# ランダム複数課題シミュレーションのtrial データを取り出す
+# read_trial data of random multiple-task simulation
 
 MakeDfTrial_Rand <- function(dir_pattern, sim_name, DataDir, DataDir_sub, csv_pattern, Extract_SimN) {
   
   data_path <- make_DataPath(DataDir, DataDir_sub, dir_pattern, csv_pattern)
   data_path <- data_path[1:Extract_SimN]
   
-  # メモリ節約のため特定の列のみ取り出し、シミュレーションごとに要約dfを作る
-  # agentは後でつぶす情報だからいらない
+  # to save memory, select specidfic columns and make summarised df for each simulation 
   df <- purrr::map_dfr(data_path, 
                        ~{print(.x); 
                          data.table::fread(.x) %>% 

@@ -1,4 +1,4 @@
-# シミュレーションデータを読み込んで、データフレームにする関数
+# read simulation data and make a single data frame
 
 MakeDf <- function(dir_pattern, sim_name, DataDir, DataDir_sub, csv_pattern) {
   

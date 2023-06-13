@@ -1,4 +1,4 @@
-## 世代内情報を抜き出して、データフレーム
+# read data of effect of ap and an (data within a generation) and make a single data frame
 
 MakeDfWithinGene <- function(dir_pattern, sim_name, DataDir, DataDir_sub, csv_pattern) {
   

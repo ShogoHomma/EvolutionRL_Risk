@@ -1,4 +1,4 @@
-# 横軸：課題の位置、縦軸：第1世代と最終世代のパラメータの値
+# horizontal axis : task, vertical axis : risk aversion rate of the first and last generation
 
 VisFirstLastGene_RiskAversion <- function(df, target_simexp, sub_title, tag, legend = TRUE) {
   

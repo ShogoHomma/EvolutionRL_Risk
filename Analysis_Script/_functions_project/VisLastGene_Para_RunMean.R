@@ -1,5 +1,5 @@
-# 縦長のdf_geneを渡し、横軸：世代、縦軸：パラメータ
-# 影はrepのSD平均
+# horizontal axis : task, vertical axis : parameter value
+# colored area : SD averaged across replications
 
 VisLastGene_Para_RunMean <- function(df, target_simexp, params, sub_title, tag, legend = TRUE) {
   
