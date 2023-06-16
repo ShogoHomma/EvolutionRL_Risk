@@ -35,8 +35,8 @@ library(webshot2)
 output_path <- here("Output", "FiguresForSupplementary")
 simout_SameExp_path <- here("Data", "SameExp_Sim_RandMultiTask")
 
-#dir.create(output_path)
-#dir.create(simout_SameExp_path)
+# dir.create(output_path)
+# dir.create(simout_SameExp_path)
 ```
 
 
@@ -473,7 +473,7 @@ df_gene_randmulti_longer %>%
 DataDir <- "Data"
 DataDir_sub <- "Evo_RandMultiTask"
 
-names_randmulti_rds <- c("df_agent_randmulti_22.RDS", "df_agent_randmulti_31.RDS", "df_agent_randmulti_13.RDS", "df_agent_randmulti_04.RDS", "df_agent_randmulti_40.RDS")
+names_randmulti_rds <- c("df_agent_randmulti_22.RDS", "df_agent_randmulti_13.RDS", "df_agent_randmulti_31.RDS",  "df_agent_randmulti_04.RDS", "df_agent_randmulti_40.RDS")
 
 df_agent_randmulti <-
   purrr::map_dfr(names_randmulti_rds, ~readRDS(here(DataDir, DataDir_sub, .x)))
@@ -582,25 +582,28 @@ DataDir_sub <- "Evo_RandMultiTask"
 Extract_SimN <- 100
 
 # df_beha_trial_randmulti_summary <- purrr::map2_dfr(pattern_name, sim_name, ~MakeDfTrial_Rand(.x, .y, DataDir, DataDir_sub, "_trial.csv.gz", Extract_SimN))
-
-
+# 
+# 
 # # combine df trial with task info
-
+# 
 # df_randmulti_taskinfo %>%
-#   dplyr::full_join(df_beha_trial_randmulti_summary, by = c("sim", "sim_i", "task_i")) %>% 
+#   dplyr::full_join(df_beha_trial_randmulti_summary, by = c("sim", "sim_i", "task_i")) %>%
 #   dplyr::mutate(
 #     sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
-#   ) -> 
+#   ) ->
 #   df_beha_trial_randmulti_summary
-
-# saveRDS(df_beha_trial_randmulti_summary, file = here("Data", "Evo_RandMultiTask", "df_beha_trial_randmulti_summary.RDS"))
+# 
+# saveRDS(df_beha_trial_randmulti_summary, file = here(DataDir, DataDir_sub, "df_beha_trial_randmulti_summary.RDS"))
 ```
 
 
 ```{r}
 # ------ load _trial.csv data from .RDS file ------ #
 
-df_beha_trial_randmulti_summary <- readRDS(here("Data", "Evo_RandMultiTask", "df_beha_trial_randmulti_summary.RDS"))
+DataDir <- "Data"
+DataDir_sub <- "Evo_RandMultiTask"
+
+df_beha_trial_randmulti_summary <- readRDS(here(DataDir, DataDir_sub, "df_beha_trial_randmulti_summary.RDS"))
 
 df_beha_trial_randmulti_summary %>% 
   dplyr::group_by(sim_n, generation, trial, task_type) %>% # sim_i間の平均とSDを計算する
@@ -617,6 +620,9 @@ df_trial_randmulti_simMEAN
 
 #### Run simiulations
 
+  
+- Simulations of tasks where the expected values are the same (two learning rates) are run in Figures_for_Paper.Rmd.
+
 
 ```{r}
 # --- Before running this code, you should run and generate df_beha_agent_randmulti_XX.RDS in Figures_for_Paper.Rmd ----
@@ -627,7 +633,7 @@ df_trial_randmulti_simMEAN
 DataDir <- "Data"
 DataDir_sub <- "Evo_RandMultiTask"
 
-names_randmulti_rds <- c("df_agent_randmulti_22.RDS", "df_agent_randmulti_31.RDS", "df_agent_randmulti_13.RDS", "df_agent_randmulti_04.RDS", "df_agent_randmulti_40.RDS")
+names_randmulti_rds <- c("df_agent_randmulti_22.RDS", "df_agent_randmulti_13.RDS", "df_agent_randmulti_31.RDS", "df_agent_randmulti_04.RDS", "df_agent_randmulti_40.RDS")
 
 df_agent_randmulti <-
   purrr::map_dfr(names_randmulti_rds, ~readRDS(here(DataDir, DataDir_sub, .x)))
@@ -637,169 +643,11 @@ df_para_agent_randmulti_FirstLastGene <-
   dplyr::filter(task_i == 0) %>%  # one task is adequate
   dplyr::select(sim, sim_i, generation, agent, ap, an, bt)
   
-#saveRDS(df_para_agent_randmulti_FirstLastGene, file = here(DataDir, DataDir_sub, "df_para_agent_randmulti_FirstLastGene.RDS"))
+# saveRDS(df_para_agent_randmulti_FirstLastGene, file = here(DataDir, DataDir_sub, "df_para_agent_randmulti_FirstLastGene.RDS"))
 ```
-
-
-```{r, eval=FALSE}
-# Simulate task where the expected values are the same
-# -> this simulation code is identical to that of Figures_for_Paper.Rmd. So if you already run it, you need not run this code.
-
-# load para info of the first and last generation
-
-df_para_agent_randmulti_FisrtLastGene <- readRDS(here("Data", "Evo_RandMultiTask", "df_para_agent_randmulti_FirstLastGene.RDS"))
-
-trial_N <- 500
-task_struct_list <- list(
-  c(20, 20, 20, 5), 
-  c(10, 20, 10, 5), 
-  c(-10, 20, -10, 5), 
-  c(-20, 20, -20, 5)
-)
-
-# Simulation of agents of the last generation
-
-df_agent_randmulti_Last <- df_para_agent_randmulti_FisrtLastGene %>% 
-  dplyr::filter(generation == 2999) # filtered by the last generation
-
-# res_ql_list <- purrr::map(task_struct_list, ~RunQL_dual(df_agent_randmulti_Last, .x, trial_N))
-# 
-# res_ql_list_choice <-
-#   res_ql_list %>%
-#   purrr::map("Choice")
-
-# save RDS file
-# saveRDS(object = res_ql_list_choice, file = here(simout_SameExp_path, "res_ql_list_choice_LastGene_500T.RDS"))
-```
-
-
-```{r}
-# Simulation of agents of the first generation
-
-# The main code is temporarily commented out in case that you run this chunk mistakenly. If you want to run, the comment should be removed. 
-
-df_agent_randmulti_First <- df_para_agent_randmulti_FisrtLastGene %>% 
-  dplyr::filter(generation == 0)
-
-
-# res_ql_list <- purrr::map(task_struct_list, ~RunQL_dual(df_agent_randmulti_First, .x, trial_N))
-# 
-# res_ql_list_choice <-
-#   res_ql_list %>%
-#   purrr::map("Choice")
-
-# save RDS file
-#saveRDS(object = res_ql_list_choice, file = here(simout_SameExp_path, "res_ql_list_choice_FirstGene_500T.RDS"))
-```
-
 
 
 #### Load simulations results
-
-```{r}
-trial_N <- 500
-task_struct_list <- list(
-  c(20, 20, 20, 5), 
-  c(10, 20, 10, 5), 
-  c(-10, 20, -10, 5), 
-  c(-20, 20, -20, 5)
-)
-
-# sim results of last generation
-res_ql_list_choice_500T_last <- readRDS(file = here(simout_SameExp_path, "res_ql_list_choice_LastGene_500T.RDS"))
-
-# sim results of first generation
-res_ql_list_choice_500T_first <- readRDS(file = here(simout_SameExp_path, "res_ql_list_choice_FirstGene_500T.RDS"))
-
-# para info of the first and last generation
-df_para_agent_randmulti_FisrtLastGene <- readRDS(here("Data", "Evo_RandMultiTask", "df_para_agent_randmulti_FirstLastGene.RDS"))
-
-df_agent_randmulti_Last <-
-  df_para_agent_randmulti_FisrtLastGene %>% 
-  dplyr::filter(generation == 2999)
-
-df_agent_randmulti_First <-
-  df_para_agent_randmulti_FisrtLastGene %>% 
-  dplyr::filter(generation == 0)
-```
-
-
-```{r}
-# extract the data of the last 100 trials
-
-## The main code is temporarily commented out in case that you run this chunk mistakenly. If you want to run, the comment should be removed. 
-
-# purrr::map(res_ql_list_choice_500T_last, 
-#            ~{.x %>% 
-#                tibble::as_tibble(.) %>% 
-#                dplyr::bind_cols(df_agent_randmulti_Last) %>% 
-#                tidyr::pivot_longer(
-#                  cols = starts_with("V"),
-#                  names_to = "trial",
-#                  names_prefix = "V",
-#                  values_to = "choice",
-#                  names_transform = list(trial = as.integer)
-#                ) %>% 
-#                dplyr::mutate(
-#                  choice = if_else(choice == 2, 0, 1)
-#                ) %>% 
-#                dplyr::filter(trial > 400) %>% # extract the last 100 trials
-#                dplyr::group_by(sim, sim_i, agent, an, ap, bt) %>% # averaging across trial
-#                dplyr::summarise(
-#                  risk_aversion = 1 - mean(choice)
-#                ) %>% 
-#                dplyr::ungroup() %>% 
-#                dplyr::mutate(an_ap = (an - ap)/(an + ap))
-#                }) %>% 
-#   dplyr::bind_rows(.id = "task") %>% 
-#   dplyr::mutate(generation = 2999) ->
-#   df_choice_res_latter100_last
-# 
-# 
-# purrr::map(res_ql_list_choice_500T_first, 
-#            ~{.x %>% 
-#                tibble::as_tibble(.) %>% 
-#                dplyr::bind_cols(df_agent_randmulti_First) %>% 
-#                tidyr::pivot_longer(
-#                  cols = starts_with("V"),
-#                  names_to = "trial",
-#                  names_prefix = "V",
-#                  values_to = "choice",
-#                  names_transform = list(trial = as.integer)
-#                ) %>% 
-#                dplyr::mutate(
-#                  choice = if_else(choice == 2, 0, 1)
-#                ) %>% 
-#                dplyr::filter(trial > 400) %>% # extract the last 100 trials
-#                dplyr::group_by(sim, sim_i, agent, an, ap, bt) %>% # averaging across trial
-#                dplyr::summarise(
-#                  risk_aversion = 1 - mean(choice)
-#                ) %>% 
-#                dplyr::ungroup() %>% 
-#                dplyr::mutate(an_ap = (an - ap)/(an + ap))
-#                }) %>% 
-#   dplyr::bind_rows(.id = "task") %>% 
-#   dplyr::mutate(generation = 0) ->
-#   df_choice_res_latter100_first
-
-
-# df_choice_res_latter100_last %>% 
-#   dplyr::bind_rows(df_choice_res_latter100_first) %>% 
-#   dplyr::mutate(task = as.integer(task)) %>% 
-#   dplyr::mutate(
-#     task_struct =
-#       case_when(
-#         task == 1 ~ "N(20, 20) vs N(20, 5) (Gain)",
-#         task == 2 ~ "N(10, 20) vs N(10, 5) (Gain)",
-#         task == 3 ~ "N(-10, 20) vs N(-10, 5) (Loss)",
-#         task == 4 ~ "N(-20, 20) vs N(-20, 5) (Loss)",
-#       ) %>% forcats::fct_reorder(., task),
-#     sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
-#   ) ->
-#   df_choice_res_500T_latter100
-
-# saveRDS(df_choice_res_500T_latter100, file = here(simout_SameExp_path, "df_choice_res_500T_lat.RDS"))
-```
 
 
 ```{r}
@@ -1006,29 +854,19 @@ Extract_SimN <- 100
 # # save agent data for each condition
 
 # df_agent_randmulti_sLR_22 <- MakeDfNat_Rand(pattern_name[1], sim_name[1], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
-
 # saveRDS(df_agent_randmulti_sLR_22, file = here(DataDir, DataDir_sub, "df_agent_randmulti_sLR_22.RDS"))
-
-
+# 
 # df_agent_randmulti_sLR_13 <- MakeDfNat_Rand(pattern_name[2], sim_name[2], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
-# 
 # saveRDS(df_agent_randmulti_sLR_13, file = here(DataDir, DataDir_sub, "df_agent_randmulti_sLR_13.RDS"))
-
-
+# 
 # df_agent_randmulti_sLR_31 <- MakeDfNat_Rand(pattern_name[3], sim_name[3], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
-# 
 # saveRDS(df_agent_randmulti_sLR_31, file = here(DataDir, DataDir_sub, "df_agent_randmulti_sLR_31.RDS"))
-
-
+# 
 # df_agent_randmulti_sLR_04 <- MakeDfNat_Rand(pattern_name[4], sim_name[4], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
-# 
 # saveRDS(df_agent_randmulti_sLR_04, file = here(DataDir, DataDir_sub, "df_agent_randmulti_sLR_04.RDS"))
-
-
-# df_agent_randmulti_sLR_40 <- MakeDfNat_Rand(pattern_name[5], sim_name[5], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
 # 
+# df_agent_randmulti_sLR_40 <- MakeDfNat_Rand(pattern_name[5], sim_name[5], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
 # saveRDS(df_agent_randmulti_sLR_40, file = here(DataDir, DataDir_sub, "df_agent_randmulti_sLR_40.RDS"))
-
 ```
 
 
@@ -1039,7 +877,7 @@ Extract_SimN <- 100
 DataDir <- "Data"
 DataDir_sub <- "Evo_RandMultiTask_SingleLR"
 
-names_randmulti_sLR_rds <- c("df_agent_randmulti_sLR_22.RDS", "df_agent_randmulti_sLR_31.RDS", "df_agent_randmulti_sLR_13.RDS", "df_agent_randmulti_sLR_04.RDS", "df_agent_randmulti_sLR_40.RDS")
+names_randmulti_sLR_rds <- c("df_agent_randmulti_sLR_22.RDS", "df_agent_randmulti_sLR_13.RDS", "df_agent_randmulti_sLR_31.RDS", "df_agent_randmulti_sLR_04.RDS", "df_agent_randmulti_sLR_40.RDS")
 
 df_agent_randmulti_sLR <-
   purrr::map_dfr(names_randmulti_sLR_rds, ~readRDS(here(DataDir, DataDir_sub, .x)))
@@ -1109,15 +947,15 @@ DataDir_sub <- "Evo_RandMultiTask_SingleLR"
 Extract_SimN <- 100
 
 # df_beha_trial_randmulti_sLR_summary <- purrr::map2_dfr(pattern_name, sim_name, ~MakeDfTrial_Rand(.x, .y, DataDir, DataDir_sub, "_trial.csv.gz", Extract_SimN))
-
+# 
 # # combine df trial with task info
 # df_randmulti_taskinfo_sLR %>%
-#   dplyr::full_join(df_beha_trial_randmulti_sLR_summary, by = c("sim", "sim_i", "task_i")) %>% 
+#   dplyr::full_join(df_beha_trial_randmulti_sLR_summary, by = c("sim", "sim_i", "task_i")) %>%
 #   dplyr::mutate(
 #     sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
-#   ) -> 
+#   ) ->
 #   df_beha_trial_randmulti_sLR_summary
-
+# 
 # saveRDS(df_beha_trial_randmulti_sLR_summary, file = here(DataDir, DataDir_sub, "df_beha_trial_randmulti_sLR_summary.RDS"))
 ```
 
@@ -1153,7 +991,7 @@ df_trial_randmulti_sLR_simMEAN
 DataDir <- "Data"
 DataDir_sub <- "Evo_RandMultiTask_SingleLR"
 
-names_randmulti_sLR_rds <- c("df_agent_randmulti_sLR_22.RDS", "df_agent_randmulti_sLR_31.RDS", "df_agent_randmulti_sLR_13.RDS", "df_agent_randmulti_sLR_04.RDS", "df_agent_randmulti_sLR_40.RDS")
+names_randmulti_sLR_rds <- c("df_agent_randmulti_sLR_22.RDS", "df_agent_randmulti_sLR_13.RDS", "df_agent_randmulti_sLR_31.RDS", "df_agent_randmulti_sLR_04.RDS", "df_agent_randmulti_sLR_40.RDS")
 
 df_agent_randmulti_sLR <-
   purrr::map_dfr(names_randmulti_sLR_rds, ~readRDS(here(DataDir, DataDir_sub, .x)))
@@ -1162,7 +1000,8 @@ df_para_agent_randmulti_sLR_FirstLastGene <-
   df_agent_randmulti_sLR %>%
   dplyr::filter(task_i == 0) %>%  # one task is adequate
   dplyr::select(sim, sim_i, generation, agent, alpha, bt)
-  
+
+# If you want to run, the comment symbol below should be removed.
 # saveRDS(df_para_agent_randmulti_sLR_FirstLastGene, file = here(DataDir, DataDir_sub, "df_para_agent_randmulti_sLR_FirstLastGene.RDS"))
 ```
 
@@ -1172,9 +1011,11 @@ df_para_agent_randmulti_sLR_FirstLastGene <-
 
 ## The main code is temporarily commented out in case that you run this chunk mistakenly. If you want to run, the comment should be removed. 
 
+DataDir <- "Data"
+DataDir_sub <- "Evo_RandMultiTask_SingleLR"
 
 # load para info of the first and last generation
-df_para_agent_randmulti_sLR_FirstLastGene <- readRDS(here("Data", "Evo_RandMultiTask_SingleLR", "df_para_agent_randmulti_sLR_FirstLastGene.RDS"))
+df_para_agent_randmulti_sLR_FirstLastGene <- readRDS(here(DataDir, DataDir_sub, "df_para_agent_randmulti_sLR_FirstLastGene.RDS"))
 
 trial_N <- 500
 task_struct_list <- list(
@@ -1187,30 +1028,30 @@ task_struct_list <- list(
 
 # Simulation of agents of the last generation
 
-df_agent_randmulti_sLR_Last <- df_para_agent_randmulti_sLR_FirstLastGene %>% 
-  dplyr::filter(generation == 2999)
-
-# res_ql_list_sLR <- purrr::map(task_struct_list, ~RunQL_single(df_agent_randmulti_sLR_Last, .x, trial_N))
+# df_agent_randmulti_sLR_Last <- df_para_agent_randmulti_sLR_FirstLastGene %>%
+#   dplyr::filter(generation == 2999)
 # 
-# res_ql_list_choice_sLR <-
-#   res_ql_list_sLR %>%
+# res_ql_list_sLR_Last <- purrr::map(task_struct_list, ~RunQL_single(df_agent_randmulti_sLR_Last, .x, trial_N))
+# 
+# res_ql_list_choice_sLR_Last <-
+#   res_ql_list_sLR_Last %>%
 #   purrr::map("Choice")
 # 
-# saveRDS(object = res_ql_list_choice_sLR, file = here(simout_SameExp_path, "res_ql_list_choice_sLR_LastGene_500T.RDS"))
+# saveRDS(object = res_ql_list_choice_sLR_Last, file = here(simout_SameExp_path, "res_ql_list_choice_sLR_LastGene_500T.RDS"))
 
 
 # Simulation of agents of the first generation
 
-df_agent_randmulti_sLR_First <- df_para_agent_randmulti_sLR_FirstLastGene %>% 
-  dplyr::filter(generation == 0)
-
-# res_ql_list_sLR <- purrr::map(task_struct_list, ~RunQL_single(df_agent_randmulti_sLR_First, .x, trial_N))
-
-# res_ql_list_choice_sLR <-
-#   res_ql_list_sLR %>%
+# df_agent_randmulti_sLR_First <- df_para_agent_randmulti_sLR_FirstLastGene %>%
+#   dplyr::filter(generation == 0)
+# 
+# res_ql_list_sLR_First <- purrr::map(task_struct_list, ~RunQL_single(df_agent_randmulti_sLR_First, .x, trial_N))
+# 
+# res_ql_list_choice_sLR_First <-
+#   res_ql_list_sLR_First %>%
 #   purrr::map("Choice")
-
-# saveRDS(object = res_ql_list_choice_sLR, file = here(simout_SameExp_path, "res_ql_list_choice_sLR_FirstGene_500T.RDS"))
+# 
+# saveRDS(object = res_ql_list_choice_sLR_First, file = here(simout_SameExp_path, "res_ql_list_choice_sLR_FirstGene_500T.RDS"))
 ```
 
 
@@ -1218,14 +1059,6 @@ df_agent_randmulti_sLR_First <- df_para_agent_randmulti_sLR_FirstLastGene %>%
 
 
 ```{r}
-trial_N <- 500
-task_struct_list <- list(
-  c(20, 20, 20, 5), 
-  c(10, 20, 10, 5), 
-  c(-10, 20, -10, 5), 
-  c(-20, 20, -20, 5)
-)
-
 # sim results of last generation
 res_ql_list_choice_sLR_500T_last <- readRDS(file = here(simout_SameExp_path, "res_ql_list_choice_sLR_LastGene_500T.RDS"))
 
@@ -1250,61 +1083,61 @@ df_agent_randmulti_sLR_First <-
 
 ## The main code is temporarily commented out in case that you run this chunk mistakenly. If you want to run, the comment should be removed. 
 
-# purrr::map(res_ql_list_choice_sLR_500T_last, 
-#            ~{.x %>% 
-#                tibble::as_tibble(.) %>% 
-#                dplyr::bind_cols(df_agent_randmulti_sLR_Last) %>% 
+# purrr::map(res_ql_list_choice_sLR_500T_last,
+#            ~{.x %>%
+#                tibble::as_tibble(.) %>%
+#                dplyr::bind_cols(df_agent_randmulti_sLR_Last) %>%
 #                tidyr::pivot_longer(
 #                  cols = starts_with("V"),
 #                  names_to = "trial",
 #                  names_prefix = "V",
 #                  values_to = "choice",
 #                  names_transform = list(trial = as.integer)
-#                ) %>% 
+#                ) %>%
 #                dplyr::mutate(
 #                  choice = if_else(choice == 2, 0, 1)
-#                ) %>% 
+#                ) %>%
 #                dplyr::filter(trial > 400) %>% # extract the last 100 trials
 #                dplyr::group_by(sim, sim_i, agent, alpha, bt) %>% # averaging across trial
 #                dplyr::summarise(
 #                  risk_aversion = 1 - mean(choice)
-#                ) %>% 
+#                ) %>%
 #                dplyr::ungroup()
-#                }) %>% 
-#   dplyr::bind_rows(.id = "task") %>% 
+#                }) %>%
+#   dplyr::bind_rows(.id = "task") %>%
 #   dplyr::mutate(generation = 2999) ->
 #   df_choice_res_sLR_latter100_last
 # 
 # 
-# purrr::map(res_ql_list_choice_sLR_500T_first, 
-#            ~{.x %>% 
-#                tibble::as_tibble(.) %>% 
-#                dplyr::bind_cols(df_agent_randmulti_sLR_First) %>% 
+# purrr::map(res_ql_list_choice_sLR_500T_first,
+#            ~{.x %>%
+#                tibble::as_tibble(.) %>%
+#                dplyr::bind_cols(df_agent_randmulti_sLR_First) %>%
 #                tidyr::pivot_longer(
 #                  cols = starts_with("V"),
 #                  names_to = "trial",
 #                  names_prefix = "V",
 #                  values_to = "choice",
 #                  names_transform = list(trial = as.integer)
-#                ) %>% 
+#                ) %>%
 #                dplyr::mutate(
 #                  choice = if_else(choice == 2, 0, 1)
-#                ) %>% 
+#                ) %>%
 #                dplyr::filter(trial > 400) %>% # extract the last 100 trials
 #                dplyr::group_by(sim, sim_i, agent, alpha, bt) %>% # averaging across trial
 #                dplyr::summarise(
 #                  risk_aversion = 1 - mean(choice)
-#                ) %>% 
+#                ) %>%
 #                dplyr::ungroup()
-#                }) %>% 
-#   dplyr::bind_rows(.id = "task") %>% 
+#                }) %>%
+#   dplyr::bind_rows(.id = "task") %>%
 #   dplyr::mutate(generation = 0) ->
 #   df_choice_res_sLR_latter100_first
-
-
-# df_choice_res_sLR_latter100_last %>% 
-#   dplyr::bind_rows(df_choice_res_sLR_latter100_first) %>% 
-#   dplyr::mutate(task = as.integer(task)) %>% 
+# 
+# 
+# df_choice_res_sLR_latter100_last %>%
+#   dplyr::bind_rows(df_choice_res_sLR_latter100_first) %>%
+#   dplyr::mutate(task = as.integer(task)) %>%
 #   dplyr::mutate(
 #     task_struct =
 #       case_when(
@@ -1316,7 +1149,7 @@ df_agent_randmulti_sLR_First <-
 #     sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
 #   ) ->
 #   df_choice_res_sLR_500T_latter100
-
+# 
 # saveRDS(df_choice_res_sLR_500T_latter100, file = here(simout_SameExp_path, "df_choice_res_sLR_500T_lat.RDS"))
 ```
 
@@ -1528,27 +1361,18 @@ Extract_SimN <- 100
 
 
 # df_agent_randmulti_Psv_22 <- MakeDfNat_Rand(pattern_name[1], sim_name[1], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
-# 
 # saveRDS(df_agent_randmulti_Psv_22, file = here(DataDir, DataDir_sub, "df_agent_randmulti_Psv_22.RDS"))
-
-
+# 
 # df_agent_randmulti_Psv_13 <- MakeDfNat_Rand(pattern_name[2], sim_name[2], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
-# 
 # saveRDS(df_agent_randmulti_Psv_13, file = here(DataDir, DataDir_sub, "df_agent_randmulti_Psv_13.RDS"))
-
-
+# 
 # df_agent_randmulti_Psv_31 <- MakeDfNat_Rand(pattern_name[3], sim_name[3], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
-# 
 # saveRDS(df_agent_randmulti_Psv_31, file = here(DataDir, DataDir_sub, "df_agent_randmulti_Psv_31.RDS"))
-
-
+# 
 # df_agent_randmulti_Psv_04 <- MakeDfNat_Rand(pattern_name[4], sim_name[4], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
-# 
 # saveRDS(df_agent_randmulti_Psv_04, file = here(DataDir, DataDir_sub, "df_agent_randmulti_Psv_04.RDS"))
-
-
-# df_agent_randmulti_Psv_40 <- MakeDfNat_Rand(pattern_name[5], sim_name[5], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
 # 
+# df_agent_randmulti_Psv_40 <- MakeDfNat_Rand(pattern_name[5], sim_name[5], DataDir, DataDir_sub, "_nat.csv.gz", GeneN, AgentN, TaskN, Extract_SimN)
 # saveRDS(df_agent_randmulti_Psv_40, file = here(DataDir, DataDir_sub, "df_agent_randmulti_Psv_40.RDS"))
 ```
 
@@ -1630,12 +1454,12 @@ Extract_SimN <- 100
 # 
 # # combine df with task nifo
 # df_randmulti_taskinfo_Psv %>%
-#   dplyr::full_join(df_beha_trial_randmulti_Psv_summary, by = c("sim", "sim_i", "task_i")) %>% 
+#   dplyr::full_join(df_beha_trial_randmulti_Psv_summary, by = c("sim", "sim_i", "task_i")) %>%
 #   dplyr::mutate(
 #     sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
-#   ) -> 
+#   ) ->
 #   df_beha_trial_randmulti_Psv_summary
-
+# 
 # saveRDS(df_beha_trial_randmulti_Psv_summary, file = here(DataDir, DataDir_sub, "df_beha_trial_randmulti_Psv_summary.RDS"))
 ```
 
@@ -1958,7 +1782,10 @@ ggsave(plot = g, filename = here(output_path, "S6.2_randmulti_taskgroup_arearate
 
 - save table as .png file
 
-```{r}
+
+```{r, eval = FALSE}
+webshot::install_phantomjs()
+
 df_randmulti_taskinfo %>% 
   
   dplyr::mutate(across(c(m2, sd2, m1, sd1), ~round(.x, digits = 1))) %>% 
@@ -1977,11 +1804,6 @@ df_randmulti_taskinfo %>%
   df_gt
 
 coln <- colnames(df_gt)
-```
-
-
-```{r, eval = FALSE}
-webshot::install_phantomjs()
 
 # cond 0/4
 cond <- "risk seeking/aversion = 0/4"
@@ -2530,7 +2352,6 @@ ggsave(plot = g, filename = here(output_path, "S10_Heatmap_RiskAversion_risk-see
 ## Histogram of risk aversion 
 
 ```{r}
-
 df_choice_res_500T_latter100 %>% 
   
   dplyr::filter(generation == 0) %>% 
