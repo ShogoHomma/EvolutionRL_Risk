@@ -9,7 +9,7 @@ VisLastGene_Para_RunMean <- function(df, target_simexp, params, sub_title, tag, 
       df %>% 
       dplyr::filter(generation == 4999) %>% # 最終世代のみ取り出す
       dplyr::filter(task_exp %in% target_simexp) %>% 
-      dplyr::mutate(task_sd = paste0("Risk of Risky Option = ", sd1))
+      dplyr::mutate(task_sd = paste0("Variance of Risky Option = ", sd1))
     
   } else if (params == "alpha") {
     
@@ -17,7 +17,7 @@ VisLastGene_Para_RunMean <- function(df, target_simexp, params, sub_title, tag, 
       df %>% 
       dplyr::filter(generation == 4999) %>% # 最終世代のみ取り出す
       dplyr::filter(task_exp %in% target_simexp) %>% 
-      dplyr::mutate(task_sd = paste0("Risk of Risky Option = ", sd1)) %>% 
+      dplyr::mutate(task_sd = paste0("Variance of Risky Option = ", sd1)) %>% 
       dplyr::filter(para == "an" | para == "ap")
     
   } else if (params == "beta") {
@@ -26,7 +26,7 @@ VisLastGene_Para_RunMean <- function(df, target_simexp, params, sub_title, tag, 
       df %>% 
       dplyr::filter(generation == 4999) %>% # 最終世代のみ取り出す
       dplyr::filter(task_exp %in% target_simexp) %>% 
-      dplyr::mutate(task_sd = paste0("Risk of Risky Option = ", sd1)) %>% 
+      dplyr::mutate(task_sd = paste0("Variance of Risky Option = ", sd1)) %>% 
       dplyr::filter(para == "bt")
     
     
@@ -45,21 +45,34 @@ VisLastGene_Para_RunMean <- function(df, target_simexp, params, sub_title, tag, 
     geom_point(size = 2.5, position = position_dodge(width = 0.5), stroke = 2, shape = 21, fill = "white") + 
     
     my_theme2 + 
+    # old theme
+    # theme(
+    #   axis.text.x = element_text(size = 12, angle = 30, hjust = 1), 
+    #   axis.text.y = element_text(size = 15), 
+    #   axis.title = element_text(size = 23, face = "bold"), 
+    #   strip.text.x = element_text(size = 17), 
+    #   legend.text = element_text(family = "serif", face = "italic"), 
+    #   legend.background = element_rect(fill = "transparent"), 
+    #   legend.key = element_rect(fill = "white"), 
+    #   legend.position = c(1, 0.38), 
+    #   legend.justification = c(1, 1),
+    #   plot.tag = element_text(size = 30)
+    #   ) + 
     theme(
-      axis.text.x = element_text(size = 12, angle = 30, hjust = 1), 
-      axis.text.y = element_text(size = 15), 
-      axis.title = element_text(size = 23, face = "bold"), 
-      strip.text.x = element_text(size = 17), 
+      axis.text.x = element_text(size = 13.5, angle = 30, hjust = 1), 
+      axis.text.y = element_text(size = 20), 
+      axis.title = element_text(size = 25, face = "bold"), 
+      strip.text.x = element_text(size = 18),
       legend.text = element_text(family = "serif", face = "italic"), 
       legend.background = element_rect(fill = "transparent"), 
       legend.key = element_rect(fill = "white"), 
-      legend.position = c(1, 0.38), 
+      legend.position = c(1, 0.40), 
       legend.justification = c(1, 1),
       plot.tag = element_text(size = 30)
-      ) + 
+    ) + 
     scale_x_discrete(limits = target_simexp) + 
     facet_grid(.~task_sd) + 
-    labs(x = "Location of two distributions (risky vs non-risky)", 
+    labs(x = "Location of two distributions (risky vs safe)", 
          y = "Parameter value",
          subtitle = sub_title,
          tag = tag) 

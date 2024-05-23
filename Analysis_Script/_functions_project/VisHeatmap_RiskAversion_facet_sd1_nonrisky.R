@@ -21,7 +21,7 @@ VisHeatmap_RiskAversion_facet_sd1_nonrisky <- function(df, tasktype, abs_Dvalue,
     ) %>%
     dplyr::mutate(
       risky = paste0('N(', m1, ',', sd1, ')'),
-      nonrisky = paste0('N(', m2, ',', sd2, ')') %>% forcats::fct_reorder(., m2),
+      safe = paste0('N(', m2, ',', sd2, ')') %>% forcats::fct_reorder(., m2),
       sim_sort_tmp = factor(paste0('N(', m1, ',', sd1, ') vs N(', m2, ',', sd2, ')')),
       D = m1 - m2,
       abs_D = abs(D)
@@ -63,7 +63,7 @@ VisHeatmap_RiskAversion_facet_sd1_nonrisky <- function(df, tasktype, abs_Dvalue,
   # label部分
   label_df <-
     df_rev %>% 
-    dplyr::distinct(sd1, m2, nonrisky, sim_sort)
+    dplyr::distinct(sd1, m2, safe, sim_sort)
   
   
   # Heatmapを描画
@@ -86,7 +86,7 @@ VisHeatmap_RiskAversion_facet_sd1_nonrisky <- function(df, tasktype, abs_Dvalue,
     scale_fill_gradient2(midpoint = 0.5, low = "#FF7F00", mid = "white", high = "#1F78B4", limits = c(0, 1)) + 
     labs(x = expression(alpha[p]), y = expression(alpha[n]), fill = "Risk aversion",
          title = main_title, subtitle = sub_title) + 
-    facet_grid(nonrisky~sd1, labeller = labeller(sd1 = label_both, nonrisky = label_both)) 
+    facet_grid(safe~sd1, labeller = labeller(sd1 = label_both, safe = label_both)) 
   
   return(g)
   

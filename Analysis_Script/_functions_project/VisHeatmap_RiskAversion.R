@@ -29,15 +29,24 @@ VisHeatmap_RiskAversion <- function(df, target_sim, sub_title) {
     ggplot(data = df_rev, aes(x = ap, y = an)) + 
     geom_raster(aes(fill = mean_risk_aversion)) + 
     my_theme2 + 
+    # theme(
+    #   axis.text.x = element_text(size = 12, angle = 30, hjust = 1), 
+    #   axis.text.y = element_text(size = 14), 
+    #   axis.title = element_text(size = 23, face = "bold"), 
+    #   strip.text.x = element_text(size = 12),
+    #   legend.text = element_text(size = 13), 
+    #   legend.title = element_text(size = 13), 
+    #   panel.grid = element_blank()
+    #   ) + 
     theme(
-      axis.text.x = element_text(size = 12, angle = 30, hjust = 1), 
-      axis.text.y = element_text(size = 14), 
-      axis.title = element_text(size = 23, face = "bold"), 
-      strip.text.x = element_text(size = 12),
-      legend.text = element_text(size = 13), 
-      legend.title = element_text(size = 13), 
+      axis.text.x = element_text(size = 14, angle = 30, hjust = 1), 
+      axis.text.y = element_text(size = 15), 
+      axis.title = element_text(size = 25, face = "bold"), 
+      strip.text.x = element_text(size = 13),
+      legend.text = element_text(size = 15), 
+      legend.title = element_text(size = 14), 
       panel.grid = element_blank()
-      ) + 
+    ) + 
     scale_fill_gradient2(midpoint = 0.5, low = "#FF7F00", mid = "white", high = "#1F78B4", limits = c(0, 1)) + 
     facet_grid(.~sim_sort) + 
     labs(x = expression(alpha[p]), y = expression(alpha[n]), fill = "Risk aversion",

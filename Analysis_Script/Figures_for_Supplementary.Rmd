@@ -205,6 +205,183 @@ df_gene_riskaversion_mean <-
 ```
 
 
+```{r, eval=FALSE}
+##--- when running this chunck, the comment # should be removed
+
+##--- load first_lastgene.csv
+##--- Preparation for making df_first_last_single_XXX
+
+# DataDir <- "Data"
+# DataDir_sub <- "Evo_Sim_SingleTask"
+# 
+# df_first_last_single <- 
+#   purrr::map2_dfr(params$pattern_name, params$sim_name, ~MakeDf(.x, .y, DataDir, DataDir_sub, "first_lastgene.csv"))
+# 
+# df_first_last_single_rev <-
+#   df_first_last_single %>% 
+#   dplyr::select(sim, replication, generation, agent, ap, an, bt, rate_choice1) %>% 
+#   dplyr::mutate(
+#     relative_an_ap = (an - ap)/(an + ap) # relative_an_ap = Niv index
+#   ) 
+
+
+##--- saving df_first_last_single_ as RDS file
+
+##--- Risk-seeking task # only D = 20
+
+# target_simexp <- c("30.5.50.30", "30.5.50.25", "30.5.50.20", "30.5.50.15", "30.5.50.10",
+#                    "20.5.40.30", "20.5.40.25", "20.5.40.20", "20.5.40.15", "20.5.40.10",
+#                    "10.5.30.30", "10.5.30.25", "10.5.30.20", "10.5.30.15", "10.5.30.10",
+#                    "0.5.20.30", "0.5.20.25", "0.5.20.20", "0.5.20.15", "0.5.20.10",
+#                    "-10.5.10.30", "-10.5.10.25", "-10.5.10.20", "-10.5.10.15", "-10.5.10.10",
+#                    "-20.5.0.30", "-20.5.0.25", "-20.5.0.20", "-20.5.0.15", "-20.5.0.10",
+#                    "-30.5.-10.30", "-30.5.-10.25", "-30.5.-10.20", "-30.5.-10.15", "-30.5.-10.10")
+#
+# df_first_last_single_riskseek_D20 <-
+#   df_first_last_single_rev %>% 
+#   dplyr::filter(sim %in% target_simexp) %>% 
+#   tidyr::separate(col = "sim", into = c("m2", "sd2", "m1", "sd1"), sep = "\\.", remove = FALSE) %>% 
+#   dplyr::mutate(
+#     m1 = as.integer(m1),
+#     sd1 = as.integer(sd1),
+#     m2 = as.integer(m2),
+#     sd2 = as.integer(sd2)
+#   ) %>% 
+#   dplyr::mutate(
+#     task_exp = paste0(m1, " vs ", m2),
+#     generation = generation + 1
+#   )
+# 
+# DataDir <- "Data"
+# DataDir_sub <- "Evo_Sim_SingleTask"
+# saveRDS(df_first_last_single_riskseek_D20, file = here(DataDir, DataDir_sub, "df_first_last_single_riskseek_D20.RDS"))
+
+
+##--- Risk-seeking task # only D = 10
+
+# target_simexp <- c("30.5.40.30", "30.5.40.25", "30.5.40.20", "30.5.40.15", "30.5.40.10",
+#                    "20.5.30.30", "20.5.30.25", "20.5.30.20", "20.5.30.15", "20.5.30.10",
+#                    "10.5.20.30", "10.5.20.25", "10.5.20.20", "10.5.20.15", "10.5.20.10",
+#                    "0.5.10.30", "0.5.10.25", "0.5.10.20", "0.5.10.15", "0.5.10.10",
+#                    "-10.5.0.30", "-10.5.0.25", "-10.5.0.20", "-10.5.0.15", "-10.5.0.10",
+#                    "-20.5.-10.30", "-20.5.-10.25", "-20.5.-10.20", "-20.5.-10.15", "-20.5.-10.10",
+#                    "-30.5.-20.30", "-30.5.-20.25", "-30.5.-20.20", "-30.5.-20.15", "-30.5.-20.10")
+#
+# df_first_last_single_riskseek_D10 <-
+#   df_first_last_single_rev %>%
+#   dplyr::filter(sim %in% target_simexp) %>%
+#   tidyr::separate(col = "sim", into = c("m2", "sd2", "m1", "sd1"), sep = "\\.", remove = FALSE) %>%
+#   dplyr::mutate(
+#     m1 = as.integer(m1),
+#     sd1 = as.integer(sd1),
+#     m2 = as.integer(m2),
+#     sd2 = as.integer(sd2)
+#   ) %>%
+#   dplyr::mutate(
+#     task_exp = paste0(m1, " vs ", m2),
+#     generation = generation + 1
+#   )
+# 
+# DataDir <- "Data"
+# DataDir_sub <- "Evo_Sim_SingleTask"
+# saveRDS(df_first_last_single_riskseek_D10, file = here(DataDir, DataDir_sub, "df_first_last_single_riskseek_D10.RDS"))
+
+
+## Risk-aversion task # only D = -20
+
+# target_simexp <- c("30.5.10.30", "30.5.10.25", "30.5.10.20", "30.5.10.15", "30.5.10.10",
+#                    "20.5.0.30", "20.5.0.25", "20.5.0.20", "20.5.0.15", "20.5.0.10",
+#                    "10.5.-10.30", "10.5.-10.25", "10.5.-10.20", "10.5.-10.15", "10.5.-10.10",
+#                    "0.5.-20.30", "0.5.-20.25", "0.5.-20.20", "0.5.-20.15", "0.5.-20.10",
+#                    "-10.5.-30.30", "-10.5.-30.25", "-10.5.-30.20", "-10.5.-30.15", "-10.5.-30.10",
+#                    "-20.5.-40.30", "-20.5.-40.25", "-20.5.-40.20", "-20.5.-40.15", "-20.5.-40.10",
+#                    "-30.5.-50.30", "-30.5.-50.25", "-30.5.-50.20", "-30.5.-50.15", "-30.5.-50.10")
+#
+# df_first_last_single_riskaverse_D20 <-
+#   df_first_last_single_rev %>% 
+#   dplyr::filter(sim %in% target_simexp) %>% 
+#   tidyr::separate(col = "sim", into = c("m2", "sd2", "m1", "sd1"), sep = "\\.", remove = FALSE) %>% 
+#   dplyr::mutate(
+#     m1 = as.integer(m1),
+#     sd1 = as.integer(sd1),
+#     m2 = as.integer(m2),
+#     sd2 = as.integer(sd2)
+#   ) %>% 
+#   dplyr::mutate(
+#     task_exp = paste0(m1, " vs ", m2),
+#     generation = generation + 1
+#   )
+# 
+# DataDir <- "Data"
+# DataDir_sub <- "Evo_Sim_SingleTask"
+# saveRDS(df_first_last_single_riskaverse_D20, file = here(DataDir, DataDir_sub, "df_first_last_single_riskaverse_D20.RDS"))
+
+
+## Risk-averse task # only D = -10
+
+# target_simexp <- c("30.5.20.30", "30.5.20.25", "30.5.20.20", "30.5.20.15", "30.5.20.10",
+#                    "20.5.10.30", "20.5.10.25", "20.5.10.20", "20.5.10.15", "20.5.10.10",
+#                    "10.5.0.30", "10.5.0.25", "10.5.0.20", "10.5.0.15", "10.5.0.10",
+#                    "0.5.-10.30", "0.5.-10.25", "0.5.-10.20", "0.5.-10.15", "0.5.-10.10",
+#                    "-10.5.-20.30", "-10.5.-20.25", "-10.5.-20.20", "-10.5.-20.15", "-10.5.-20.10",
+#                    "-20.5.-30.30", "-20.5.-30.25", "-20.5.-30.20", "-20.5.-30.15", "-20.5.-30.10",
+#                    "-30.5.-40.30", "-30.5.-40.25", "-30.5.-40.20", "-30.5.-40.15", "-30.5.-40.10")
+#
+# df_first_last_single_riskaverse_D10 <-
+#   df_first_last_single_rev %>%
+#   dplyr::filter(sim %in% target_simexp) %>%
+#   tidyr::separate(col = "sim", into = c("m2", "sd2", "m1", "sd1"), sep = "\\.", remove = FALSE) %>%
+#   dplyr::mutate(
+#     m1 = as.integer(m1),
+#     sd1 = as.integer(sd1),
+#     m2 = as.integer(m2),
+#     sd2 = as.integer(sd2)
+#   ) %>%
+#   dplyr::mutate(
+#     task_exp = paste0(m1, " vs ", m2),
+#     generation = generation + 1
+#   )
+# 
+# DataDir <- "Data"
+# DataDir_sub <- "Evo_Sim_SingleTask"
+# saveRDS(df_first_last_single_riskaverse_D10, file = here(DataDir, DataDir_sub, "df_first_last_single_riskaverse_D10.RDS"))
+```
+
+
+```{r}
+# load df_first_last_single_.RDS
+# these dataframes are mainly used for Figs of S17-19
+
+DataDir <- "Data"
+DataDir_sub <- "Evo_Sim_SingleTask"
+
+df_first_last_single_riskaverse_D20 <- readRDS(file = here(DataDir, DataDir_sub, "df_first_last_single_riskaverse_D20.RDS")) %>% 
+  dplyr::mutate(
+    task_sd = paste0("Variance of Risky Option = ", sd1),
+    rate_risk_aversion = 1-rate_choice1
+    )
+
+df_first_last_single_riskaverse_D10 <- readRDS(file = here(DataDir, DataDir_sub, "df_first_last_single_riskaverse_D10.RDS")) %>% 
+  dplyr::mutate(
+    task_sd = paste0("Variance of Risky Option = ", sd1),
+    rate_risk_aversion = 1-rate_choice1
+    )
+  
+
+df_first_last_single_riskseek_D20 <- readRDS(file = here(DataDir, DataDir_sub, "df_first_last_single_riskseek_D20.RDS")) %>% 
+  dplyr::mutate(
+    task_sd = paste0("Variance of Risky Option = ", sd1),
+    rate_risk_aversion = 1-rate_choice1
+    )
+
+df_first_last_single_riskseek_D10 <- readRDS(file = here(DataDir, DataDir_sub, "df_first_last_single_riskseek_D10.RDS")) %>% 
+  dplyr::mutate(
+    task_sd = paste0("Variance of Risky Option = ", sd1),
+    rate_risk_aversion = 1-rate_choice1
+    )
+```
+
+
 ```{r}
 # remove vectors above
 rm(list = ls()[stringr::str_starts(string = ls(), pattern = "pattern_name")])
@@ -558,6 +735,35 @@ df_agent_randmulti_summary %>%
 ```
 
 
+```{r}
+# ----- df for relative an ap -----
+
+df_agent_randmulti_an_ap <-
+  df_agent_randmulti %>% 
+  dplyr::filter(task_i == 0) %>% # only one task is adequate
+  dplyr::mutate(
+    relative_an_ap = (an - ap)/(an + ap) # Niv index
+  ) %>% 
+  dplyr::full_join(df_randmulti_mean_taskinfo, by = c("sim", "sim_i"))
+
+
+# summarise by agent -> unused in this script
+
+# df_agent_randmulti_summary_byagent <-
+#   df_agent_randmulti %>% 
+#   dplyr::full_join(df_randmulti_taskinfo, by = c("sim", "sim_i", "task_i")) %>% 
+#   dplyr::mutate(
+#     rate_risk_aversion = 1 - rate_choice1,
+#     relative_an_ap = (an - ap)/(an + ap)
+#   ) %>% 
+#   dplyr::group_by(sim, sim_i, generation, task_type, agent, relative_an_ap) %>%
+#   dplyr::summarise(
+#     mean_risk_aversion = mean(rate_risk_aversion)
+#   ) %>% 
+#   dplyr::ungroup()
+```
+ 
+ 
 
 ```{r, eval=FALSE}
 # load _trial.csv.gz (trial-by-trial data of the first and last generation)
@@ -1497,7 +1703,7 @@ target_simexp <- c("-40 vs -30", "-30 vs -20", "-20 vs -10", "-10 vs 0", "0 vs 1
 
 g <- VisFirstLastGene_RiskAversion(df_gene_riskaversion_mean, target_simexp, "Risk-aversion task (D = -10)", tag = "")
 
-ggsave(plot = g, filename = here(output_path, "S1.1_FirstLastGene_RiskAversion_risk-aversion_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
+ggsave(plot = g, filename = here(output_path, "S1.1_FirstLastGene_RiskAversion_risk-aversion_inrow.png"), width = 20.0, height = 6.0, dpi = 200)
 ```
 
  
@@ -1507,7 +1713,7 @@ target_simexp <- c("-20 vs -30", "-10 vs -20", "0 vs -10", "10 vs 0", "20 vs 10"
 
 g <- VisFirstLastGene_RiskAversion(df_gene_riskaversion_mean, target_simexp, "Risk-seeking task (D = +10)", tag = "", legend = FALSE)
 
-ggsave(plot = g, filename = here(output_path, "S1.2_FirstLastGene_RiskAversion_risk-seeking_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
+ggsave(plot = g, filename = here(output_path, "S1.2_FirstLastGene_RiskAversion_risk-seeking_inrow.png"), width = 20.0, height = 6.0, dpi = 200)
 ```
 
 
@@ -1523,7 +1729,7 @@ ggsave(plot = g, filename = here(output_path, "S1.2_FirstLastGene_RiskAversion_r
 
 - horizontal axis: generation, vertical axis: mean value of parameters (+SD)
 
-- row：non-risky option (seven)、column：risk of risky option (five)
+- row：safe option (seven)、column：SD of risky option (five)
 
 
 ```{r}
@@ -1533,7 +1739,7 @@ maintext_sim <- ""
 
 g <- VisEvol_Para_RunMean_facet_sd1_nonrisky(df_gene_longer, "alpha", "risk-aversion", 20, maintext_sim, legend = FALSE)
 
-ggsave(plot = g, filename = here(output_path, "S2.1_Evo_risk_aversion_apan_D20.png"), width = 15.0, height = 20.0, dpi = 350)
+ggsave(plot = g, filename = here(output_path, "S2.1_Evo_risk_aversion_apan_D20.png"), width = 15.0, height = 20.0, dpi = 100)
 ```
 
 
@@ -1544,7 +1750,7 @@ maintext_sim <- ""
 
 g <- VisEvol_Para_RunMean_facet_sd1_nonrisky(df_gene_longer, "alpha", "risk-aversion", 10, maintext_sim, legend = FALSE)
 
-ggsave(plot = g, filename = here(output_path, "S2.2_Evo_risk_aversion_apan_D10.png"), width = 15.0, height = 20.0, dpi = 350)
+ggsave(plot = g, filename = here(output_path, "S2.2_Evo_risk_aversion_apan_D10.png"), width = 15.0, height = 20.0, dpi = 100)
 ```
 
 
@@ -1553,7 +1759,7 @@ ggsave(plot = g, filename = here(output_path, "S2.2_Evo_risk_aversion_apan_D10.p
   
 - horizontal axis: generation, vertical axis: mean value of parameters (+SD)
 
-- row：non-risky option (seven)、column：risk of risky option (five)
+- row：safe option (seven)、column：SD of risky option (five)
 
 ```{r}
 # Risk-seeking task D = +20
@@ -1562,7 +1768,7 @@ maintext_sim <- ""
 
 g <- VisEvol_Para_RunMean_facet_sd1_nonrisky(df_gene_longer, "alpha", "risk-seeking", 20, maintext_sim, legend = FALSE)
 
-ggsave(plot = g, filename = here(output_path, "S2.3_Evo_risk_seeking_apan_D20.png"), width = 15.0, height = 20.0, dpi = 350)
+ggsave(plot = g, filename = here(output_path, "S2.3_Evo_risk_seeking_apan_D20.png"), width = 15.0, height = 20.0, dpi = 100)
 ```
 
 
@@ -1573,7 +1779,7 @@ maintext_sim <- ""
 
 g <- VisEvol_Para_RunMean_facet_sd1_nonrisky(df_gene_longer, "alpha", "risk-seeking", 10, maintext_sim, legend = FALSE)
 
-ggsave(plot = g, filename = here(output_path, "S2.4_Evo_risk_seeking_apan_D10.png"), width = 15.0, height = 20.0, dpi = 350)
+ggsave(plot = g, filename = here(output_path, "S2.4_Evo_risk_seeking_apan_D10.png"), width = 15.0, height = 20.0, dpi = 100)
 ```
 
 
@@ -1592,7 +1798,7 @@ target_simexp <- c("-40 vs -30", "-30 vs -20", "-20 vs -10", "-10 vs 0", "0 vs 1
 
 g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "alpha", "Risk-aversion task (D = -10)", tag = "")
 
-ggsave(plot = g, filename = here(output_path, "S3.1_LastGene_apan_risk-aversion_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
+ggsave(plot = g, filename = here(output_path, "S3.1_LastGene_apan_risk-aversion_inrow.png"), width = 20.0, height = 6.0, dpi = 200)
 ```
 
 
@@ -1603,7 +1809,7 @@ target_simexp <- c("-20 vs -30", "-10 vs -20", "0 vs -10", "10 vs 0", "20 vs 10"
 
 g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "alpha", "Risk-seeking task (D = +10)", tag = "", legend = FALSE)
 
-ggsave(plot = g, filename = here(output_path, "S3.2_LastGene_apan_risk-seeking_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
+ggsave(plot = g, filename = here(output_path, "S3.2_LastGene_apan_risk-seeking_inrow.png"), width = 20.0, height = 6.0, dpi = 200)
 ```
 
 
@@ -1619,7 +1825,7 @@ ggsave(plot = g, filename = here(output_path, "S3.2_LastGene_apan_risk-seeking_i
 
 - horizontal axis: generation, vertical axis: mean value of parameters (+SD)
 
-- row：non-risky option (seven)、column：risk of risky option (five)
+- row：safe option (seven)、column：SD of risky option (five)
 
 
 ```{r}
@@ -1629,7 +1835,7 @@ maintext_sim <- ""
 
 g <- VisEvol_Para_RunMean_facet_sd1_nonrisky(df_gene_longer, "beta", "risk-aversion", 20, maintext_sim, legend = FALSE)
 
-ggsave(plot = g, filename = here(output_path, "S4.1_Evo_risk_aversion_bt_D20.png"), width = 15.0, height = 20.0, dpi = 350)
+ggsave(plot = g, filename = here(output_path, "S4.1_Evo_risk_aversion_bt_D20.png"), width = 15.0, height = 20.0, dpi = 100)
 ```
 
 
@@ -1640,7 +1846,7 @@ maintext_sim <- ""
 
 g <- VisEvol_Para_RunMean_facet_sd1_nonrisky(df_gene_longer, "beta", "risk-aversion", 10, maintext_sim, legend = FALSE)
 
-ggsave(plot = g, filename = here(output_path, "S4.2_Evo_risk_aversion_bt_D10.png"), width = 15.0, height = 20.0, dpi = 350)
+ggsave(plot = g, filename = here(output_path, "S4.2_Evo_risk_aversion_bt_D10.png"), width = 15.0, height = 20.0, dpi = 100)
 ```
 
 
@@ -1649,7 +1855,7 @@ ggsave(plot = g, filename = here(output_path, "S4.2_Evo_risk_aversion_bt_D10.png
   
 - horizontal axis: generation, vertical axis: mean value of parameters (+SD)
 
-- row：non-risky option (seven)、column：risk of risky option (five)
+- row：safe option (seven)、column：SD of risky option (five)
 
 
 ```{r}
@@ -1659,7 +1865,7 @@ maintext_sim <- ""
 
 g <- VisEvol_Para_RunMean_facet_sd1_nonrisky(df_gene_longer, "beta", "risk-seeking", 20, maintext_sim, legend = FALSE)
 
-ggsave(plot = g, filename = here(output_path, "S4.3_Evo_risk_seeking_bt_D20.png"), width = 15.0, height = 20.0, dpi = 350)
+ggsave(plot = g, filename = here(output_path, "S4.3_Evo_risk_seeking_bt_D20.png"), width = 15.0, height = 20.0, dpi = 100)
 ```
 
 
@@ -1670,7 +1876,7 @@ maintext_sim <- ""
 
 g <- VisEvol_Para_RunMean_facet_sd1_nonrisky(df_gene_longer, "beta", "risk-seeking", 10, maintext_sim, legend = FALSE)
 
-ggsave(plot = g, filename = here(output_path, "S4.4_Evo_risk_seeking_bt_D10.png"), width = 15.0, height = 20.0, dpi = 350)
+ggsave(plot = g, filename = here(output_path, "S4.4_Evo_risk_seeking_bt_D10.png"), width = 15.0, height = 20.0, dpi = 100)
 ```
 
 
@@ -1690,7 +1896,7 @@ target_simexp <- c("-50 vs -30", "-40 vs -20", "-30 vs -10", "-20 vs 0", "-10 vs
 
 g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "beta", "Risk-aversion task (D = -20)", tag = "")
 
-ggsave(plot = g, filename = here(output_path, "S5.1_LastGene_bt_risk-aversion_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
+ggsave(plot = g, filename = here(output_path, "S5.1_LastGene_bt_risk-aversion_inrow.png"), width = 20.0, height = 6.0, dpi = 200)
 ```
 
 
@@ -1701,7 +1907,7 @@ target_simexp <- c("-10 vs -30", "0 vs -20", "10 vs -10", "20 vs 0", "30 vs 10",
 
 g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "beta", "Risk-seeking task (D = +20)", tag = "", legend = FALSE)
 
-ggsave(plot = g, filename = here(output_path, "S5.3_LastGene_bt_risk-seeking_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
+ggsave(plot = g, filename = here(output_path, "S5.3_LastGene_bt_risk-seeking_inrow.png"), width = 20.0, height = 6.0, dpi = 200)
 ```
 
 
@@ -1718,7 +1924,7 @@ target_simexp <- c("-40 vs -30", "-30 vs -20", "-20 vs -10", "-10 vs 0", "0 vs 1
 
 g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "beta", "Risk-aversion task (D = -10)", tag = "")
 
-ggsave(plot = g, filename = here(output_path, "S5.2_LastGene_bt_risk-aversion_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
+ggsave(plot = g, filename = here(output_path, "S5.2_LastGene_bt_risk-aversion_inrow.png"), width = 20.0, height = 6.0, dpi = 200)
 ```
 
 
@@ -1729,7 +1935,7 @@ target_simexp <- c("-20 vs -30", "-10 vs -20", "0 vs -10", "10 vs 0", "20 vs 10"
 
 g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "beta", "Risk-seeking task (D = +10)", tag = "", legend = FALSE)
 
-ggsave(plot = g, filename = here(output_path, "S5.4_LastGene_bt_risk-seeking_inrow.png"), width = 20.0, height = 6.0)
+ggsave(plot = g, filename = here(output_path, "S5.4_LastGene_bt_risk-seeking_inrow.png"), width = 20.0, height = 6.0, dpi = 200)
 ```
 
 
@@ -1777,13 +1983,15 @@ ggsave(plot = g, filename = here(output_path, "S6.2_randmulti_taskgroup_arearate
 ```
 
 
-## Task set for all conditions
+## (S1Table) Task set for all conditions
 
 
 - save table as .png file
 
 
 ```{r, eval = FALSE}
+# These tables are displayed as S1 Table in Supporting Info
+
 webshot::install_phantomjs()
 
 df_randmulti_taskinfo %>% 
@@ -2263,7 +2471,7 @@ maintext_sim <- ""
 
 g <- VisHeatmap_RiskAversion_facet_sd1_nonrisky(df_withingene_riskaverse_summary, "risk-aversion", 20, maintext_sim, bt_filt)
 
-ggsave(plot = g, filename = here(output_path, "S10_Heatmap_RiskAversion_risk-aversion_bt010.png"), width = 15.0, height = 20.0)
+ggsave(plot = g, filename = here(output_path, "S10_Heatmap_RiskAversion_risk-aversion_bt010.png"), width = 15.0, height = 20.0, dpi = 100)
 ```
 
 
@@ -2280,7 +2488,7 @@ maintext_sim <- c(
 
 g <- VisHeatmap_RiskAversion_facet_sd1_nonrisky(df_withingene_riskaverse_summary, "risk-aversion", 20, maintext_sim, bt_filt)
 
-ggsave(plot = g, filename = here(output_path, "S10_Heatmap_RiskAversion_risk-aversion_bt025.png"), width = 15.0, height = 20.0)
+ggsave(plot = g, filename = here(output_path, "S10_Heatmap_RiskAversion_risk-aversion_bt025.png"), width = 15.0, height = 20.0, dpi = 100)
 ```
 
 
@@ -2295,7 +2503,7 @@ maintext_sim <- ""
 
 g <- VisHeatmap_RiskAversion_facet_sd1_nonrisky(df_withingene_riskaverse_summary, "risk-aversion", 20, maintext_sim, bt_filt)
 
-ggsave(plot = g, filename = here(output_path, "S10_Heatmap_RiskAversion_risk-aversion_bt040.png"), width = 15.0, height = 20.0)
+ggsave(plot = g, filename = here(output_path, "S10_Heatmap_RiskAversion_risk-aversion_bt040.png"), width = 15.0, height = 20.0, dpi = 100)
 ```
 
 
@@ -2310,7 +2518,7 @@ maintext_sim <- ""
 
 g <- VisHeatmap_RiskAversion_facet_sd1_nonrisky(df_withingene_riskaverse_summary, "risk-seeking", 20, maintext_sim, bt_filt)
 
-ggsave(plot = g, filename = here(output_path, "S10_Heatmap_RiskAversion_risk-seeking_bt010.png"), width = 15.0, height = 20.0)
+ggsave(plot = g, filename = here(output_path, "S10_Heatmap_RiskAversion_risk-seeking_bt010.png"), width = 15.0, height = 20.0, dpi = 80)
 ```
 
 
@@ -2327,7 +2535,7 @@ maintext_sim <- c(
 
 g <- VisHeatmap_RiskAversion_facet_sd1_nonrisky(df_withingene_riskaverse_summary, "risk-seeking", 20, maintext_sim, bt_filt)
 
-ggsave(plot = g, filename = here(output_path, "S10_Heatmap_RiskAversion_risk-seeking_bt025.png"), width = 15.0, height = 20.0)
+ggsave(plot = g, filename = here(output_path, "S10_Heatmap_RiskAversion_risk-seeking_bt025.png"), width = 15.0, height = 20.0, dpi = 80)
 ```
 
 
@@ -2342,7 +2550,7 @@ maintext_sim <- ""
 
 g <- VisHeatmap_RiskAversion_facet_sd1_nonrisky(df_withingene_riskaverse_summary, "risk-seeking", 20, maintext_sim, bt_filt)
 
-ggsave(plot = g, filename = here(output_path, "S10_Heatmap_RiskAversion_risk-seeking_bt040.png"), width = 15.0, height = 20.0)
+ggsave(plot = g, filename = here(output_path, "S10_Heatmap_RiskAversion_risk-seeking_bt040.png"), width = 15.0, height = 20.0, dpi = 80)
 ```
 
 
@@ -2413,7 +2621,7 @@ df_choice_gainloss_500T_latter100_first %>%
 ```
 
 
-## Table of gain - loss > 0
+## (S2Table) Table of gain - loss > 0
   
 
 ```{r}
@@ -2464,6 +2672,7 @@ df_gt %>%
   gt_tab
 
 gtsave(gt_tab, filename = here(output_path, "S11_Table_riskdif.png"), vwidth = 2000, vheight = 4500)
+# -> diplayed as S2 Table in Supporting Information
 ```
 
 
@@ -2983,7 +3192,7 @@ ggsave(plot = g, filename = here(output_path, "S16d_sLR_RiskPrefDif_RandMulti_La
 ```
 
 
-## Table of gain - loss > 0
+## (S3Table) Table of gain - loss > 0
 
 
 ```{r}
@@ -3030,13 +3239,1311 @@ df_gt %>%
   gt_tab
 
 gtsave(gt_tab, filename = here(output_path, "S16_Table_riskdif.png"), vwidth = 2000, vheight = 4500)
+# -> displayed as S3 Table in Supporting Information
+```
+
+
+# S17 Niv index single-task simulations
+  
+  
+- Niv index (alpha_n - alpha_p)/(alpha_n + alpha_p) version of Fig 1b (main text)
+
+
+```{r, fig.height=20, fig.width=15}
+g <- 
+  df_first_last_single_riskaverse_D20 %>% 
+  dplyr::mutate(task_exp = factor(task_exp) %>% forcats::fct_reorder(., m1)) %>% 
+  
+  ggplot(aes(x = relative_an_ap, fill = as.factor(generation))) + 
+  geom_histogram(position = "identity", alpha = 0.8) + 
+  facet_grid(task_exp~task_sd) + 
+  my_theme2 + 
+  theme(
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 22),
+    axis.title = element_text(size = 27),
+    plot.title = element_text(size = 30)
+  ) + 
+  labs(x = expression((alpha[n] - alpha[p])/(alpha[n] + alpha[p])), fill = "generation",
+       title = "Risk-aversion task (D = -20)")
+
+#print(g)
+ggsave(plot = g, filename = here(output_path, "S17_single_dif_an_ap_riskaverse.png"), height = 24, width = 20, dpi = 200)
+```
+
+
+```{r, fig.height=20, fig.width=15}
+g <- 
+  ggplot(df_first_last_single_riskseek_D20, aes(x = relative_an_ap, fill = as.factor(generation))) + 
+  geom_histogram(position = "identity", alpha = 0.8) + 
+  facet_grid(task_exp~task_sd) + 
+  my_theme2 + 
+  theme(
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 22),
+    axis.title = element_text(size = 27),
+    plot.title = element_text(size = 30)
+  ) + 
+  labs(x = expression((alpha[n] - alpha[p])/(alpha[n] + alpha[p])), fill = "generation",
+       title = "Risk-seeking task (D = +20)")
+
+#print(g)
+ggsave(plot = g, filename = here(output_path, "S17_single_dif_an_ap_riskseek.png"), height = 24, width = 20, dpi = 200)
+```
+
+
+# S18 Niv index multiple-task simulations
+
+
+- Niv index (alpha_n - alpha_p)/(alpha_n + alpha_p) version of Fig 2a (main text) (Only the first and last generation were extracted)
+
+
+```{r}
+g <-
+  df_agent_randmulti_an_ap %>% 
+  dplyr::mutate(
+    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = "),
+    generation = generation + 1
+  ) %>% 
+  
+  ggplot(aes(x = relative_an_ap, fill = as.factor(generation))) + 
+  geom_histogram(position = "identity", alpha = 0.8) + 
+  facet_grid(.~sim_n) + 
+  my_theme2 + 
+  theme(
+    axis.text.x = element_text(size = 20),
+    axis.text.y = element_text(size = 20),
+    axis.title = element_text(size = 26, face = "bold"),
+    strip.text.x = element_text(size = 17.5),
+    legend.title = element_text(size = 17.5), # change legend title font size
+    legend.text = element_text(size = 17),
+    plot.tag = element_text(size = 30)
+  ) + 
+  labs(x = expression((alpha[n] - alpha[p])/(alpha[n] + alpha[p])), fill = "generation")
+
+
+ggsave(plot = g, filename = here(output_path, "S18_multiple_dif_an_ap.png"), width = 19, height = 7.5, dpi = 200)
+```
+
+
+# S19 Niv index and the choice
+
+```{r}
+df_withingene_filtered <-
+  df_withingene %>% 
+  dplyr::select(sim, m2, sd2, m1, sd1, replication, agent, choice_rate1, ap, an, bt) %>% 
+  dplyr::mutate(
+    relative_an_ap = (an - ap)/(an + ap),
+    rate_risk_aversion = 1 - choice_rate1,
+    D = m1 - m2,
+    task = if_else(D > 0, "risk seeking", "risk aversion"),
+    sim_sort = factor(paste0('N(', m1, ',', sd1, ') vs N(', m2, ',', sd2, ')')) %>% forcats::fct_reorder(., m1)
+    ) %>% 
+  dplyr::filter(bt == 0.25 & sd1 == 20) # filter by the same tasks in fig 3 of the main text
+
+
+# -- Risk-aversion tasks
+
+# labels of correlation coefficient
+df_cor_est <-
+  df_withingene_filtered %>% 
+  dplyr::filter(task == "risk aversion") %>% 
+  dplyr::group_by(sim_sort) %>% 
+  tidyr::nest() %>% 
+  dplyr::mutate(
+    cor_tibble = purrr::map(data, `[`, c("relative_an_ap", "rate_risk_aversion")) 
+  ) %>% 
+  dplyr::mutate(
+    cor_est = purrr::map2(cor_tibble %>% purrr::map("relative_an_ap"), cor_tibble %>% purrr::map("rate_risk_aversion"), ~cor.test(.x, .y)) %>% purrr::map_dbl("estimate")
+  ) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::select(sim_sort, cor_est) %>% 
+  dplyr::mutate(
+    cor_est = round(cor_est, digits = 3),
+    label = paste0("r = ", format(cor_est, 4))
+  )
+
+# make figure
+g <- 
+  df_withingene_filtered %>% 
+  dplyr::filter(task == "risk aversion") %>% 
+  
+  ggplot(aes(x = relative_an_ap, y = rate_risk_aversion)) +
+  geom_point(size = 0.2, alpha = 0.1) + geom_smooth(method = "lm", se = FALSE, linetype = "longdash") + 
+  geom_text(data = df_cor_est, aes(label = label),
+            x = -0.1, y = 0.05, size = 7.0, hjust = 0, color = "darkorange1", fontface = "bold") + 
+  my_theme2 + 
+  theme(
+    axis.text.x = element_text(size = 14), 
+    axis.text.y = element_text(size = 15), 
+    axis.title = element_text(size = 22, face = "bold"), 
+    strip.text.x = element_text(size = 15),
+    legend.text = element_text(size = 15), 
+    legend.title = element_text(size = 14)
+  ) + 
+  facet_grid(.~sim_sort) + 
+  labs(x = expression((alpha[n] - alpha[p])/(alpha[n] + alpha[p])), y = "Rate of Risk Aversion", 
+       subtitle = "Risk-aversion task")
+
+ggsave(plot = g, filename = here(output_path, "S19_dif_an_ap_beha_riskaverse_coef.png"), width = 18.0, height = 5.0, dpi = 200)
+
+
+# -- Risk-seeking tasks
+
+# labels of correlation coefficient
+df_cor_est <-
+  df_withingene_filtered %>% 
+  dplyr::filter(task == "risk seeking") %>% 
+  dplyr::group_by(sim_sort) %>% 
+  tidyr::nest() %>% 
+  dplyr::mutate(
+    cor_tibble = purrr::map(data, `[`, c("relative_an_ap", "rate_risk_aversion")) 
+  ) %>% 
+  dplyr::mutate(
+    cor_est = purrr::map2(cor_tibble %>% purrr::map("relative_an_ap"), cor_tibble %>% purrr::map("rate_risk_aversion"), ~cor.test(.x, .y)) %>% purrr::map_dbl("estimate")
+  ) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::select(sim_sort, cor_est) %>% 
+  dplyr::mutate(
+    cor_est = round(cor_est, digits = 3),
+    label = paste0("r = ", format(cor_est, 4))
+  )
+
+# make figure
+g <- 
+  df_withingene_filtered %>% 
+  dplyr::filter(task == "risk seeking") %>% 
+  
+  ggplot(aes(x = relative_an_ap, y = rate_risk_aversion)) +
+  geom_point(size = 0.2, alpha = 0.1) + geom_smooth(method = "lm", se = FALSE, linetype = "longdash") + 
+  geom_text(data = df_cor_est, aes(label = label),
+            x = -0.1, y = -0.05, size = 6.5, hjust = 0, color = "darkorange1", fontface = "bold") + 
+  my_theme2 + 
+  theme(
+    axis.text.x = element_text(size = 14), 
+    axis.text.y = element_text(size = 15), 
+    axis.title = element_text(size = 22, face = "bold"), 
+    strip.text.x = element_text(size = 15),
+    legend.text = element_text(size = 15), 
+    legend.title = element_text(size = 14)
+  ) + 
+  facet_grid(.~sim_sort) + 
+  coord_cartesian(ylim = c(-0.1, 1)) + 
+  labs(x = expression((alpha[n] - alpha[p])/(alpha[n] + alpha[p])), y = "Rate of Risk Aversion", 
+       subtitle = "Risk-seeking task")
+
+ggsave(plot = g, filename = here(output_path, "S19_dif_an_ap_beha_riskseek_coef.png"), width = 17.0, height = 4.5, dpi = 200)
+```
+
+
+
+# S20 Effect size of the evolved alphas in single-task simulation
+
+## Histogram of Cohen's d in single-task simulation
+
+```{r}
+# Calculate Cohen's d for each task
+
+df_riskaverse_D20_CohenD <-
+  df_first_last_single_riskaverse_D20 %>% 
+  dplyr::filter(generation == 5000) %>% 
+  dplyr::group_by(sd1, task_exp) %>% 
+  dplyr::summarise(
+    mean_ap = mean(ap),
+    mean_an = mean(an),
+    sd_ap = sqrt(variance(ap)),
+    sd_an = sqrt(variance(an))
+  ) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(
+    Cohen_d = EffectSize(mean_ap, sd_ap, mean_an, sd_an),
+    abs_Cohen_d = abs(Cohen_d),
+    D = -20
+  )
+
+df_riskseek_D20_CohenD <-
+  df_first_last_single_riskseek_D20 %>% 
+  dplyr::filter(generation == 5000) %>% 
+  dplyr::group_by(sd1, task_exp) %>% 
+  dplyr::summarise(
+    mean_ap = mean(ap),
+    mean_an = mean(an),
+    sd_ap = sqrt(variance(ap)),
+    sd_an = sqrt(variance(an))
+  ) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(
+    Cohen_d = EffectSize(mean_ap, sd_ap, mean_an, sd_an),
+    abs_Cohen_d = abs(Cohen_d),
+    D = 20
+  )
+
+df_riskaverse_D10_CohenD <-
+  df_first_last_single_riskaverse_D10 %>% 
+  dplyr::filter(generation == 5000) %>% 
+  dplyr::group_by(sd1, task_exp) %>% 
+  dplyr::summarise(
+    mean_ap = mean(ap),
+    mean_an = mean(an),
+    sd_ap = sqrt(variance(ap)),
+    sd_an = sqrt(variance(an))
+  ) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(
+    Cohen_d = EffectSize(mean_ap, sd_ap, mean_an, sd_an),
+    abs_Cohen_d = abs(Cohen_d),
+    D = -10
+  )
+
+df_riskseek_D10_CohenD <-
+  df_first_last_single_riskseek_D10 %>% 
+  dplyr::filter(generation == 5000) %>% 
+  dplyr::group_by(sd1, task_exp) %>% 
+  dplyr::summarise(
+    mean_ap = mean(ap),
+    mean_an = mean(an),
+    sd_ap = sqrt(variance(ap)),
+    sd_an = sqrt(variance(an))
+  ) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(
+    Cohen_d = EffectSize(mean_ap, sd_ap, mean_an, sd_an),
+    abs_Cohen_d = abs(Cohen_d),
+    D = 10
+  )
+
+# make histograms of Cohen's d
+
+g1 <-
+  ggplot(df_riskaverse_D20_CohenD, aes(x = Cohen_d)) + geom_histogram() + 
+  my_theme2 + 
+  theme(
+    strip.text.x = element_text(size = 14),
+    axis.text.x = element_text(size = 15), 
+    axis.text.y = element_text(size = 15),
+    plot.title = element_text(size = 20)
+  ) + 
+  labs(x = "Cohen's d",
+       title = "Risk-aversion task (D = -20)") + 
+  coord_cartesian(xlim = c(-10, 10))
+
+
+g2 <-
+  ggplot(df_riskseek_D20_CohenD, aes(x = Cohen_d)) + geom_histogram() + 
+  my_theme2 + 
+  theme(
+    strip.text.x = element_text(size = 14),
+    axis.text.x = element_text(size = 15), 
+    axis.text.y = element_text(size = 15),
+    plot.title = element_text(size = 20)
+  ) + 
+  labs(x = "Cohen's d",
+       title = "Risk-seeking task (D = +20)") + 
+  coord_cartesian(xlim = c(-10, 10))
+
+
+g3 <-
+  ggplot(df_riskaverse_D10_CohenD, aes(x = Cohen_d)) + geom_histogram() + 
+  my_theme2 + 
+  theme(
+    strip.text.x = element_text(size = 14),
+    axis.text.x = element_text(size = 15), 
+    axis.text.y = element_text(size = 15),
+    plot.title = element_text(size = 20)
+  ) + 
+  labs(x = "Cohen's d",
+       title = "Risk-aversion task (D = -10)") + 
+  coord_cartesian(xlim = c(-10, 10))
+
+
+g4 <-
+  ggplot(df_riskseek_D10_CohenD, aes(x = Cohen_d)) + geom_histogram() + 
+  my_theme2 + 
+  theme(
+    strip.text.x = element_text(size = 14),
+    axis.text.x = element_text(size = 15), 
+    axis.text.y = element_text(size = 15),
+    plot.title = element_text(size = 20)
+  ) + 
+  labs(x = "Cohen's d",
+       title = "Risk-seeking task (D = +10)") + 
+  coord_cartesian(xlim = c(-10, 10))
+
+
+g <- g1 + g2 + g3 + g4 + plot_layout(ncol = 2)
+
+ggsave(plot = g, filename = here(output_path, "S20_single_Histogram_CohenD.png"), width = 11, height = 8)
+```
+
+## Table of statistics summary of Cohen's d
+
+```{r}
+# make a table for statistics of Cohen'd in single-task simulations 
+
+df_CohenD_combined <-
+  df_riskaverse_D20_CohenD %>% 
+  dplyr::bind_rows(df_riskseek_D20_CohenD, df_riskaverse_D10_CohenD, df_riskseek_D10_CohenD)
+
+gt_single_Range_CohenD <-
+  df_CohenD_combined %>% 
+  dplyr::mutate(
+    task_type = if_else(D < 0, "Risk-aversion task", "Risk-seeking task")
+  ) %>% 
+  dplyr::group_by(task_type, D) %>% 
+  dplyr::summarise(
+    min_value = min(Cohen_d),
+    max_value = max(Cohen_d),
+    mean_value = mean(Cohen_d),
+    median_value = median(Cohen_d),
+    sd_value = sqrt(variance(Cohen_d))
+  ) %>% 
+  dplyr::ungroup() %>% 
+  
+  gt() %>% 
+    cols_label(
+      task_type = md("Task"),
+      min_value = md("Min"), max_value = md("Max"), mean_value = md("Mean"), median_value = md("Median"), sd_value = md("SD")
+      ) %>% 
+    fmt_number(
+      columns = c("min_value", "max_value", "mean_value", "median_value", "sd_value"),
+      decimals = 3
+    ) %>% 
+    tab_options(
+      table.width = pct(50),
+      table_body.hlines.width = 0, 
+      # spannerの下線を適切にするための設定
+      column_labels.border.top.width = 2, 
+      column_labels.border.top.color = "black", 
+      column_labels.border.bottom.width = 1, 
+      column_labels.border.bottom.color = "black",
+      table.border.top.width = 2,
+      table_body.border.top.color = "black", 
+      table.border.bottom.width = 2,
+      table_body.border.bottom.color = "black" 
+      ) %>% 
+    cols_align(
+      align = "center", columns = c("min_value", "max_value", "mean_value", "median_value", "sd_value")
+      ) %>% 
+    tab_style(
+      style = cell_text(align = "left"),
+      locations = cells_title("title")
+    ) %>%
+    tab_options(
+      heading.title.font.size = px(20),
+      table.border.top.width = 0, 
+      column_labels.border.top.width = 3, 
+      column_labels.border.top.color = "black"
+    )
+
+gtsave(gt_single_Range_CohenD, filename = here(output_path, "S20_Table_single_statistics_CohenD.png"))
+```
+
+
+## Table of detail of Cohen's d for each task
+
+```{r}
+# make a table displaying Cohen's d for each task
+
+# Risk-aversion tasks D = -20
+
+target_simexp <- c("-50 vs -30", "-40 vs -20", "-30 vs -10", "-20 vs 0", "-10 vs 10", "0 vs 20", "10 vs 30")
+
+df_riskaverse_D20_CohenD <-
+  df_first_last_single_riskaverse_D20 %>% 
+  dplyr::filter(generation == 5000) %>% 
+  dplyr::group_by(sd1, task_exp) %>% 
+  dplyr::summarise(
+    mean_ap = mean(ap),
+    mean_an = mean(an),
+    sd_ap = sqrt(variance(ap)),
+    sd_an = sqrt(variance(an))
+  ) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(
+    Cohen_d = EffectSize(mean_ap, sd_ap, mean_an, sd_an)
+  ) %>% 
+  dplyr::mutate(
+    task_exp = factor(task_exp, levels = target_simexp),
+    abs_Cohen_d = abs(Cohen_d),
+    effect = case_when(
+      abs_Cohen_d <= 0.2 ~ "none",
+      (abs_Cohen_d > 0.2) & (abs_Cohen_d <= 0.5) ~ "small",
+      (abs_Cohen_d > 0.5) & (abs_Cohen_d < 0.8) ~ "medium",
+      abs_Cohen_d >= 0.8 ~ "large"
+    )
+  ) %>% 
+  dplyr::arrange(sd1, task_exp) %>% 
+  dplyr::select(sd1, task_exp, Cohen_d, effect)
+
+
+gt_riskaverse_D20_CohenD <-
+  df_riskaverse_D20_CohenD %>% 
+  gt() %>% 
+  cols_label(
+    sd1 = md("SD of Risky Op"), task_exp = md("Exp Value (risky vs safe)"), 
+    Cohen_d = md("Cohen's d"), effect = md("Effect")
+    ) %>% 
+  fmt_number(
+    columns = c("Cohen_d"),
+    decimals = 3
+  ) %>% 
+  tab_options(table.width = pct(55), # 表全体の幅
+        table_body.hlines.width = 0, # tableの中の水平線は引かない
+        # spannerの下線を適切にするための設定
+        column_labels.border.top.width = 2, 
+        column_labels.border.top.color = "black", 
+        column_labels.border.bottom.width = 1, 
+        column_labels.border.bottom.color = "black",
+        table.border.top.width = 2,
+        table_body.border.top.color = "black", #最上線は黒
+        table.border.bottom.width = 2,
+        table_body.border.bottom.color = "black" #最下線は黒
+        )  %>% 
+  cols_align(align = "center", columns = c("Cohen_d")
+    ) %>% 
+  tab_header(title = md("Risk-aversion task (D = -20)")) %>% 
+  tab_style(
+  style = cell_text(align = "left"),
+  locations = cells_title("title")) %>%
+  tab_options(
+    heading.title.font.size = px(20),
+    table.border.top.width = 0, #タイトルの上の線はなし
+    column_labels.border.top.width = 3, # タイトル下の線はあり 調整のため3
+    column_labels.border.top.color = "black"
+    )
+
+gtsave(gt_riskaverse_D20_CohenD, filename = here(output_path, "S20_Table_riskaverse_D20_CohenD.png"))
+```
+
+
+```{r}
+# make a table displaying Cohen's d for each task
+
+# Risk-seeking tasks D = +20
+
+target_simexp <- c("-10 vs -30", "0 vs -20", "10 vs -10", "20 vs 0", "30 vs 10", "40 vs 20", "50 vs 30")
+
+df_riskseek_D20_CohenD <-
+  df_first_last_single_riskseek_D20 %>% 
+  dplyr::filter(generation == 5000) %>% 
+  dplyr::group_by(sd1, task_exp) %>% 
+  dplyr::summarise(
+    mean_ap = mean(ap),
+    mean_an = mean(an),
+    sd_ap = sqrt(variance(ap)),
+    sd_an = sqrt(variance(an))
+  ) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(
+    Cohen_d = EffectSize(mean_ap, sd_ap, mean_an, sd_an)
+  ) %>% 
+  dplyr::mutate(
+    task_exp = factor(task_exp, levels = target_simexp)
+  ) %>% 
+  dplyr::arrange(sd1, task_exp) %>% 
+  dplyr::mutate(
+    task_exp = factor(task_exp, levels = target_simexp),
+    abs_Cohen_d = abs(Cohen_d),
+    effect = case_when(
+      abs_Cohen_d <= 0.2 ~ "none",
+      (abs_Cohen_d > 0.2) & (abs_Cohen_d <= 0.5) ~ "small",
+      (abs_Cohen_d > 0.5) & (abs_Cohen_d < 0.8) ~ "medium",
+      abs_Cohen_d >= 0.8 ~ "large"
+    )
+  ) %>% 
+  dplyr::arrange(sd1, task_exp) %>% 
+  dplyr::select(sd1, task_exp, Cohen_d, effect)
+
+gt_riskseek_D20_CohenD <-
+  df_riskseek_D20_CohenD %>% 
+  gt() %>% 
+  cols_label(
+    sd1 = md("SD of Risky Op"), task_exp = md("Exp Value (risky vs safe)"), 
+    Cohen_d = md("Cohen's d"), effect = md("Effect")
+    ) %>% 
+  fmt_number(
+    columns = c("Cohen_d"),
+    decimals = 3
+  ) %>% 
+  tab_options(table.width = pct(55), 
+        table_body.hlines.width = 0, 
+        # spannerの下線を適切にするための設定
+        column_labels.border.top.width = 2, 
+        column_labels.border.top.color = "black", 
+        column_labels.border.bottom.width = 1, 
+        column_labels.border.bottom.color = "black",
+        table.border.top.width = 2,
+        table_body.border.top.color = "black", 
+        table.border.bottom.width = 2,
+        table_body.border.bottom.color = "black" 
+        )  %>% 
+  cols_align(align = "center", columns = c("Cohen_d")
+    ) %>% 
+  tab_header(title = md("Risk-seeking task (D = +20)")) %>% 
+  tab_style(
+  style = cell_text(align = "left"),
+  locations = cells_title("title")) %>%
+  tab_options(
+    heading.title.font.size = px(20),
+    table.border.top.width = 0, 
+    column_labels.border.top.width = 3, 
+    column_labels.border.top.color = "black"
+    )
+
+gtsave(gt_riskseek_D20_CohenD, filename = here(output_path, "S18_Table_riskseek_D20_CohenD.png"))
+```
+
+
+```{r}
+# Risk-aversion D = -10
+
+target_simexp <- c("-40 vs -30", "-30 vs -20", "-20 vs -10", "-10 vs 0", "0 vs 10", "10 vs 20", "20 vs 30")
+
+df_riskaverse_D10_CohenD <-
+  df_first_last_single_riskaverse_D10 %>% 
+  dplyr::filter(generation == 5000) %>% 
+  dplyr::group_by(sd1, task_exp) %>% 
+  dplyr::summarise(
+    mean_ap = mean(ap),
+    mean_an = mean(an),
+    sd_ap = sqrt(variance(ap)),
+    sd_an = sqrt(variance(an))
+  ) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(
+    Cohen_d = EffectSize(mean_ap, sd_ap, mean_an, sd_an)
+  ) %>% 
+  dplyr::mutate(
+    task_exp = factor(task_exp, levels = target_simexp),
+    abs_Cohen_d = abs(Cohen_d),
+    effect = case_when(
+      abs_Cohen_d <= 0.2 ~ "none",
+      (abs_Cohen_d > 0.2) & (abs_Cohen_d <= 0.5) ~ "small",
+      (abs_Cohen_d > 0.5) & (abs_Cohen_d < 0.8) ~ "medium",
+      abs_Cohen_d >= 0.8 ~ "large"
+    )
+  ) %>% 
+  dplyr::arrange(sd1, task_exp) %>% 
+  dplyr::select(sd1, task_exp, Cohen_d, effect)
+
+gt_riskaverse_D10_CohenD <-
+  df_riskaverse_D10_CohenD %>% 
+  gt() %>% 
+  cols_label(
+    sd1 = md("SD of Risky Op"), task_exp = md("Exp Value (risky vs safe)"), 
+    Cohen_d = md("Cohen's d"), effect = md("Effect")
+    ) %>% 
+  fmt_number(
+    columns = c("Cohen_d"),
+    decimals = 3
+  ) %>% 
+  tab_options(table.width = pct(55), 
+        table_body.hlines.width = 0, 
+        # spannerの下線を適切にするための設定
+        column_labels.border.top.width = 2, 
+        column_labels.border.top.color = "black", 
+        column_labels.border.bottom.width = 1, 
+        column_labels.border.bottom.color = "black",
+        table.border.top.width = 2,
+        table_body.border.top.color = "black", 
+        table.border.bottom.width = 2,
+        table_body.border.bottom.color = "black" 
+        )  %>% 
+  cols_align(align = "center", columns = c("Cohen_d")
+    ) %>% 
+  tab_header(title = md("Risk-aversion task (D = -10)")) %>% 
+  tab_style(
+  style = cell_text(align = "left"),
+  locations = cells_title("title")) %>%
+  tab_options(
+    heading.title.font.size = px(20),
+    table.border.top.width = 0, 
+    column_labels.border.top.width = 3, 
+    column_labels.border.top.color = "black"
+    )
+
+gtsave(gt_riskaverse_D10_CohenD, filename = here(output_path, "S18_Table_riskaverse_D10_CohenD.png"))
+```
+
+
+```{r}
+# Risk-seeking tasks D = +10
+target_simexp <- c("-20 vs -30", "-10 vs -20", "0 vs -10", "10 vs 0", "20 vs 10", "30 vs 20", "40 vs 30")
+
+df_riskseek_D10_CohenD <-
+  df_first_last_single_riskseek_D10 %>% 
+  dplyr::filter(generation == 5000) %>% 
+  dplyr::group_by(sd1, task_exp) %>% 
+  dplyr::summarise(
+    mean_ap = mean(ap),
+    mean_an = mean(an),
+    sd_ap = sqrt(variance(ap)),
+    sd_an = sqrt(variance(an))
+  ) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(
+    Cohen_d = EffectSize(mean_ap, sd_ap, mean_an, sd_an)
+  ) %>% 
+  dplyr::mutate(
+    task_exp = factor(task_exp, levels = target_simexp),
+    abs_Cohen_d = abs(Cohen_d),
+    effect = case_when(
+      abs_Cohen_d <= 0.2 ~ "none",
+      (abs_Cohen_d > 0.2) & (abs_Cohen_d <= 0.5) ~ "small",
+      (abs_Cohen_d > 0.5) & (abs_Cohen_d < 0.8) ~ "medium",
+      abs_Cohen_d >= 0.8 ~ "large"
+    )
+  ) %>% 
+  dplyr::arrange(sd1, task_exp) %>% 
+  dplyr::select(sd1, task_exp, Cohen_d, effect)
+
+gt_riskseek_D10_CohenD <-
+  df_riskseek_D10_CohenD %>% 
+  gt() %>% 
+  cols_label(
+    sd1 = md("SD of Risky Op"), task_exp = md("Exp Value (risky vs safe)"), 
+    Cohen_d = md("Cohen's d"), effect = md("Effect")
+    ) %>% 
+  fmt_number(
+    columns = c("Cohen_d"),
+    decimals = 3
+  ) %>% 
+  tab_options(
+    table.width = pct(55), 
+    table_body.hlines.width = 0, 
+    # spannerの下線を適切にするための設定
+    column_labels.border.top.width = 2, 
+    column_labels.border.top.color = "black", 
+    column_labels.border.bottom.width = 1, 
+    column_labels.border.bottom.color = "black",
+    table.border.top.width = 2,
+    table_body.border.top.color = "black", 
+    table.border.bottom.width = 2,
+    table_body.border.bottom.color = "black" 
+    )  %>% 
+  cols_align(align = "center", columns = c("Cohen_d")
+    ) %>% 
+  tab_header(title = md("Risk-seeking task (D = +10)")) %>% 
+  tab_style(
+  style = cell_text(align = "left"),
+  locations = cells_title("title")) %>%
+  tab_options(
+    heading.title.font.size = px(20),
+    table.border.top.width = 0, 
+    column_labels.border.top.width = 3, 
+    column_labels.border.top.color = "black"
+    )
+
+gtsave(gt_riskseek_D10_CohenD, filename = here(output_path, "S18_Table_riskseek_D10_CohenD.png"))
+```
+
+
+# S21 Histogram of Cohen's d in multipe-task simulation
+
+```{r}
+# Calculate Cohen's d for each simulation in the multiple-task simulations
+
+df_multiple_CohenD <-
+  df_agent_randmulti_an_ap %>% 
+  dplyr::filter(generation == 2999) %>% 
+  dplyr::group_by(sim, sim_i, mean_area_rate) %>% 
+  dplyr::summarise(
+    mean_ap = mean(ap),
+    mean_an = mean(an),
+    sd_ap = sqrt(variance(ap)),
+    sd_an = sqrt(variance(an))
+  ) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(
+    Cohen_d = EffectSize(mean_ap, sd_ap, mean_an, sd_an)
+  ) %>% 
+  dplyr::mutate(
+    abs_Cohen_d = abs(Cohen_d),
+    effect = case_when(
+      abs_Cohen_d <= 0.2 ~ "none",
+      (abs_Cohen_d > 0.2) & (abs_Cohen_d <= 0.5) ~ "small",
+      (abs_Cohen_d > 0.5) & (abs_Cohen_d < 0.8) ~ "medium",
+      abs_Cohen_d >= 0.8 ~ "large"
+    )
+  ) %>% 
+  dplyr::select(sim, sim_i, Cohen_d, abs_Cohen_d, effect, mean_area_rate) 
+```
+
+
+```{r}
+# make histogram of Cohen's d of multiple-task simulations
+g <- 
+  df_multiple_CohenD %>% 
+  dplyr::mutate(
+    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
+  ) %>% 
+  
+  ggplot(aes(x = Cohen_d)) + geom_histogram() + 
+  my_theme2 + 
+  theme(
+    strip.text.x = element_text(size = 18),
+    axis.text.x = element_text(size = 15), 
+    axis.text.y = element_text(size = 15),
+    plot.title = element_text(size = 20)
+  ) + 
+  labs(x = "Cohen's d") + 
+  facet_wrap(~sim_n, ncol = 5)
+
+ggsave(plot = g, filename = here(output_path, "S21_multiple_Histogram_CohenD.png"), width = 18.0, height = 6.0, dpi = 400)
+```
+
+## Table of statistics summary of Cohen's d
+
+```{r}
+# make a table for statistics of Cohen'd in multiple-task simulations
+
+gt_multiple_CohenD <-
+  df_multiple_CohenD %>% 
+  dplyr::mutate(
+    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
+  ) %>% 
+  
+  dplyr::group_by(sim_n) %>% 
+  dplyr::summarise(
+    min_value = min(Cohen_d),
+    max_value = max(Cohen_d),
+    mean_value = mean(Cohen_d),
+    median_value = median(Cohen_d),
+    sd_value = sqrt(variance(Cohen_d))
+  ) %>% 
+  
+  gt() %>% 
+  cols_label(
+    sim_n = md("Simulation Condition"), min_value = md("Min"), max_value = md("Max"), mean_value = md("Mean"), median_value = md("Median"), sd_value = md("SD")
+    ) %>% 
+  fmt_number(
+    columns = c("min_value", "max_value", "mean_value", "median_value", "sd_value"),
+    decimals = 3
+  ) %>% 
+  cols_align(align = "center", columns = c("min_value", "max_value", "mean_value", "median_value", "sd_value") ) %>% 
+  tab_options(
+    table.width = pct(60), # 表全体の幅をやや拡げる
+    table_body.hlines.width = 0, # tableの中の水平線は引かない
+    # spannerの下線を適切にするための設定
+    column_labels.border.top.width = 2, 
+    column_labels.border.top.color = "black", 
+    column_labels.border.bottom.width = 1, 
+    column_labels.border.bottom.color = "black",
+    table.border.top.width = 2,
+    table_body.border.top.color = "black", #最上線は黒
+    table.border.bottom.width = 2,
+    table_body.border.bottom.color = "black" #最下線は黒
+  )  %>% 
+  tab_header(title = md("Multiple-Task Simulation")) %>% 
+  tab_style(
+    style = cell_text(align = "left"),
+    locations = cells_title("title")
+  ) %>%
+  tab_options(
+    heading.title.font.size = px(20),
+    table.border.top.width = 0, #タイトルの上の線はなし
+    column_labels.border.top.width = 3, # タイトル下の線はあり 調整のため3
+    column_labels.border.top.color = "black"
+    )
+
+gtsave(gt_multiple_CohenD, filename = here(output_path, "S21_Table_multiple_statistics_CohenD.png"))
+```
+
+
+## Table of effect size summary
+
+```{r}
+# make a table for summary of Cohen'd size (large, medium, small) in multiple-task simulations
+
+df_multiple_CohenD_summary <-
+  df_multiple_CohenD %>% 
+  dplyr::mutate(
+    sim_n = sim %>% str_replace(pattern = "cond_", replacement = "risk seeking/aversion = ")
+  ) %>% 
+  dplyr::group_by(sim_n, effect) %>% 
+  dplyr::summarise(
+    N = n()
+  ) %>% 
+  dplyr::ungroup() %>% 
+  tidyr::pivot_wider(id_cols = sim_n, names_from = effect, values_from = N, values_fill = 0) %>% 
+  dplyr::select(sim_n, large, medium, small, none) 
+
+gt_multiple_CohenD_summary <-
+  df_multiple_CohenD_summary %>% 
+  gt() %>% 
+  cols_label(
+    sim_n = md("Simulation Condition")
+    ) %>% 
+  tab_spanner(label = "Effect", columns = c("large", "medium", "small", "none")) %>%
+  tab_options(
+    table.width = pct(50), 
+    table_body.hlines.width = 0,
+    # spannerの下線を適切にするための設定
+    column_labels.border.top.width = 2, 
+    column_labels.border.top.color = "black", 
+    column_labels.border.bottom.width = 1, 
+    column_labels.border.bottom.color = "black",
+    table.border.top.width = 2,
+    table_body.border.top.color = "black",
+    table.border.bottom.width = 2,
+    table_body.border.bottom.color = "black"
+        )  %>% 
+  cols_align(align = "center", columns = c("large", "medium", "small", "none")
+    ) %>% 
+  tab_header(title = md("Multiple-Task Simulation")) %>% 
+  tab_style(
+  style = cell_text(align = "left"),
+  locations = cells_title("title")) %>%
+  tab_options(
+    heading.title.font.size = px(20),
+    table.border.top.width = 0, #タイトルの上の線はなし
+    column_labels.border.top.width = 3, # タイトル下の線はあり 調整のため3
+    column_labels.border.top.color = "black"
+    )
+
+gtsave(gt_multiple_CohenD_summary, filename = here(output_path, "S21_Table_multiple_CohenD_summary.png"))
+```
+
+
+# S22 Ratio of SD of the alphas
+
+## Histogram of Ratio of (SD alpha_p)/(SD alpha_n)
+
+```{r}
+df_riskaverse_D20_sd_ratio <-
+  df_first_last_single_riskaverse_D20 %>% 
+  dplyr::filter(generation == 5000) %>% 
+  dplyr::group_by(sd1, task_exp) %>% 
+  dplyr::summarise(
+    mean_ap = mean(ap),
+    mean_an = mean(an),
+    sd_ap = sqrt(variance(ap)),
+    sd_an = sqrt(variance(an))
+  ) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(
+    sd_ratio = sd_ap/sd_an
+  ) %>% 
+  dplyr::select(sd1, task_exp, sd_ratio)
+
+
+df_riskseek_D20_sd_ratio <-
+  df_first_last_single_riskseek_D20 %>% 
+  dplyr::filter(generation == 5000) %>% 
+  dplyr::group_by(sd1, task_exp) %>% 
+  dplyr::summarise(
+    mean_ap = mean(ap),
+    mean_an = mean(an),
+    sd_ap = sqrt(variance(ap)),
+    sd_an = sqrt(variance(an))
+  ) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(
+    sd_ratio = sd_ap/sd_an
+  ) %>% 
+  dplyr::select(sd1, task_exp, sd_ratio)
+
+
+df_riskaverse_D10_sd_ratio <-
+  df_first_last_single_riskaverse_D10 %>% 
+  dplyr::filter(generation == 5000) %>% 
+  dplyr::group_by(sd1, task_exp) %>% 
+  dplyr::summarise(
+    mean_ap = mean(ap),
+    mean_an = mean(an),
+    sd_ap = sqrt(variance(ap)),
+    sd_an = sqrt(variance(an))
+  ) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(
+    sd_ratio = sd_ap/sd_an
+  ) %>% 
+  dplyr::select(sd1, task_exp, sd_ratio)
+
+
+df_riskseek_D10_sd_ratio <-
+  df_first_last_single_riskseek_D10 %>% 
+  dplyr::filter(generation == 5000) %>% 
+  dplyr::group_by(sd1, task_exp) %>% 
+  dplyr::summarise(
+    mean_ap = mean(ap),
+    mean_an = mean(an),
+    sd_ap = sqrt(variance(ap)),
+    sd_an = sqrt(variance(an))
+  ) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(
+    sd_ratio = sd_ap/sd_an
+  ) %>% 
+  dplyr::select(sd1, task_exp, sd_ratio)
+
+
+g1 <-
+  ggplot(df_riskaverse_D20_sd_ratio, aes(x = sd_ratio)) + geom_histogram() + 
+    geom_vline(xintercept = 1, color = "tomato", size = 1.7) + 
+  my_theme2 + 
+  theme(
+    strip.text.x = element_text(size = 14),
+    axis.text.x = element_text(size = 15), 
+    axis.text.y = element_text(size = 15),
+    plot.title = element_text(size = 20)
+  ) + 
+  labs(x = "SD Ratio (alpha_p / alpha_n)",
+       title = "Risk-aversion task (D = -20)") + 
+  coord_cartesian(xlim = c(0, 5))
+
+
+g2 <-
+  ggplot(df_riskseek_D20_sd_ratio, aes(x = sd_ratio)) + geom_histogram() + 
+    geom_vline(xintercept = 1, color = "tomato", size = 1.7) + 
+  my_theme2 + 
+  theme(
+    strip.text.x = element_text(size = 14),
+    axis.text.x = element_text(size = 15), 
+    axis.text.y = element_text(size = 15),
+    plot.title = element_text(size = 20)
+  ) + 
+  labs(x = "SD Ratio (alpha_p / alpha_n)",
+       title = "Risk-seeking task (D = +20)") + 
+  coord_cartesian(xlim = c(0, 5))
+
+
+g3 <-
+  ggplot(df_riskaverse_D10_sd_ratio, aes(x = sd_ratio)) + geom_histogram() + 
+    geom_vline(xintercept = 1, color = "tomato", size = 1.7) + 
+  my_theme2 + 
+  theme(
+    strip.text.x = element_text(size = 14),
+    axis.text.x = element_text(size = 15), 
+    axis.text.y = element_text(size = 15),
+    plot.title = element_text(size = 20)
+  ) + 
+  labs(x = "SD Ratio (alpha_p / alpha_n)",
+       title = "Risk-aversion task (D = -10)") + 
+  coord_cartesian(xlim = c(0, 5))
+
+
+g4 <-
+  ggplot(df_riskseek_D10_sd_ratio, aes(x = sd_ratio)) + geom_histogram() + 
+    geom_vline(xintercept = 1, color = "tomato", size = 1.7) + 
+  my_theme2 + 
+  theme(
+    strip.text.x = element_text(size = 14),
+    axis.text.x = element_text(size = 15), 
+    axis.text.y = element_text(size = 15),
+    plot.title = element_text(size = 20)
+  ) + 
+  labs(x = "SD Ratio (alpha_p / alpha_n)",
+       title = "Risk-seeking task (D = +10)") + 
+  coord_cartesian(xlim = c(0, 5))
+
+
+g <- g1 + g2 + g3 + g4 + plot_layout(ncol = 2)
+
+ggsave(plot = g, filename = here(output_path, "S22_single_Histogram_SDratio.png"), width = 11, height = 8, dpi = 400)
+```
+
+## Table of statistics summary of SD Ratio
+
+```{r}
+gt_SD_ratio_summary <-
+  df_riskaverse_D20_sd_ratio %>% 
+  dplyr::mutate(
+    task_type = "Risk-aversion task",
+    D = -20
+  ) %>% 
+  dplyr::bind_rows(
+    df_riskseek_D20_sd_ratio %>% dplyr::mutate(task_type = "Risk-seeking task", D = 20), 
+    df_riskaverse_D10_sd_ratio %>% dplyr::mutate(task_type = "Risk-aversion task", D = -10), 
+    df_riskseek_D10_sd_ratio %>% dplyr::mutate(task_type = "Risk-seeking task", D = 10)
+  ) %>% 
+  dplyr::group_by(task_type, D) %>% 
+  dplyr::summarise(
+    min_value = min(sd_ratio),
+    max_value = max(sd_ratio),
+    mean_value = mean(sd_ratio),
+    median_value = median(sd_ratio),
+    sd_value = sqrt(variance(sd_ratio))
+  ) %>% 
+  dplyr::ungroup() %>% 
+
+  gt() %>% 
+    cols_label(
+      task_type = md("Task"),
+      min_value = md("Min"), max_value = md("Max"), mean_value = md("Mean"), median_value = md("Median"), sd_value = md("SD")
+      ) %>% 
+    fmt_number(
+      columns = c("min_value", "max_value", "mean_value", "median_value", "sd_value"),
+      decimals = 3
+    ) %>% 
+    tab_options(
+      table.width = pct(50), # 表全体の幅をやや拡げる
+      table_body.hlines.width = 0, # tableの中の水平線は引かない
+      # spannerの下線を適切にするための設定
+      column_labels.border.top.width = 2, 
+      column_labels.border.top.color = "black", 
+      column_labels.border.bottom.width = 1, 
+      column_labels.border.bottom.color = "black",
+      table.border.top.width = 2,
+      table_body.border.top.color = "black", #最上線は黒
+      table.border.bottom.width = 2,
+      table_body.border.bottom.color = "black" #最下線は黒
+      )  %>% 
+    cols_align(
+      align = "center", columns = c("min_value", "max_value", "mean_value", "median_value", "sd_value")
+      ) %>% 
+    tab_style(
+      style = cell_text(align = "left"),
+      locations = cells_title("title")
+    ) %>%
+    tab_options(
+      heading.title.font.size = px(20),
+      table.border.top.width = 0, #タイトルの上の線はなし
+      column_labels.border.top.width = 3, # タイトル下の線はあり 調整のため3
+      column_labels.border.top.color = "black"
+      )
+
+gtsave(gt_SD_ratio_summary, filename = here(output_path, "S22_Table statistics_SDratio.png"))
+```
+
+
+# Table: logistic regression for the risk aversion/seeking
+
+  
+logistic multi-regression analysis for the data of Fig 3.
+  
+- dependent variable: time of risk aversion (how many times of 500 trials an agent chose the safe option)
+
+- independent variable: alpha_p and alpha_n
+
+
+```{r}
+# make df for regression analysis
+nested_df_withingene <-
+  df_withingene %>%
+  dplyr::mutate(
+    rate_risk_aversion = 1 - choice_rate1,
+    time_risk_aversion = rate_risk_aversion * 500
+  ) %>% 
+  dplyr::select(sim, m2, sd2, m1, sd1, replication, agent, rate_risk_aversion, time_risk_aversion, ap, an, bt) %>% 
+  dplyr::group_by(sim, m2, sd2, m1, sd1, bt) %>% 
+  tidyr::nest() %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(
+    D = m1 - m2,
+    task = if_else(D > 0, "risk seeking", "risk aversion"),
+    sim_sort = factor(paste0('N(', m1, ',', sd1, ') vs N(', m2, ',', sd2, ')')) %>% forcats::fct_reorder(., m1)
+  )
+
+
+# filter by the data of Fig 3
+nested_df_withingene_025_sd20 <-
+  nested_df_withingene %>% 
+  dplyr::filter(bt == 0.25 & sd1 == 20)
+
+# conduct regression analysis for each task and save it as res_model
+res_model <-
+  nested_df_withingene_025_sd20 %>% 
+  dplyr::mutate(
+    model_logistic_regression = map(data, ~glm(cbind(time_risk_aversion, 500 - time_risk_aversion) ~ ap + an, data = ., family = binomial)) # logistic regression analysis by glm() 
+  ) %>% 
+  dplyr::mutate( # extract estimated parameters (intercept and coefficients)
+    coef_intercept = purrr::map(model_logistic_regression, "coefficients") %>% purrr::map_dbl(1),
+    coef_ap = purrr::map(model_logistic_regression, "coefficients") %>% purrr::map_dbl(2),
+    coef_an = purrr::map(model_logistic_regression, "coefficients") %>% purrr::map_dbl(3)
+  ) %>% 
+  dplyr::arrange(task)
+```
+
+
+```{r}
+# make a table for estimated parameters 
+
+# risk-aversion task
+gt_res_model_riskaversion <-
+  res_model %>% 
+  dplyr::select(task, sim_sort, coef_intercept, coef_an, coef_ap) %>% 
+  dplyr::filter(task == "risk aversion") %>% 
+  dplyr::select(-task) %>% 
+  dplyr::arrange(sim_sort) %>% 
+  
+  gt() %>% 
+  cols_label(
+    sim_sort = md("Task"), coef_intercept = md("Intercept"), 
+    coef_an = md("alpha n"), coef_ap = md("alpha p")
+    ) %>% 
+  fmt_number(
+    columns = c("coef_intercept", "coef_an", "coef_ap"),
+    decimals = 3
+  ) %>% 
+  tab_options(table.width = pct(50), # 表全体の幅をやや拡げる
+        table_body.hlines.width = 0, # tableの中の水平線は引かない
+        # spannerの下線を適切にするための設定
+        column_labels.border.top.width = 2, 
+        column_labels.border.top.color = "black", 
+        column_labels.border.bottom.width = 1, 
+        column_labels.border.bottom.color = "black",
+        table.border.top.width = 2,
+        table_body.border.top.color = "black", #最上線は黒
+        table.border.bottom.width = 2,
+        table_body.border.bottom.color = "black" #最下線は黒
+        )  %>% 
+  cols_align(
+    align = "center", columns = c("coef_intercept", "coef_an", "coef_ap")
+  ) %>% 
+  cols_align(
+    align = "left", columns = c("sim_sort")
+  ) %>% 
+  tab_header(title = md("Risk-aversion task (D = -20, beta = 0.25)")) %>% 
+  tab_style(
+    style = cell_text(align = "left"),
+    locations = cells_title("title")
+  ) %>%
+  tab_options(
+    heading.title.font.size = px(20),
+    table.border.top.width = 0, #タイトルの上の線はなし
+    column_labels.border.top.width = 3, # タイトル下の線はあり 調整のため3
+    column_labels.border.top.color = "black"
+    )
+
+gtsave(gt_res_model_riskaversion, filename = here(output_path, "Table_res_logistic_model_riskaversion.png"))
+
+
+# risk-seeking task
+gt_res_model_riskseeking <-
+  res_model %>% 
+  dplyr::select(task, sim_sort, coef_intercept, coef_an, coef_ap) %>% 
+  dplyr::filter(task == "risk seeking") %>% 
+  dplyr::select(-task) %>% 
+  dplyr::arrange(sim_sort) %>% 
+  
+  gt() %>% 
+  cols_label(
+    sim_sort = md("Task"), coef_intercept = md("Intercept"), 
+    coef_an = md("alpha n"), coef_ap = md("alpha p")
+    ) %>% 
+  fmt_number(
+    columns = c("coef_intercept", "coef_an", "coef_ap"),
+    decimals = 3
+  ) %>% 
+  tab_options(table.width = pct(50), # 表全体の幅をやや拡げる
+        table_body.hlines.width = 0, # tableの中の水平線は引かない
+        # spannerの下線を適切にするための設定
+        column_labels.border.top.width = 2, 
+        column_labels.border.top.color = "black", 
+        column_labels.border.bottom.width = 1, 
+        column_labels.border.bottom.color = "black",
+        table.border.top.width = 2,
+        table_body.border.top.color = "black", #最上線は黒
+        table.border.bottom.width = 2,
+        table_body.border.bottom.color = "black" #最下線は黒
+        )  %>% 
+  cols_align(
+    align = "center", columns = c("coef_intercept", "coef_an", "coef_ap")
+  ) %>% 
+  cols_align(
+    align = "left", columns = c("sim_sort")
+  ) %>% 
+  tab_header(title = md("Risk-seeking task (D = +20, beta = 0.25)")) %>% 
+  tab_style(
+    style = cell_text(align = "left"),
+    locations = cells_title("title")
+  ) %>%
+  tab_options(
+    heading.title.font.size = px(20),
+    table.border.top.width = 0, #タイトルの上の線はなし
+    column_labels.border.top.width = 3, # タイトル下の線はあり 調整のため3
+    column_labels.border.top.color = "black"
+    )
+
+gtsave(gt_res_model_riskseeking, filename = here(output_path, "Table_res_logistic_model_riskseeking.png"))
+```
+
+
+# S23 Magnified heatmap (Fig 3)
+
+
+- Magnify the Fig 3 by dividing the y-axis (alpha_n) by 0.1
+
+
+```{r}
+# extract the case where risk of risky option = 20 of risk-aversion tasks
+
+target_sim <- as.factor(c(
+ "30.5.10.20", "20.5.0.20", "10.5.-10.20", "0.5.-20.20", "-10.5.-30.20", "-20.5.-40.20", "-30.5.-50.20"
+))
+
+df_rev <- 
+  df_withingene %>%
+  dplyr::filter(sim %in% target_sim) %>% 
+  dplyr::mutate(
+    ap = round(ap, 4),
+    an = round(an, 4),
+    bt = round(bt, 4),
+    rate_risk_aversion = 1 - choice_rate1,
+    sim_fac = factor(sim, levels = target_sim) %>% as.numeric()
+  ) %>% 
+  dplyr::mutate(
+    sim_sort = factor(paste0('N(', m1, ',', sd1, ') vs N(', m2, ',', sd2, ')')) %>% forcats::fct_reorder(., sim_fac, .desc = TRUE)
+  ) %>%
+  dplyr::group_by(sim_sort, ap, an, bt) %>%
+  dplyr::summarise(
+    mean_pvalue = mean(average_pvalue), 
+    sd_pvalue = sqrt(variance(average_pvalue)),
+    mean_risk_aversion = mean(rate_risk_aversion),
+    sd_risk_aversion = sqrt(variance(rate_risk_aversion))
+  ) %>%
+  dplyr::filter(bt == 0.25) %>% 
+  dplyr::mutate(an_group = cut(an, seq(from = 0, to = 1.0, by = 0.1))) %>% # divide alpha_n by 0.1
+  dplyr::group_by(an_group) %>% 
+  dplyr::group_split()
+
+
+# for each range (e.g., 0~0.1, 0.1~0.2,...), make the figure
+g_list <- NULL
+
+for (i in 1:10) {
+  
+  df_filtered <- df_rev[[i]]
+  
+  g_title <- df_filtered$an_group %>% unique(.)
+  
+  g <-
+    ggplot(data =  df_filtered, aes(x = ap, y = an)) + 
+    geom_raster(aes(fill = mean_risk_aversion)) + 
+    my_theme2 + 
+    theme(
+      axis.text.x = element_text(size = 14, angle = 30, hjust = 1), 
+      axis.text.y = element_text(size = 16), 
+      axis.title = element_text(size = 23, face = "bold"), 
+      strip.text.x = element_text(size = 15),
+      legend.text = element_text(size = 14), 
+      legend.title = element_text(size = 15), 
+      panel.grid = element_blank()
+      ) + 
+    scale_fill_gradient2(midpoint = 0.5, low = "#FF7F00", mid = "white", high = "#1F78B4", limits = c(0, 1)) + 
+    facet_grid(.~sim_sort) + 
+    labs(x = expression(alpha[p]), y = expression(alpha[n]), fill = "Risk aversion",
+         subtitle = paste0("Risk-aversion task; alpha_n = ", g_title))
+  
+  g_list <- c(g_list, list(g))
+  
+}
+
+g1_5 <- purrr::reduce(g_list[1:5], `+`) + plot_layout(ncol = 1)
+
+g6_10 <- purrr::reduce(g_list[6:10], `+`) + plot_layout(ncol = 1)
+
+ggsave(plot = g1_5, filename = here(output_path, paste0("S23.1_MagnifiedHeatmap_riskaversion_1-5.png")), width = 18.0, height = 24.0, dpi = 200)
+
+ggsave(plot = g6_10, filename = here(output_path, paste0("S23.2_MagnifiedHeatmap_riskaversion_6-10.png")), width = 18.0, height = 24.0, dpi = 200)
 ```
 
 
 
 # Session Info
 
-- RStudio Version：1.4.1717
+- RStudio Version：2023.12.1.402
 
 ```{r, eval = FALSE}
 RStudio.Version()$version
@@ -3051,7 +4558,7 @@ sessionInfo()
 
 # R version 4.1.0 (2021-05-18)
 # Platform: x86_64-apple-darwin17.0 (64-bit)
-# Running under: macOS 13.4
+# Running under: macOS 13.6.7
 # 
 # Matrix products: default
 # LAPACK: /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRlapack.dylib
@@ -3062,17 +4569,23 @@ sessionInfo()
 # attached base packages:
 # [1] stats     graphics  grDevices utils     datasets  methods   base     
 # 
+# other attached packages:
+#  [1] webshot2_0.1.0    gt_0.4.0          patchwork_1.1.1   data.table_1.14.6 here_1.0.1        forcats_0.5.1    
+#  [7] stringr_1.4.0     dplyr_1.0.8       purrr_0.3.4       readr_2.1.2       tidyr_1.2.0       tibble_3.1.6     
+# [13] ggplot2_3.3.5     tidyverse_1.3.1  
+# 
 # loaded via a namespace (and not attached):
-#  [1] pillar_1.7.0      compiler_4.1.0    forcats_0.5.1     tools_4.1.0       digest_0.6.29    
-#  [6] evaluate_0.15     lifecycle_1.0.1   tibble_3.1.6      gtable_0.3.0      pkgconfig_2.0.3  
-# [11] rlang_1.0.2       DBI_1.1.2         cli_3.2.0         yaml_2.3.5        xfun_0.30        
-# [16] fastmap_1.1.0     stringr_1.4.0     dplyr_1.0.8       knitr_1.38        hms_1.1.1        
-# [21] generics_0.1.2    vctrs_0.3.8       htmlwidgets_1.5.4 grid_4.1.0        tidyselect_1.1.2 
-# [26] glue_1.6.2        data.table_1.14.6 R6_2.5.1          fansi_1.0.3       rmarkdown_2.13   
-# [31] tzdb_0.3.0        readr_2.1.2       purrr_0.3.4       tidyr_1.2.0       ggplot2_3.3.5    
-# [36] magrittr_2.0.2    scales_1.1.1      ellipsis_0.3.2    htmltools_0.5.2   assertthat_0.2.1 
-# [41] formattable_0.2.1 colorspace_2.0-3  utf8_1.2.2        stringi_1.7.6     munsell_0.5.0    
-# [46] crayon_1.5.1  
-
+#  [1] httr_1.4.2        sass_0.4.1        jsonlite_1.8.0    splines_4.1.0     modelr_0.1.8      assertthat_0.2.1 
+#  [7] cellranger_1.1.0  yaml_2.3.5        pillar_1.7.0      backports_1.4.1   lattice_0.20-45   glue_1.6.2       
+# [13] digest_0.6.29     promises_1.2.0.1  checkmate_2.0.0   rvest_1.0.2       colorspace_2.0-3  Matrix_1.4-1     
+# [19] websocket_1.4.1   htmltools_0.5.2   pkgconfig_2.0.3   broom_0.7.12      haven_2.4.3       scales_1.1.1     
+# [25] webshot_0.5.2     processx_3.5.3    later_1.3.0       tzdb_0.3.0        mgcv_1.8-39       generics_0.1.2   
+# [31] farver_2.1.0      ellipsis_0.3.2    withr_2.5.0       cli_3.6.2         magrittr_2.0.2    crayon_1.5.1     
+# [37] readxl_1.4.0      evaluate_0.15     ps_1.6.0          fs_1.5.2          fansi_1.0.3       nlme_3.1-157     
+# [43] xml2_1.3.3        tools_4.1.0       hms_1.1.1         lifecycle_1.0.4   munsell_0.5.0     reprex_2.0.1     
+# [49] formattable_0.2.1 callr_3.7.0       compiler_4.1.0    chromote_0.1.1    rlang_1.1.3       grid_4.1.0       
+# [55] rstudioapi_0.13   htmlwidgets_1.5.4 labeling_0.4.2    rmarkdown_2.13    gtable_0.3.0      DBI_1.1.2        
+# [61] R6_2.5.1          lubridate_1.8.0   knitr_1.38        fastmap_1.1.0     utf8_1.2.2        rprojroot_2.0.2  
+# [67] stringi_1.7.6     Rcpp_1.0.8.3      vctrs_0.6.5       dbplyr_2.1.1      tidyselect_1.1.2  xfun_0.30  
 ```
 

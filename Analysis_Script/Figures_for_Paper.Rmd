@@ -754,19 +754,18 @@ df_choice_res_500T_latter100 %>%
 # Risk-aversion task
 target_simexp <- c("-50 vs -30", "-40 vs -20", "-30 vs -10", "-20 vs 0", "-10 vs 10", "0 vs 20", "10 vs 30")
 
-g <- VisFirstLastGene_RiskAversion(df_gene_riskaversion_mean, target_simexp, "Risk-aversion task", tag = "(a)")
+g1_a1 <- VisFirstLastGene_RiskAversion(df_gene_riskaversion_mean, target_simexp, "Risk-aversion task", tag = "(a)")
 
-ggsave(plot = g, filename = here(output_path, "Fig1a.1_FirstLastGene_RiskAversion_risk-aversion_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
-```
+#ggsave(plot = g, filename = here(output_path, "Fig1a.1_FirstLastGene_RiskAversion_risk-aversion_inrow.tiff"), width = 20.0, height = 6.0, dpi = 300, device = "tiff")
 
- 
-```{r, eval = FALSE}
+
 # Risk-seeking task
 target_simexp <- c("-10 vs -30", "0 vs -20", "10 vs -10", "20 vs 0", "30 vs 10", "40 vs 20", "50 vs 30")
 
-g <- VisFirstLastGene_RiskAversion(df_gene_riskaversion_mean, target_simexp, "Risk-seeking task", tag = "    ", legend = FALSE)
+g1_a2 <- VisFirstLastGene_RiskAversion(df_gene_riskaversion_mean, target_simexp, "Risk-seeking task", tag = "    ", legend = FALSE)
 
-ggsave(plot = g, filename = here(output_path, "Fig1a.2_FirstLastGene_RiskAversion_risk-seeking_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
+
+#ggsave(plot = g, filename = here(output_path, "Fig1_FirstLastGene_RiskAversion_risk-seeking_inrow.tiff"), width = 20.0, height = 12.0, dpi = 100, device = "tiff")
 ```
 
 
@@ -793,21 +792,30 @@ df_gene_riskaversion_mean %>%
 
 target_simexp <- c("-50 vs -30", "-40 vs -20", "-30 vs -10", "-20 vs 0", "-10 vs 10", "0 vs 20", "10 vs 30")
 
-g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "alpha", "Risk-aversion task", tag = "(b)")
+g1_b1 <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "alpha", "Risk-aversion task", tag = "(b)")
 
-ggsave(plot = g, filename = here(output_path, "Fig1b.1_LastGene_apan_risk-aversion_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
-```
+#ggsave(plot = g, filename = here(output_path, "Fig1b.1_LastGene_apan_risk-aversion_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
 
 
-```{r, eval = FALSE}
 # Risk-seeking task
 
 target_simexp <- c("-10 vs -30", "0 vs -20", "10 vs -10", "20 vs 0", "30 vs 10", "40 vs 20", "50 vs 30")
 
-g <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "alpha", "Risk-seeking task", tag = "    ", legend = FALSE)
+g1_b2 <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "alpha", "Risk-seeking task", tag = "    ", legend = FALSE)
 
-ggsave(plot = g, filename = here(output_path, "Fig1b.2_LastGene_apan_risk-seeking_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
+#ggsave(plot = g, filename = here(output_path, "Fig1b.2_LastGene_apan_risk-seeking_inrow.png"), width = 20.0, height = 6.0, dpi = 400)
 ```
+
+# save Fig 1
+
+```{r}
+# save Fig 1 a & b
+
+g <- g1_a1 / g1_a2 / g1_b1 / g1_b2
+
+ggsave(plot = g, filename = here(output_path, "Fig1.tiff"), width = 20.0, height = 24.0, dpi = 70, device = "tiff")
+```
+
 
 
 ```{r}
@@ -886,18 +894,18 @@ df_gene_randmulti_longer %>%
                      labels = c(expression(paste(alpha[n])), expression(paste(alpha[p])))) +  
   theme(
     axis.text.x = element_text(size = 18), 
-    axis.text.y = element_text(size = 15), 
-    axis.title = element_text(size = 23, face = "bold"), 
-    strip.text.x = element_text(size = 17),
+    axis.text.y = element_text(size = 19), 
+    axis.title = element_text(size = 26, face = "bold"), 
+    strip.text.x = element_text(size = 18),
     strip.text.y = element_text(angle = 0),
     plot.tag = element_text(size = 30)
   ) + 
   facet_grid(para_rev~sim_n, 
              labeller = labeller(para_rev = label_parsed)) + 
   coord_cartesian(ylim = c(0, 1.0)) ->
-  g
+  g2_a
   
-ggsave(plot = g, filename = here(output_path, "Fig2a_Evo_RandMulti_apan.png"), width = 19.0, height = 7.5)
+#ggsave(plot = g, filename = here(output_path, "Fig2a_Evo_RandMulti_apan.png"), width = 19.0, height = 7.5)
 ```
 
 
@@ -932,24 +940,550 @@ df_gene_randmulti_taskinfo_longer %>%
   ggplot(aes(x = mean_area_rate, y = mean)) + geom_point() + geom_smooth(method = "lm") + 
   my_theme2 + facet_grid(.~sim_n) + 
   theme(
-    axis.text.x = element_text(size = 18), 
-    axis.text.y = element_text(size = 15), 
-    axis.title = element_text(size = 23, face = "bold"), 
-    strip.text.x = element_text(size = 17),
+    axis.text.x = element_text(size = 20), 
+    axis.text.y = element_text(size = 18), 
+    axis.title = element_text(size = 25, face = "bold"), 
+    strip.text.x = element_text(size = 18),
     plot.tag = element_text(size = 30)
   ) + 
   labs(x = "Mean negative area rate", y = expression(alpha[p]), 
-       tag = "(b)") -> g
+       tag = "(b)") -> 
+  g2_b
 
-ggsave(plot = g, filename = here(output_path, "Fig2b_Relation_RandMulti_ap_NegaArea.png"), width = 18.0, height = 6.0)
+#ggsave(plot = g, filename = here(output_path, "Fig2b_Relation_RandMulti_ap_NegaArea.png"), width = 18.0, height = 6.0)
 ```
 
 
 # Fig.2c Multiple-task：Risk aversion rate of conditions
 
+  
+- additional simulations for 0/4 cond & 4/0 cond
+  
+- simulate how agents who evolved 0/4 cond (only risk-aversion tasks) would behave in risk-seeking tasks
+
+- randomly sample a risk-seeking task from the task group and simulate it in one population (1000 agents) of the first and last generation
+
+- repeated it for each multiple-task simulation (100 times in total)
+
+- the same simulations are run for 4/0 cond (only risk-seeking tasks) in risk-aversion tasks
+
+
+```{r}
+# set agents and task for additional simulations
+
+# path for saving of simulated data
+simout_Multiple_path <- here("Data", "Evo_RandMultiTask")
+
+
+#--- cond risk seeking/aversion = 0/4
+
+df_agent_randmulti_04_First <- # extract first generation
+  df_agent_randmulti %>% 
+  dplyr::filter(sim == "cond_0/4") %>% 
+  dplyr::filter(generation == 0) %>% 
+  dplyr::filter(task_i == 0) # one task is adequate
+
+df_agent_randmulti_04_Last <- # extract last generation
+  df_agent_randmulti %>% 
+  dplyr::filter(sim == "cond_0/4") %>% 
+  dplyr::filter(generation == 2999) %>% 
+  dplyr::filter(task_i == 0) # one task is adequate
+
+task_04_riskseeking <-
+  df_randmulti_taskgroup %>% # taskgroup info
+  dplyr::filter(sim == "cond_0/4") %>% 
+  dplyr::filter(task_type == "risk_seeking") %>% # extract risk-seeking tasks of taskgroup
+  dplyr::select(task_i, m1, sd1, m2, sd2)
+
+# randomly sample a risk-seeking task
+set.seed(789)
+
+task_struct_temp <- NULL
+for (sim_i in 1:100) {
+  
+  sampled_task <- sample(0:49, size = 1) # sample one task, task ID 0~49 are risk-seeking tasks
+  temp <- 
+    tibble(
+      sim_i = sim_i,
+      task_i = sampled_task[1]
+    )
+  
+  task_struct_temp <- 
+    task_struct_temp %>% 
+    dplyr::bind_rows(temp)
+  
+}
+
+task_struct_04_riskseeking <-
+  task_struct_temp %>% 
+  dplyr::left_join(task_04_riskseeking, by = "task_i") %>% 
+  tidyr::pivot_longer(cols = c(m1, sd1, m2, sd2), names_to = "stat", values_to = "val") %>% 
+  dplyr::group_by(sim_i, task_i) %>% 
+  tidyr::nest() %>% 
+  dplyr::mutate(stat_vec = purrr::map(data, "val"))
+
+
+## if you want to save the sampled task data, run below (temporarily commented out)
+## once run, you need not run again
+
+# simout_Multiple_04_path <- here(simout_Multiple_path, "sim_res_Multiple04")
+# dir.create(simout_Multiple_04_path)
+# 
+# save_task_struct_04_riskseeking <-
+#   task_struct_04_riskseeking %>%
+#   tidyr::unnest() %>%
+#   dplyr::select(-stat_vec)
+# 
+# readr::write_csv(save_task_struct_04_riskseeking, file = here(simout_Multiple_04_path, "save_task_struct_04_riskseeking.csv"))
+
+
+#--- cond risk seeking/aversion = 4/0
+
+df_agent_randmulti_40_First <- 
+  df_agent_randmulti %>% 
+  dplyr::filter(sim == "cond_4/0") %>% 
+  dplyr::filter(generation == 0) %>% 
+  dplyr::filter(task_i == 0)  # 1つのtaskで十分
+
+df_agent_randmulti_40_Last <- 
+  df_agent_randmulti %>% 
+  dplyr::filter(sim == "cond_4/0") %>% 
+  dplyr::filter(generation == 2999) %>% 
+  dplyr::filter(task_i == 0)  # 1つのtaskで十分
+
+task_40_riskaversion <-
+  df_randmulti_taskgroup %>% 
+  dplyr::filter(sim == "cond_4/0") %>% 
+  dplyr::filter(task_type == "risk_aversion") %>% 
+  dplyr::select(task_i, m1, sd1, m2, sd2)
+
+# randomly sample a risk-aversion task
+set.seed(423)
+
+task_struct_temp <- NULL
+for (sim_i in 1:100) {
+  
+  sampled_task <- sample(50:99, size = 1) # sample one task, task ID 50~99 are risk-aversion tasks
+  temp <- 
+    tibble(
+      sim_i = sim_i,
+      task_i = sampled_task[1]
+    )
+  
+  task_struct_temp <- 
+    task_struct_temp %>% 
+    dplyr::bind_rows(temp)
+  
+}
+
+task_struct_40_riskaversion <-
+  task_struct_temp %>% 
+  dplyr::left_join(task_40_riskaversion, by = "task_i") %>% 
+  tidyr::pivot_longer(cols = c(m1, sd1, m2, sd2), names_to = "stat", values_to = "val") %>% 
+  dplyr::group_by(sim_i, task_i) %>% 
+  tidyr::nest() %>% 
+  dplyr::mutate(stat_vec = purrr::map(data, "val"))
+
+
+## if you want to save the sampled task data, run below (temporarily commented out)
+## once run, you need not run again
+
+# simout_Multiple_40_path <- here(simout_Multiple_path, "sim_res_Multiple40")
+# dir.create(simout_Multiple_40_path)
+# 
+# save_task_struct_40_riskaversion <-
+#   task_struct_40_riskaversion %>%
+#   tidyr::unnest() %>%
+#   dplyr::select(-stat_vec)
+# 
+# readr::write_csv(save_task_struct_40_riskaversion, file = here(simout_Multiple_40_path, "save_task_struct_40_riskaversion.csv"))
+```
+
+
+```{r, eval=FALSE}
+# Simulate 0/4 condition by RunQL_dual()
+# Once the simulations are run, you need not run again
+
+simout_Multiple_04_path <- here(simout_Multiple_path, "sim_res_Multiple04")
+# dir.create(simout_Multiple_04_path)
+
+trial_N <- 500
+
+#--- agents of the first generation
+
+# simulate the choice for a sampled task & save as .RDS
+for (s_i in 1:100) {
+  
+  print(paste0("sim: ", s_i))
+  
+  task_struct_04_riskseeking_filtered <-
+    task_struct_04_riskseeking %>% 
+    dplyr::filter(sim_i == s_i) %>% 
+    dplyr::pull(stat_vec)
+    
+  df_agent_randmulti_04_First_filtered <-
+    df_agent_randmulti_04_First %>% 
+    dplyr::filter(sim_i == s_i)
+  
+  # simulate for one task
+  res_ql_04_list_First <- purrr::map(task_struct_04_riskseeking_filtered, ~RunQL_dual(df_agent_randmulti_04_First_filtered, .x, trial_N))
+  
+  res_ql_04_list_choice_First <-
+  res_ql_04_list_First %>%
+  purrr::map("Choice")
+
+  # save RDS file
+  saveRDS(object = res_ql_04_list_choice_First, file = here(simout_Multiple_04_path, paste0( "res_ql_04_list_choice_First_", s_i, ".RDS")))
+  
+}
+
+#--- agents of the last generation
+
+# simulate the choice for a sampled task & save as .RDS
+for (s_i in 1:100) {
+  
+  print(paste0("sim: ", s_i))
+  
+  task_struct_04_riskseeking_filtered <-
+    task_struct_04_riskseeking %>% 
+    dplyr::filter(sim_i == s_i) %>% 
+    dplyr::pull(stat_vec)
+    
+  df_agent_randmulti_04_Last_filtered <-
+    df_agent_randmulti_04_Last %>% 
+    dplyr::filter(sim_i == s_i)
+  
+  # simulate for one task
+  res_ql_04_list_Last <- purrr::map(task_struct_04_riskseeking_filtered, ~RunQL_dual(df_agent_randmulti_04_Last_filtered, .x, trial_N))
+  
+  res_ql_04_list_choice_Last <-
+  res_ql_04_list_Last %>%
+  purrr::map("Choice")
+
+  # save RDS file
+  saveRDS(object = res_ql_04_list_choice_Last, file = here(simout_Multiple_04_path, paste0( "res_ql_04_list_choice_Last_", s_i, ".RDS")))
+  
+}
+
+
+#------ summarize the choice and save as .csv ------#
+
+#--- agents of the first generation
+
+RDS_04_First <- dir(simout_Multiple_04_path, pattern = ".RDS") %>% stringr::str_subset(., pattern = "_First")
+path_RDS_04_First <- here(simout_Multiple_04_path, RDS_04_First)
+
+task_number <- 1 # task number is set to process any number of task
+
+# for each simulated data (.RDS), summarize the choice and combine it as one df
+df_04_First <- NULL
+for (s_i in 1:100) {
+  
+  target_path_RDS_04_First <- path_RDS_04_First %>% stringr::str_subset(., pattern = paste0("_", s_i, ".RDS"))
+  print(paste0("read : ", target_path_RDS_04_First))
+  res <- readRDS(target_path_RDS_04_First)
+  
+  df_temp <-
+    purrr::map_dfr(task_number, 
+           ~{res[[.x]] %>% 
+              tibble::as_tibble(.) %>% 
+              dplyr::mutate(agent = 1:nrow(.)) %>% 
+              tidyr::pivot_longer(cols = -agent, names_to = c("V", "trial"), values_to = "choice", 
+                                  names_sep = 1L, names_transform = list(Trial = as.integer)) %>% 
+              dplyr::mutate(choice = if_else(choice == 2, 0, 1)) %>% # 0: safe, 1: risky
+              dplyr::group_by(agent) %>% 
+              dplyr::summarise(
+                risk_aversion = 1 - mean(choice)
+              ) %>% 
+              dplyr::ungroup() %>% 
+              dplyr::mutate(
+                task_i = .x,
+                sim_i = s_i)
+            }
+           )
+  
+  df_04_First <- dplyr::bind_rows(df_04_First, df_temp)
+  
+}
+
+# save as .csv
+readr::write_csv(df_04_First, file = here(simout_Multiple_04_path, "df_04_First.csv"))
+
+
+#--- agents of the last generation
+
+RDS_04_Last <- dir(simout_Multiple_04_path, pattern = ".RDS") %>% stringr::str_subset(., pattern = "_Last")
+path_RDS_04_Last <- here(simout_Multiple_04_path, RDS_04_Last)
+
+task_number <- 1 # task number is set to process any number of task
+
+# for each simulated data (.RDS), summarize the choice and combine it as one df
+df_04_Last <- NULL
+for (s_i in 1:100) {
+  
+  target_path_RDS_04_Last <- path_RDS_04_Last %>% stringr::str_subset(., pattern = paste0("_", s_i, ".RDS"))
+  print(paste0("read : ", target_path_RDS_04_Last))
+  res <- readRDS(target_path_RDS_04_Last)
+  
+  df_temp <-
+    purrr::map_dfr(task_number, 
+           ~{res[[.x]] %>% 
+              tibble::as_tibble(.) %>% 
+              dplyr::mutate(agent = 1:nrow(.)) %>% 
+              tidyr::pivot_longer(cols = -agent, names_to = c("V", "trial"), values_to = "choice", 
+                                  names_sep = 1L, names_transform = list(Trial = as.integer)) %>% 
+              dplyr::mutate(choice = if_else(choice == 2, 0, 1)) %>% # 0: safe, 1: risky
+              dplyr::group_by(agent) %>% 
+              dplyr::summarise(
+                risk_aversion = 1 - mean(choice)
+              ) %>% 
+              dplyr::ungroup() %>% 
+              dplyr::mutate(
+                task_i = .x,
+                sim_i = s_i)
+            }
+           )
+  
+  
+  df_04_Last <- dplyr::bind_rows(df_04_Last, df_temp)
+  
+}
+
+# save as .csv
+readr::write_csv(df_04_Last, file = here(simout_Multiple_04_path, "df_04_Last.csv"))
+```
+
+
+
+
+```{r, eval=FALSE}
+# Simulate 4/0 condition by RunQL_dual()
+# Once the simulations are run, you need not run again
+
+simout_Multiple_40_path <- here(simout_Multiple_path, "sim_res_Multiple40")
+# dir.create(simout_Multiple_40_path)
+
+trial_N <- 500
+
+#--- agents of the first generation
+
+# simulate the choice for a sampled task & save as .RDS
+
+for (s_i in 1:100) {
+  
+  print(paste0("sim: ", s_i))
+  
+  task_struct_40_riskaversion_filtered <-
+    task_struct_40_riskaversion %>% 
+    dplyr::filter(sim_i == s_i) %>% 
+    dplyr::pull(stat_vec)
+    
+  df_agent_randmulti_40_First_filtered <-
+    df_agent_randmulti_40_First %>% 
+    dplyr::filter(sim_i == s_i)
+  
+  # simulate for one task
+  res_ql_40_list_First <- purrr::map(task_struct_40_riskaversion_filtered, ~RunQL_dual(df_agent_randmulti_40_First_filtered, .x, trial_N))
+  
+  res_ql_40_list_choice_First <-
+  res_ql_40_list_First %>%
+  purrr::map("Choice")
+
+  # save RDS file
+  saveRDS(object = res_ql_40_list_choice_First, file = here(simout_Multiple_40_path, paste0( "res_ql_40_list_choice_First_", s_i, ".RDS")))
+
+}
+
+
+#--- agents of the last generation
+
+# simulate the choice for a sampled task & save as .RDS
+for (s_i in 1:100) {
+  
+  print(paste0("sim: ", s_i))
+  
+  task_struct_40_riskaversion_filtered <-
+    task_struct_40_riskaversion %>% 
+    dplyr::filter(sim_i == s_i) %>% 
+    dplyr::pull(stat_vec)
+    
+  df_agent_randmulti_40_Last_filtered <-
+    df_agent_randmulti_40_Last %>% 
+    dplyr::filter(sim_i == s_i)
+  
+  # simulate for one task
+  res_ql_40_list_Last <- purrr::map(task_struct_40_riskaversion_filtered, ~RunQL_dual(df_agent_randmulti_40_Last_filtered, .x, trial_N))
+  
+  res_ql_40_list_choice_Last <-
+  res_ql_40_list_Last %>%
+  purrr::map("Choice")
+
+  # save RDS file
+  saveRDS(object = res_ql_40_list_choice_Last, file = here(simout_Multiple_40_path, paste0( "res_ql_40_list_choice_Last_", s_i, ".RDS")))
+
+}
+
+
+#------ summarize the choice and save as .csv ------#
+
+#--- agents of the first generation
+
+RDS_40_First <- dir(simout_Multiple_40_path, pattern = ".RDS") %>% stringr::str_subset(., pattern = "_First")
+path_RDS_40_First <- here(simout_Multiple_40_path, RDS_40_First)
+
+task_number <- 1 # task number is set to process any number of task
+
+# for each simulated data (.RDS), summarize the choice and combine it as one df
+df_40_First <- NULL
+for (s_i in 1:100) {
+  
+  target_path_RDS_40_First <- path_RDS_40_First %>% stringr::str_subset(., pattern = paste0("_", s_i, ".RDS"))
+  print(paste0("read : ", target_path_RDS_40_First))
+  res <- readRDS(target_path_RDS_40_First)
+  
+  df_temp <-
+    purrr::map_dfr(task_number, 
+           ~{res[[.x]] %>% 
+              tibble::as_tibble(.) %>% 
+              dplyr::mutate(agent = 1:nrow(.)) %>% 
+              tidyr::pivot_longer(cols = -agent, names_to = c("V", "trial"), values_to = "choice", 
+                                  names_sep = 1L, names_transform = list(Trial = as.integer)) %>% 
+              dplyr::mutate(choice = if_else(choice == 2, 0, 1)) %>% 
+              dplyr::group_by(agent) %>% 
+              dplyr::summarise(
+                risk_aversion = 1 - mean(choice)
+              ) %>% 
+              dplyr::ungroup() %>% 
+              dplyr::mutate(
+                task_i = .x,
+                sim_i = s_i)
+            }
+           )
+  
+  
+  df_40_First <- dplyr::bind_rows(df_40_First, df_temp)
+  
+}
+
+readr::write_csv(df_40_First, file = here(simout_Multiple_40_path, "df_40_First.csv"))
+
+
+#--- agents of the last generation
+
+RDS_40_Last <- dir(simout_Multiple_40_path, pattern = ".RDS") %>% stringr::str_subset(., pattern = "_Last")
+path_RDS_40_Last <- here(simout_Multiple_40_path, RDS_40_Last)
+
+task_number <- 1 # task number is set to process any number of task
+
+# for each simulated data (.RDS), summarize the choice and combine it as one df
+df_40_Last <- NULL
+for (s_i in 1:100) {
+  
+  target_path_RDS_40_Last <- path_RDS_40_Last %>% stringr::str_subset(., pattern = paste0("_", s_i, ".RDS"))
+  print(paste0("read : ", target_path_RDS_40_Last))
+  res <- readRDS(target_path_RDS_40_Last)
+  
+  df_temp <-
+    purrr::map_dfr(task_number, 
+           ~{res[[.x]] %>% 
+              tibble::as_tibble(.) %>% 
+              dplyr::mutate(agent = 1:nrow(.)) %>% 
+              tidyr::pivot_longer(cols = -agent, names_to = c("V", "trial"), values_to = "choice", 
+                                  names_sep = 1L, names_transform = list(Trial = as.integer)) %>% 
+              dplyr::mutate(choice = if_else(choice == 2, 0, 1)) %>% 
+              dplyr::group_by(agent) %>% 
+              dplyr::summarise(
+                risk_aversion = 1 - mean(choice)
+              ) %>% 
+              dplyr::ungroup() %>% 
+              dplyr::mutate(
+                task_i = .x,
+                sim_i = s_i)
+            }
+           )
+  
+  
+  df_40_Last <- dplyr::bind_rows(df_40_Last, df_temp)
+  
+}
+
+readr::write_csv(df_40_Last, file = here(simout_Multiple_40_path, "df_40_Last.csv"))
+```
+
+
+
+```{r}
+# read additional simulations data & make df
+
+simout_Multiple_path <- here("Data", "Evo_RandMultiTask") # dir for sim multiple-task agents 04 & 40
+
+simout_Multiple_04_path <- here(simout_Multiple_path, "sim_res_Multiple04")
+simout_Multiple_40_path <- here(simout_Multiple_path, "sim_res_Multiple40")
+
+df_04_First <- readr::read_csv(here(simout_Multiple_04_path, "df_04_First.csv")) %>% 
+  dplyr::mutate(
+    sim = "cond_0/4",
+    generation = 0,
+    task_type = "risk_seeking",
+    sim_n = "risk seeking/aversion = 0/4"
+  )
+
+df_04_Last <- readr::read_csv(here(simout_Multiple_04_path, "df_04_Last.csv")) %>% 
+  dplyr::mutate(
+    sim = "cond_0/4",
+    generation = 2999,
+    task_type = "risk_seeking",
+    sim_n = "risk seeking/aversion = 0/4"
+  ) 
+
+df_40_First <- readr::read_csv(here(simout_Multiple_40_path, "df_40_First.csv")) %>% 
+  dplyr::mutate(
+    sim = "cond_4/0",
+    generation = 0,
+    task_type = "risk_aversion",
+    sim_n = "risk seeking/aversion = 4/0"
+  )
+
+df_40_Last <- readr::read_csv(here(simout_Multiple_40_path, "df_40_Last.csv")) %>% 
+  dplyr::mutate(
+    sim = "cond_4/0",
+    generation = 2999,
+    task_type = "risk_aversion",
+    sim_n = "risk seeking/aversion = 4/0"
+  )
+
+
+# simごとに平均を算出 -> 条件ごとに算出
+df_agent_randmulti_04_40 <-
+  df_04_First %>% 
+  dplyr::bind_rows(df_04_Last, df_40_First, df_40_Last)
+
+df_agent_randmulti_summary_04_40 <-
+  df_agent_randmulti_04_40 %>% 
+  dplyr::group_by(sim, sim_n, sim_i, task_type, task_i, generation) %>% 
+  dplyr::summarise(
+    mean_risk_aversion = mean(risk_aversion)
+  ) %>% 
+  dplyr::ungroup()
+
+df_agent_randmulti_simMEAN_04_40 <-
+  df_agent_randmulti_summary_04_40 %>% 
+  dplyr::group_by(sim, sim_n, generation, task_type) %>% 
+  dplyr::summarise(
+    MEAN_risk_aversion = mean(mean_risk_aversion),
+    SD_risk_aversion = sqrt(variance(mean_risk_aversion)),
+    N = n()
+  ) %>% 
+  dplyr::ungroup()
+```
+
+
 
 ```{r, eval=FALSE, fig.width=20, fig.height=8}
+# make Fig 2c (including additional simulations data)
+
 df_agent_randmulti_simMEAN %>% 
+  dplyr::bind_rows(df_agent_randmulti_simMEAN_04_40) %>% # additional data of cond 0/4 + 4/0
   
   dplyr::mutate(
     generation = generation + 1,
@@ -960,16 +1494,12 @@ df_agent_randmulti_simMEAN %>%
   geom_linerange(aes(ymin = MEAN_risk_aversion - SD_risk_aversion, ymax = MEAN_risk_aversion + SD_risk_aversion), size = 1.5, position = position_dodge(width = 0.5)) + 
   geom_point(size = 3.0, stroke = 1.5, shape = 21, fill = "white", position = position_dodge(width = 0.5)) + 
   my_theme2 + 
-  theme(axis.text.x = element_text(size = 16),
-        axis.text.y = element_text(size = 16),
-        axis.title = element_text(size = 23, face = "bold"),
-        strip.text.x = element_text(size = 17),
-        legend.title = element_text(size = 16), #change legend title font size
-        legend.text = element_text(size = 16),
-        legend.background = element_rect(fill = "transparent"), 
-        legend.key = element_rect(fill = "white"), 
-        legend.position = c(1, 0.98), 
-        legend.justification = c(1, 1),
+  theme(axis.text.x = element_text(size = 20),
+        axis.text.y = element_text(size = 20),
+        axis.title = element_text(size = 26, face = "bold"),
+        strip.text.x = element_text(size = 17.5),
+        legend.title = element_text(size = 17.5), #change legend title font size
+        legend.text = element_text(size = 17),
         plot.tag = element_text(size = 30)
         ) + 
   scale_color_manual(values=c("deepskyblue", "tan3")) + 
@@ -979,9 +1509,10 @@ df_agent_randmulti_simMEAN %>%
        color = "Task",
        tag = "(c)") + 
   guides(fill = 'none') + 
-  facet_wrap(~sim_n, ncol = 5) -> g
+  facet_wrap(~sim_n, ncol = 5) -> 
+  g2_c
   
-ggsave(plot = g, filename = here(output_path, "Fig2c_FirstLastGene_RiskAversion_RandMulti.png"), width = 18.0, height = 6.0, dpi = 400)
+#ggsave(plot = g, filename = here(output_path, "Fig2c_FirstLastGene_RiskAversion_RandMulti.png"), width = 20.0, height = 6.0, dpi = 400)
 ```
 
 
@@ -1001,6 +1532,18 @@ mean(x_simMEAN$MEAN_risk_aversion)
 ```
 
 
+# save Fig 2
+
+
+```{r}
+# save Fig 2 (a~c)
+
+g <- g2_a / g2_b / g2_c
+
+ggsave(plot = g, filename = here(output_path, "Fig2.tiff"), width = 22.0, height = 20.0, dpi = 75, device = "tiff")
+```
+
+
 
 # Fig.3 Effect of combination of ap and an on the risk aversion (heatmap)
 
@@ -1015,9 +1558,9 @@ target_sim <- as.factor(c(
  "30.5.10.20", "20.5.0.20", "10.5.-10.20", "0.5.-20.20", "-10.5.-30.20", "-20.5.-40.20", "-30.5.-50.20"
 ))
 
-g <- VisHeatmap_RiskAversion(df_withingene, target_sim, "Risk-aversion task")
+g3_1 <- VisHeatmap_RiskAversion(df_withingene, target_sim, "Risk-aversion task")
 
-ggsave(plot = g, filename = here(output_path, "Fig3.1_Heatmap_RiskAversion_risk-aversion.png"), width = 17.0, height = 4.5, dpi = 400)
+#ggsave(plot = g, filename = here(output_path, "Fig3.1_Heatmap_RiskAversion_risk-aversion.png"), width = 17.0, height = 4.5, dpi = 400)
 ```
 
 
@@ -1029,9 +1572,17 @@ target_sim <- factor(c(
   "30.5.50.20", "20.5.40.20", "10.5.30.20", "0.5.20.20", "-10.5.10.20", "-20.5.0.20", "-30.5.-10.20"
 ))
 
-g <- VisHeatmap_RiskAversion(df_withingene, target_sim, "Risk-seeking task")
+g3_2 <- VisHeatmap_RiskAversion(df_withingene, target_sim, "Risk-seeking task")
 
-ggsave(plot = g, filename = here(output_path, "Fig3.2_Heatmap_RiskAversion_risk-seeking.png"), width = 17.0, height = 4.5, dpi = 400)
+#ggsave(plot = g, filename = here(output_path, "Fig3.2_Heatmap_RiskAversion_risk-seeking.png"), width = 17.0, height = 4.5, dpi = 400)
+```
+
+
+```{r}
+# save Fig 3
+g <- g3_1 / g3_2
+
+ggsave(plot = g, filename = here(output_path, "Fig3.tiff"), width = 17.0, height = 9.0, dpi = 120, device = "tiff")
 ```
 
 
@@ -1041,23 +1592,27 @@ ggsave(plot = g, filename = here(output_path, "Fig3.2_Heatmap_RiskAversion_risk-
   
 - horizontal: risk aversion rate, vertical: frequency
 
+
 ```{r}
 df_choice_res_500T_latter100 %>% 
   
   ggplot(aes(x = risk_aversion)) + 
   geom_histogram() + 
   my_theme2 + 
-  theme(axis.text.x = element_text(size = 18), 
-        axis.text.y = element_text(size = 18), 
-        axis.title = element_text(size = 26, face = "bold"), 
+  theme(axis.text.x = element_text(size = 20), 
+        axis.text.y = element_text(size = 23), 
+        axis.title.x = element_text(size = 30, face = "bold"), 
+        axis.title.y = element_text(size = 35, face = "bold"), 
         strip.text.x = element_text(size = 17),
-        plot.tag = element_text(size = 30)
+        strip.text.y = element_text(size = 24),
+        plot.tag = element_text(size = 40)
         ) + 
   facet_grid(sim_n~task_struct) + 
   labs(x = "Rate of risk aversion", y = "Frequency of agent",
-       tag = "(a)") -> g
+       tag = "(a)") -> 
+  g4_a
 
-ggsave(plot = g, filename = here(output_path, "Fig4a_RiskPref_RandMulti_latter100.png"), width = 17.0, height = 24.0, dpi = 400)
+#ggsave(plot = g, filename = here(output_path, "Fig4a_RiskPref_RandMulti_latter100.png"), width = 17.0, height = 24.0, dpi = 400)
 ```
 
 
@@ -1072,18 +1627,19 @@ df_choice_gainloss_500T_latter100_last %>%
   geom_vline(xintercept = 0, color = "black") + 
   my_theme2 + 
   theme(
-    axis.text.x = element_text(size = 18), 
-    axis.text.y = element_text(size = 18), 
-    axis.title.y = element_text(size = 21, face = "bold"), 
-    axis.title.x = element_text(size = 18, face = "bold"), 
-    strip.text.y = element_text(size = 18),
-    plot.tag = element_text(size = 30)
+    axis.text.x = element_text(size = 20), 
+    axis.text.y = element_text(size = 23), 
+    axis.title.y = element_text(size = 21, face = "bold"),
+    axis.title.x = element_text(size = 21, face = "bold"), 
+    strip.text.y = element_text(size = 24),
+    plot.tag = element_text(size = 40)
     ) +
   labs(x = "Gain-loss differece in risk aversion", y = "",
        tag = "(b)") + 
-  facet_grid(sim_n~.) -> g
+  facet_grid(sim_n~.) -> 
+  g4_b
 
-ggsave(plot = g, filename = here(output_path, "Fig4b_RiskPrefDif_RandMulti_latter100_vert.png"), width = 5.5, height = 18.0, dpi = 400)
+#ggsave(plot = g, filename = here(output_path, "Fig4b_RiskPrefDif_RandMulti_latter100_vert.png"), width = 5.5, height = 18.0, dpi = 400)
 ```
 
 
@@ -1124,10 +1680,20 @@ df_choice_gainloss_500T_latter100_last %>%
 ```
 
 
+# save Fig 4
+
+```{r}
+# save Fig 4
+g <- g4_a + g4_b + plot_layout(ncol = 2, widths = c(4, 1))
+
+ggsave(plot = g, filename = here(output_path, "Fig4.tiff"), width = 23.0, height = 24.0, dpi = 65, device = "tiff")
+```
+
+
 # Session Info
 
 
-- RStudio Version：1.4.1717
+- RStudio Version：2023.12.1.402
     
     
 ```{r, eval = FALSE}
@@ -1143,7 +1709,7 @@ sessionInfo()
 
 # R version 4.1.0 (2021-05-18)
 # Platform: x86_64-apple-darwin17.0 (64-bit)
-# Running under: macOS 13.4
+# Running under: macOS 13.6.7
 # 
 # Matrix products: default
 # LAPACK: /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRlapack.dylib
@@ -1154,16 +1720,19 @@ sessionInfo()
 # attached base packages:
 # [1] stats     graphics  grDevices utils     datasets  methods   base     
 # 
+# other attached packages:
+#  [1] patchwork_1.1.1   data.table_1.14.6 here_1.0.1        forcats_0.5.1     stringr_1.4.0     dplyr_1.0.8      
+#  [7] purrr_0.3.4       readr_2.1.2       tidyr_1.2.0       tibble_3.1.6      ggplot2_3.3.5     tidyverse_1.3.1  
+# 
 # loaded via a namespace (and not attached):
-#  [1] pillar_1.7.0      compiler_4.1.0    forcats_0.5.1     tools_4.1.0       digest_0.6.29    
-#  [6] evaluate_0.15     lifecycle_1.0.1   tibble_3.1.6      gtable_0.3.0      pkgconfig_2.0.3  
-# [11] rlang_1.0.2       DBI_1.1.2         cli_3.2.0         yaml_2.3.5        xfun_0.30        
-# [16] fastmap_1.1.0     stringr_1.4.0     dplyr_1.0.8       knitr_1.38        hms_1.1.1        
-# [21] generics_0.1.2    vctrs_0.3.8       htmlwidgets_1.5.4 grid_4.1.0        tidyselect_1.1.2 
-# [26] glue_1.6.2        data.table_1.14.6 R6_2.5.1          fansi_1.0.3       rmarkdown_2.13   
-# [31] tzdb_0.3.0        readr_2.1.2       purrr_0.3.4       tidyr_1.2.0       ggplot2_3.3.5    
-# [36] magrittr_2.0.2    scales_1.1.1      ellipsis_0.3.2    htmltools_0.5.2   assertthat_0.2.1 
-# [41] formattable_0.2.1 colorspace_2.0-3  utf8_1.2.2        stringi_1.7.6     munsell_0.5.0    
-# [46] crayon_1.5.1    
+#  [1] tidyselect_1.1.2  xfun_0.30         haven_2.4.3       colorspace_2.0-3  vctrs_0.6.5       generics_0.1.2   
+#  [7] htmltools_0.5.2   yaml_2.3.5        utf8_1.2.2        rlang_1.1.3       pillar_1.7.0      glue_1.6.2       
+# [13] withr_2.5.0       DBI_1.1.2         dbplyr_2.1.1      modelr_0.1.8      readxl_1.4.0      lifecycle_1.0.4  
+# [19] munsell_0.5.0     gtable_0.3.0      cellranger_1.1.0  rvest_1.0.2       formattable_0.2.1 htmlwidgets_1.5.4
+# [25] evaluate_0.15     knitr_1.38        tzdb_0.3.0        fastmap_1.1.0     fansi_1.0.3       broom_0.7.12     
+# [31] backports_1.4.1   scales_1.1.1      jsonlite_1.8.0    fs_1.5.2          hms_1.1.1         digest_0.6.29    
+# [37] stringi_1.7.6     rprojroot_2.0.2   grid_4.1.0        cli_3.6.2         tools_4.1.0       magrittr_2.0.2   
+# [43] crayon_1.5.1      pkgconfig_2.0.3   ellipsis_0.3.2    xml2_1.3.3        reprex_2.0.1      lubridate_1.8.0  
+# [49] assertthat_0.2.1  rmarkdown_2.13    httr_1.4.2        rstudioapi_0.13   R6_2.5.1          compiler_4.1.0
 ```
 

@@ -9,7 +9,7 @@ VisEvol_Para_RunMean_facet_sd1_nonrisky <- function(df, params, tasktype, abs_Dv
     df %>% 
     dplyr::mutate(
       risky = paste0('N(', m1, ',', sd1, ')'),
-      nonrisky = factor(paste0('N(', m2, ',', sd2, ')')) %>% forcats::fct_reorder(., m2),
+      safe = factor(paste0('N(', m2, ',', sd2, ')')) %>% forcats::fct_reorder(., m2),
       sim_sort_tmp = factor(paste0('N(', m1, ',', sd1, ') vs N(', m2, ',', sd2, ')')),
       D = m1 - m2,
       abs_D = abs(D)
@@ -74,7 +74,7 @@ VisEvol_Para_RunMean_facet_sd1_nonrisky <- function(df, params, tasktype, abs_Dv
   
   label_df <-
     df_rev %>% 
-    dplyr::distinct(sd1, m2, nonrisky, sim_sort)
+    dplyr::distinct(sd1, m2, safe, sim_sort)
   
   
   # 共通部分のグラフを作成
@@ -101,7 +101,7 @@ VisEvol_Para_RunMean_facet_sd1_nonrisky <- function(df, params, tasktype, abs_Dv
     labs(x= 'Generation', y= 'Parameter value', subtitle = sub_title) + 
     scale_x_continuous(breaks = c(0, 2500, 5000)) + 
     
-    facet_grid(nonrisky~sd1, labeller = labeller(sd1 = label_both, nonrisky = label_both))
+    facet_grid(safe~sd1, labeller = labeller(sd1 = label_both, safe = label_both))
     
   
   if (params == "all") {  # ap, an, & bt

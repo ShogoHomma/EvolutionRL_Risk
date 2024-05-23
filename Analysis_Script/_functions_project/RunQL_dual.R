@@ -15,6 +15,8 @@ RunQL_dual <- function(params, task_struct, trial_N) {
   m2 <- task_struct[3] # non-risky option
   sd2 <- task_struct[4]
   
+  print(paste0("task: N(", m1, ", ", sd1, "), N(", m2, ", ", sd2, ")"))
+  
   sim_N <- nrow(params) # number of agents
   
   Choice <- matrix(0, nrow = sim_N, ncol = trial_N)

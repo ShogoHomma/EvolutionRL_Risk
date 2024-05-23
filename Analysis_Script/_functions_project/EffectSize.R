@@ -7,3 +7,10 @@ EffectSize <- function(m1, sd1, m2, sd2) {
   return(res)
   
 }
+
+EffectSize_n <- function(m1, sd1, m2, sd2, n1, n2) {
+  
+  res <- (m1 - m2)/sqrt((n1 * sd1^2 + n2 * sd2^2)/(n1 + n2))
+  return(res)
+  
+}

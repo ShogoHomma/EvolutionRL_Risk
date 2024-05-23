@@ -10,10 +10,10 @@ VisTable_Taskinfo <- function(df, cond) {
       title = cond,
     ) %>% 
     cols_label(sim_i = "simulation", 
-               `1: nonrisky` = "non-risky", `1: risky` = "risky",
-               `2: nonrisky` = "non-risky", `2: risky` = "risky",
-               `3: nonrisky` = "non-risky", `3: risky` = "risky",
-               `4: nonrisky` = "non-risky", `4: risky` = "risky"
+               `1: nonrisky` = "safe", `1: risky` = "risky",
+               `2: nonrisky` = "safe", `2: risky` = "risky",
+               `3: nonrisky` = "safe", `3: risky` = "risky",
+               `4: nonrisky` = "safe", `4: risky` = "risky"
     ) %>% 
     tab_spanner(label = "task 1", columns = c("1: nonrisky", "1: risky")) %>%
     tab_spanner(label = "task 2", columns = c("2: nonrisky", "2: risky")) %>% 
