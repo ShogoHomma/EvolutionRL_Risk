@@ -813,6 +813,8 @@ g1_b2 <- VisLastGene_Para_RunMean(df_gene_longer, target_simexp, "alpha", "Risk-
 
 g <- g1_a1 / g1_a2 / g1_b1 / g1_b2
 
+ggsave(plot = g, filename = here(output_path, "Fig1.png"), width = 20.0, height = 24.0, dpi = 70)
+
 ggsave(plot = g, filename = here(output_path, "Fig1.tiff"), width = 20.0, height = 24.0, dpi = 70, device = "tiff")
 ```
 
@@ -956,6 +958,7 @@ df_gene_randmulti_taskinfo_longer %>%
 
 # Fig.2c Multiple-task：Risk aversion rate of conditions
 
+## additional simulations  
   
 - additional simulations for 0/4 cond & 4/0 cond
   
@@ -1411,6 +1414,7 @@ readr::write_csv(df_40_Last, file = here(simout_Multiple_40_path, "df_40_Last.cs
 ```
 
 
+## make Fig 2c
 
 ```{r}
 # read additional simulations data & make df
@@ -1478,7 +1482,6 @@ df_agent_randmulti_simMEAN_04_40 <-
 ```
 
 
-
 ```{r, eval=FALSE, fig.width=20, fig.height=8}
 # make Fig 2c (including additional simulations data)
 
@@ -1540,6 +1543,8 @@ mean(x_simMEAN$MEAN_risk_aversion)
 
 g <- g2_a / g2_b / g2_c
 
+ggsave(plot = g, filename = here(output_path, "Fig2.png"), width = 22.0, height = 20.0, dpi = 75)
+
 ggsave(plot = g, filename = here(output_path, "Fig2.tiff"), width = 22.0, height = 20.0, dpi = 75, device = "tiff")
 ```
 
@@ -1581,6 +1586,8 @@ g3_2 <- VisHeatmap_RiskAversion(df_withingene, target_sim, "Risk-seeking task")
 ```{r}
 # save Fig 3
 g <- g3_1 / g3_2
+
+ggsave(plot = g, filename = here(output_path, "Fig3.png"), width = 17.0, height = 9.0, dpi = 120)
 
 ggsave(plot = g, filename = here(output_path, "Fig3.tiff"), width = 17.0, height = 9.0, dpi = 120, device = "tiff")
 ```
@@ -1685,6 +1692,8 @@ df_choice_gainloss_500T_latter100_last %>%
 ```{r}
 # save Fig 4
 g <- g4_a + g4_b + plot_layout(ncol = 2, widths = c(4, 1))
+
+ggsave(plot = g, filename = here(output_path, "Fig4.png"), width = 23.0, height = 24.0, dpi = 65)
 
 ggsave(plot = g, filename = here(output_path, "Fig4.tiff"), width = 23.0, height = 24.0, dpi = 65, device = "tiff")
 ```
