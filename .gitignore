@@ -6,6 +6,6 @@
 *.code-workspace
 _AnalysisLog.md
 # 以下、無視するディレクトリ
-Data/
+#Data/
 Document/
 Output/
