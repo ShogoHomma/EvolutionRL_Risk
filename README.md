@@ -7,7 +7,8 @@ Homma S, Takezawa M (2024) Risk preference as an outcome of evolutionarily adapt
 
 ## Data
 
-Data is available at OSF https://osf.io/skd9r/. (Because the data size was large, the upload to this repository was rejected.)
+Data is available at OSF https://osf.io/skd9r/. 
+(Because the data size was large, the upload to this repository was rejected.)
 
 When analyzing the data with the analysis scripts, place the zipped data in Data directory, and unzip them.
 
